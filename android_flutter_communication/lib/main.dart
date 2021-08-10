@@ -1,6 +1,15 @@
-import 'package:flutter/material.dart';
+import 'dart:typed_data';
 
-void main() => runApp(MyApp());
+import 'package:android_flutter_communication/neza_event_channel.dart';
+import 'package:android_flutter_communication/neza_method_channel.dart';
+import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
+
+void main() {
+  runApp(MyApp());
+  NezaMethodChannel.instance.init();
+  NezaEventChannel.instance.init();
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -16,7 +25,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
@@ -25,12 +34,16 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  Uint8List? _image = null;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  @override
+  void initState() {
+    NezaEventChannel.instance.imageCallback = (image) {
+      setState(() {
+        _image = image;
+      });
+    };
+    super.initState();
   }
 
   @override
@@ -41,23 +54,25 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+          children: getChildren(),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
+    );
+  }
+
+  List<Widget> getChildren() {
+    List<Widget> result = <Widget>[];
+    if (_image != null) {
+      result.add(Image.memory(_image!));
+    }
+    result.add(
+      TextButton(
+        onPressed: () {
+          NezaMethodChannel.instance.sayHelloToNative();
+        },
+        child: Text('Say hello to native'),
       ),
     );
+    return result;
   }
 }
