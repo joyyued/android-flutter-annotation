@@ -1,6 +1,6 @@
 package com.zinc.android_flutter_annotation.channel.sender.method
 
-import com.zinc.android_flutter_annotation.channel.receiver.NezaMethodChannelProxy
+import com.zinc.android_flutter_annotation.channel.receiver.method.NezaMethodChannelProxy
 
 object NezaMethodChannelImpl : NezaMethodChannel {
     override fun sayHelloToFlutter() {

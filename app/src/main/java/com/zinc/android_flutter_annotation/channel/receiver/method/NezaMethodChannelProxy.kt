@@ -1,4 +1,4 @@
-package com.zinc.android_flutter_annotation.channel.receiver
+package com.zinc.android_flutter_annotation.channel.receiver.method
 
 import android.content.Context
 import com.zinc.android_flutter_annotation.neza.channel.MethodChannelInterface

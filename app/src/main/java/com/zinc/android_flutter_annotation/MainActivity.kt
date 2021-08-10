@@ -3,6 +3,8 @@ package com.zinc.android_flutter_annotation
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import com.zinc.android_flutter_annotation.channel.receiver.basic.NezaBasicChannelProxy
+import com.zinc.android_flutter_annotation.channel.sender.basic.NezaBasicChannelImpl
 import com.zinc.android_flutter_annotation.channel.sender.event.NezaEventChannelImpl
 import com.zinc.android_flutter_annotation.channel.sender.method.NezaMethodChannelImpl
 import com.zinc.android_flutter_annotation.neza.config.FlutterConfig
@@ -34,6 +36,10 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_send_image_info).setOnClickListener {
             val byteArray = AssetsUtils.getAssetsFile(resources, "sample.png")
             NezaEventChannelImpl.instance.sendImageInfo(byteArray)
+        }
+
+        findViewById<Button>(R.id.btn_send_json_to_flutter).setOnClickListener {
+            NezaBasicChannelImpl.sendJsonToFlutter("{\"name\":\"江澎涌\", \"age\":28}")
         }
     }
 

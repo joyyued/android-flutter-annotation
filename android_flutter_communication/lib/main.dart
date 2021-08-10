@@ -1,14 +1,15 @@
 import 'dart:typed_data';
 
+import 'package:android_flutter_communication/neza_basic_channel.dart';
 import 'package:android_flutter_communication/neza_event_channel.dart';
 import 'package:android_flutter_communication/neza_method_channel.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
 
 void main() {
   runApp(MyApp());
   NezaMethodChannel.instance.init();
   NezaEventChannel.instance.init();
+  NezaBasicChannel.instance.init();
 }
 
 class MyApp extends StatelessWidget {
@@ -71,6 +72,14 @@ class _MyHomePageState extends State<MyHomePage> {
           NezaMethodChannel.instance.sayHelloToNative();
         },
         child: Text('Say hello to native'),
+      ),
+    );
+    result.add(
+      TextButton(
+        onPressed: () {
+          NezaBasicChannel.instance.sendJsonToNative();
+        },
+        child: Text('Send json to native'),
       ),
     );
     return result;

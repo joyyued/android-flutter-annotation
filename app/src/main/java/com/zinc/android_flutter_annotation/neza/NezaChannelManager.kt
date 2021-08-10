@@ -1,7 +1,8 @@
 package com.zinc.android_flutter_annotation.neza
 
 import android.content.Context
-import com.zinc.android_flutter_annotation.channel.receiver.NezaMethodChannelProxy
+import com.zinc.android_flutter_annotation.channel.receiver.basic.NezaBasicChannelProxy
+import com.zinc.android_flutter_annotation.channel.receiver.method.NezaMethodChannelProxy
 import com.zinc.android_flutter_annotation.channel.sender.event.NezaEventChannelImpl
 import com.zinc.android_flutter_annotation.neza.utils.FlutterEngineHelper
 
@@ -16,5 +17,8 @@ object NezaChannelManager {
 
         // 初始化 event channel
         NezaEventChannelImpl.instance.init(context)
+
+        // 初始化 basic channel
+        NezaBasicChannelProxy.instance.init(context)
     }
 }
