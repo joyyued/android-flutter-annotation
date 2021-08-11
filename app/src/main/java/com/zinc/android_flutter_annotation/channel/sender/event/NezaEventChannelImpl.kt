@@ -60,6 +60,19 @@ class NezaEventChannelImpl private constructor() :
     override fun getEventSink(): EventChannel.EventSink? = eventSink
 
     override fun sendImageInfo(byteArray: ByteArray) {
+        // TODO No:2
         eventSink?.success(byteArray)
+
+        eventSink?.error()
+
+        eventSink?.endOfStream()
     }
+
+    sendImageInfor(type= type.success, type)
+    fun sendImageInfor(
+                       type :Type = ErrorType.error, byteArray: ByteArray) {
+        eventSink?.error()
+    }
+
+
 }

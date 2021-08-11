@@ -13,6 +13,7 @@
             <option value="$PROJECT_DIR$/android_flutter_communication" />
             <option value="$PROJECT_DIR$/android_flutter_communication/.android/Flutter" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/neza-annotation" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

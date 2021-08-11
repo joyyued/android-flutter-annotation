@@ -37,4 +37,5 @@ dependencies {
     implementation "com.google.android.material:material:${project.material_design_version}"
 
     api project(":flutter")
+    api project(":neza-annotation")
 }

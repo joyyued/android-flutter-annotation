@@ -7,6 +7,8 @@ import com.zinc.android_flutter_annotation.channel.receiver.basic.NezaBasicChann
 import com.zinc.android_flutter_annotation.channel.sender.basic.NezaBasicChannelImpl
 import com.zinc.android_flutter_annotation.channel.sender.event.NezaEventChannelImpl
 import com.zinc.android_flutter_annotation.channel.sender.method.NezaMethodChannelImpl
+import com.zinc.android_flutter_annotation.neza.Flutter
+import com.zinc.android_flutter_annotation.neza.FlutterChannel
 import com.zinc.android_flutter_annotation.neza.config.FlutterConfig
 import com.zinc.android_flutter_annotation.utils.AssetsUtils
 import io.flutter.embedding.android.FlutterActivity
@@ -30,12 +32,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btn_say_hello_to_flutter).setOnClickListener {
-            NezaMethodChannelImpl.sayHelloToFlutter()
+//            NezaMethodChannelImpl.sayHelloToFlutter()
+            Flutter.Channels.nezaMethodChannel.sayHelloToFlutter()
         }
 
         findViewById<Button>(R.id.btn_send_image_info).setOnClickListener {
             val byteArray = AssetsUtils.getAssetsFile(resources, "sample.png")
-            NezaEventChannelImpl.instance.sendImageInfo(byteArray)
+//            NezaEventChannelImpl.instance.sendImageInfo(error())
+            Flutter.Channels.nezaEventChannel.sendImageInfo(byteArray)
         }
 
         findViewById<Button>(R.id.btn_send_json_to_flutter).setOnClickListener {

@@ -8,3 +8,6 @@ evaluate(new File(
         '/android_flutter_communication/.android/include_flutter.groovy'
 ))
 include ':android_flutter_communication'
+include ':neza-annotation'
+include ':neza-annotation'
+include ':neza-annotation'

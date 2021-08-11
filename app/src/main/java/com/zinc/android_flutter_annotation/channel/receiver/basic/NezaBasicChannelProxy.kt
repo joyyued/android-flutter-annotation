@@ -27,7 +27,9 @@ class NezaBasicChannelProxy private constructor() : BasicChannelInterface<String
     private var channel: BasicMessageChannel<String>? = null
 
     override fun init(context: Context) {
+
         engine = FlutterEngineHelper.getFlutterEngine(engineId)?.apply {
+            // TODO No:3
             channel = BasicMessageChannel(
                 dartExecutor.binaryMessenger,
                 name,
