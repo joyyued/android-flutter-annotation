@@ -1,4 +1,4 @@
-package com.zinc.android_flutter_annotation.neza.config
+package com.joyy.neza_api.config
 
 /**
  * @author: Jiang Pengyong

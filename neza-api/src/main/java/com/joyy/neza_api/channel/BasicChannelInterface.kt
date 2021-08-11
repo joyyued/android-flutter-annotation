@@ -1,4 +1,4 @@
-package com.zinc.android_flutter_annotation.neza.channel
+package com.joyy.neza_api.channel
 
 import android.content.Context
 import io.flutter.plugin.common.BasicMessageChannel

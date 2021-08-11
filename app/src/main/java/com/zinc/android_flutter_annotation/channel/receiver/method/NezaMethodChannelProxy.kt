@@ -1,8 +1,8 @@
 package com.zinc.android_flutter_annotation.channel.receiver.method
 
 import android.content.Context
-import com.zinc.android_flutter_annotation.neza.channel.MethodChannelInterface
-import com.zinc.android_flutter_annotation.neza.utils.FlutterEngineHelper
+import com.joyy.neza_api.channel.MethodChannelInterface
+import com.joyy.neza_api.utils.FlutterEngineHelper
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 

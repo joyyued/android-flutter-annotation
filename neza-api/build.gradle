@@ -1,15 +1,12 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
-
-apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion project.compile_sdk_version as int
     buildToolsVersion project.build_tools_version
 
     defaultConfig {
-        applicationId project.applicationId
         minSdkVersion project.min_sdk_version as int
         targetSdkVersion project.target_sdk_version as int
         versionCode project.version_code as int
@@ -40,6 +37,4 @@ dependencies {
 
     implementation project(":flutter")
     implementation project(":neza-annotation")
-    implementation project(":neza-api")
-    kapt project(":neza-compiler")
 }

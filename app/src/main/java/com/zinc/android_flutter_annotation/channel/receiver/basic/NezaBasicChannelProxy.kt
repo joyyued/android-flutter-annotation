@@ -1,8 +1,8 @@
 package com.zinc.android_flutter_annotation.channel.receiver.basic
 
 import android.content.Context
-import com.zinc.android_flutter_annotation.neza.channel.BasicChannelInterface
-import com.zinc.android_flutter_annotation.neza.utils.FlutterEngineHelper
+import com.joyy.neza_api.channel.BasicChannelInterface
+import com.joyy.neza_api.utils.FlutterEngineHelper
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.BasicMessageChannel
 import io.flutter.plugin.common.StringCodec

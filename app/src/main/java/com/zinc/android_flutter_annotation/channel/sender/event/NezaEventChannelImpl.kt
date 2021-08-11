@@ -1,8 +1,8 @@
 package com.zinc.android_flutter_annotation.channel.sender.event
 
 import android.content.Context
-import com.zinc.android_flutter_annotation.neza.channel.EventChannelInterface
-import com.zinc.android_flutter_annotation.neza.utils.FlutterEngineHelper
+import com.joyy.neza_api.channel.EventChannelInterface
+import com.joyy.neza_api.utils.FlutterEngineHelper
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 
@@ -63,16 +63,16 @@ class NezaEventChannelImpl private constructor() :
         // TODO No:2
         eventSink?.success(byteArray)
 
-        eventSink?.error()
-
-        eventSink?.endOfStream()
+//        eventSink?.error()
+//
+//        eventSink?.endOfStream()
     }
-
-    sendImageInfor(type= type.success, type)
-    fun sendImageInfor(
-                       type :Type = ErrorType.error, byteArray: ByteArray) {
-        eventSink?.error()
-    }
+//
+//    sendImageInfor(type= type.success, type)
+//    fun sendImageInfor(
+//                       type :Type = ErrorType.error, byteArray: ByteArray) {
+//        eventSink?.error()
+//    }
 
 
 }

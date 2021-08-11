@@ -3,18 +3,11 @@ package com.zinc.android_flutter_annotation
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import com.zinc.android_flutter_annotation.channel.receiver.basic.NezaBasicChannelProxy
 import com.zinc.android_flutter_annotation.channel.sender.basic.NezaBasicChannelImpl
-import com.zinc.android_flutter_annotation.channel.sender.event.NezaEventChannelImpl
-import com.zinc.android_flutter_annotation.channel.sender.method.NezaMethodChannelImpl
+import com.joyy.neza_api.config.FlutterConfig
 import com.zinc.android_flutter_annotation.neza.Flutter
-import com.zinc.android_flutter_annotation.neza.FlutterChannel
-import com.zinc.android_flutter_annotation.neza.config.FlutterConfig
 import com.zinc.android_flutter_annotation.utils.AssetsUtils
 import io.flutter.embedding.android.FlutterActivity
-import java.io.BufferedReader
-import java.io.InputStream
-import java.io.InputStreamReader
 
 /**
  * @author: Jiang Pengyong

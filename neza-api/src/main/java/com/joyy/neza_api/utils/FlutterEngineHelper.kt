@@ -1,4 +1,4 @@
-package com.zinc.android_flutter_annotation.neza.utils
+package com.joyy.neza_api.utils
 
 import android.content.Context
 import io.flutter.embedding.engine.FlutterEngine
