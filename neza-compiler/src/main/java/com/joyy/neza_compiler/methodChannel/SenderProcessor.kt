@@ -97,30 +97,129 @@ class SenderProcessor(
                 )
             }
         }
-        val methodName = method.simpleName.toString()
-        list.add(
-            FunSpec.builder(methodName)
-                .addModifiers(KModifier.OVERRIDE)
-                .addParameters(parameterList)
-                .addStatement("%T.instance", receiverClassName)
-                .addStatement("  .getChannel()")
-                .addStatement("  ?.invokeMethod(%S, null)", methodName)
-                .build()
+
+        val params = HashMap::class.asClassName().parameterizedBy(
+            String::class.asTypeName(),
+            Any::class.asClassName().copy(nullable = true)
         )
 
-        val params = Map::class.asClassName().parameterizedBy(
-            String::class.asTypeName(),
-            Any::class.asClassName()
+        val scopeClassName = ClassName(
+            ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
+            ClazzConfig.Coroutine.COROUTINE_SCOPE_NAME,
         )
-        list.add(
-            FunSpec.builder(methodName)
-                .addModifiers(KModifier.OVERRIDE)
-                .addParameter("params", params)
-                .addStatement("%T.instance", receiverClassName)
-                .addStatement("  .getChannel()")
-                .addStatement("  ?.invokeMethod(%S, null)", methodName)
-                .build()
+        val dispatchersClassName = ClassName(
+            ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
+            ClazzConfig.Coroutine.COROUTINE_DISPATCHERS_NAME,
         )
+        val launchClassName = ClassName(
+            ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
+            ClazzConfig.Coroutine.COROUTINE_LAUNCH_NAME,
+        )
+        val suspendCoroutineClassName = ClassName(
+            ClazzConfig.Coroutine.COROUTINE_PACKAGE,
+            ClazzConfig.Coroutine.COROUTINE_SUSPEND_COROUTINE_NAME,
+        )
+        val resumeClassName = ClassName(
+            ClazzConfig.Coroutine.COROUTINE_PACKAGE,
+            ClazzConfig.Coroutine.COROUTINE_RESUME_NAME,
+        )
+
+        val methodName = method.simpleName.toString()
+        val syncFun = FunSpec.builder(methodName)
+            .addModifiers(KModifier.OVERRIDE)
+            .addParameters(parameterList)
+            .addStatement("val params = %T()", params)
+        if (parameters != null) {
+            for (parameter in parameters) {
+                val parameterName = parameter.simpleName.toString()
+                syncFun.addStatement("params[%S] = $parameterName", parameterName)
+            }
+        }
+        syncFun.beginControlFlow(
+            "%T(%T.Main).%T",
+            scopeClassName,
+            dispatchersClassName,
+            launchClassName
+        ).addStatement("$methodName(params)")
+            .endControlFlow()
+        list.add(syncFun.build())
+
+        val resultClassName = ClassName(
+            ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
+            ClazzConfig.METHOD_RESULT_NAME
+        )
+        val successClassName = ClassName(
+            ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
+            ClazzConfig.METHOD_RESULT_SUCCESS_NAME
+        )
+        val errorClassName = ClassName(
+            ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
+            ClazzConfig.METHOD_RESULT_ERROR_NAME
+        )
+        val typeClassName = ClassName(
+            ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
+            ClazzConfig.METHOD_RESULT_TYPE_NAME
+        )
+        val callbackClassName = ClassName(
+            ClazzConfig.Channel.METHOD_RESULT_PACKAGE,
+            ClazzConfig.Channel.METHOD_RESULT_NAME
+        )
+
+        val asyncFun = FunSpec.builder(methodName)
+            .addModifiers(KModifier.SUSPEND)
+            .addParameter("params", params)
+            .returns(resultClassName)
+            .beginControlFlow(
+                "val result = %T<%T>",
+                suspendCoroutineClassName,
+                resultClassName
+            )
+            .beginControlFlow(
+                "val callback = object : %T ",
+                callbackClassName
+            )
+
+        // callback -> success
+        asyncFun.beginControlFlow("override fun success(result: Any?)")
+            .addStatement("it.%T(", resumeClassName)
+            .addStatement("  %T(", resultClassName)
+            .addStatement("    resultType = %T.SUCCESS,", typeClassName)
+            .addStatement("    successResult = %T(result),", successClassName)
+            .addStatement("  )")
+            .addStatement(")")
+            .endControlFlow()
+
+        // callback -> error
+        asyncFun.beginControlFlow("override fun error(errorCode: String?, errorMessage: String?, errorDetails: Any?) ")
+            .addStatement("it.%T(", resumeClassName)
+            .addStatement("  %T(", resultClassName)
+            .addStatement("    resultType = %T.ERROR,", typeClassName)
+            .addStatement("    errorResult = %T(", errorClassName)
+            .addStatement("      errorCode = errorCode,")
+            .addStatement("      errorMessage = errorMessage,")
+            .addStatement("      errorDetails = errorDetails")
+            .addStatement("    )")
+            .addStatement("  )")
+            .addStatement(")")
+            .endControlFlow()
+
+        // callback -> notImplemented
+        asyncFun.beginControlFlow("override fun notImplemented() ")
+            .addStatement("it.%T(", resumeClassName)
+            .addStatement("  %T(", resultClassName)
+            .addStatement("    resultType = %T.NOT_IMPLEMENTED,", typeClassName)
+            .addStatement("  )")
+            .addStatement(")")
+            .endControlFlow()
+
+        asyncFun.endControlFlow()
+            .addStatement("%T.instance", receiverClassName)
+            .addStatement("  .getChannel()")
+            .addStatement("  ?.invokeMethod(%S, params, callback)", methodName)
+            .endControlFlow()
+            .addStatement("return result")
+
+        list.add(asyncFun.build())
 
         return list
     }

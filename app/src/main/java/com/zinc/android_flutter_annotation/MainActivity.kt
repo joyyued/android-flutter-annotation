@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btn_say_hello_to_flutter_with_callback).setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val params = HashMap<String, Any>()
+                val params = HashMap<String, Any?>()
                 val result = Flutter.Channels.nezaMethodChannel
                     .sayHelloToFlutterWithCallback(params)
                 Log.i("Neza", "method channel callback: $result")

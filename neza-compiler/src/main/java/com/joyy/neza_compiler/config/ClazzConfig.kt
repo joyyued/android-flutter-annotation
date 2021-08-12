@@ -17,9 +17,18 @@ object ClazzConfig {
     const val ENGINE_HELPER_PACKAGE = "com.joyy.neza_api.utils"
     const val ENGINE_HELPER_NAME = "FlutterEngineHelper"
 
+    const val METHOD_RESULT_MODEL_PACKAGE = "com.joyy.neza_annotation.model"
+    const val METHOD_RESULT_NAME = "MethodChannelResult"
+    const val METHOD_RESULT_SUCCESS_NAME = "SuccessResult"
+    const val METHOD_RESULT_ERROR_NAME = "ErrorResult"
+    const val METHOD_RESULT_TYPE_NAME = "MethodChannelResultType"
+
     object Channel {
         const val CHANNEL_PACKAGE = "com.joyy.neza_api.channel"
         const val METHOD_CHANNEL_NAME = "MethodChannelInterface"
+
+        const val METHOD_RESULT_PACKAGE = "io.flutter.plugin.common.MethodChannel"
+        const val METHOD_RESULT_NAME = "Result"
     }
 
     object Flutter {
@@ -44,5 +53,16 @@ object ClazzConfig {
 
         // channel
         const val NEZA_CHANNEL = "$NEZA_PACKAGE.channel"
+    }
+
+    object Coroutine {
+        const val COROUTINE_X_PACKAGE = "kotlinx.coroutines"
+        const val COROUTINE_PACKAGE = "kotlin.coroutines"
+
+        const val COROUTINE_SCOPE_NAME = "CoroutineScope"
+        const val COROUTINE_DISPATCHERS_NAME = "Dispatchers"
+        const val COROUTINE_LAUNCH_NAME = "launch"
+        const val COROUTINE_RESUME_NAME = "resume"
+        const val COROUTINE_SUSPEND_COROUTINE_NAME = "suspendCoroutine"
     }
 }
