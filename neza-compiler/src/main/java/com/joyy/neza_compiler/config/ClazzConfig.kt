@@ -17,18 +17,32 @@ object ClazzConfig {
     const val ENGINE_HELPER_PACKAGE = "com.joyy.neza_api.utils"
     const val ENGINE_HELPER_NAME = "FlutterEngineHelper"
 
+    object Channel {
+        const val CHANNEL_PACKAGE = "com.joyy.neza_api.channel"
+        const val METHOD_CHANNEL_NAME = "MethodChannelInterface"
+    }
+
+    object Flutter {
+        const val ENGINE_PACKAGE = "io.flutter.embedding.engine"
+        const val ENGINE_NAME = "FlutterEngine"
+
+        const val METHOD_CHANNEL_PACKAGE = "io.flutter.plugin.common"
+        const val METHOD_CHANNEL_NAME = "MethodChannel"
+    }
+
     object Android {
         const val CONTEXT_PACKAGE = "android.content"
         const val CONTEXT_NAME = "Context"
     }
 
     object PACKAGE {
-        const val PATH = "app/src/main/java"
-
         // 包名
         const val NEZA_PACKAGE = "com.joyy.neza"
 
         // 引擎包
         const val NEZA_ENGINE = "$NEZA_PACKAGE.engine"
+
+        // channel
+        const val NEZA_CHANNEL = "$NEZA_PACKAGE.channel"
     }
 }

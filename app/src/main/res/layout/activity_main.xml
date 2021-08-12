@@ -25,13 +25,22 @@
         app:layout_constraintTop_toBottomOf="@id/btn_goto_flutter_page" />
 
     <Button
+        android:id="@+id/btn_say_hello_to_flutter_with_callback"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="say hello to flutter with callback"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_say_hello_to_flutter" />
+
+    <Button
         android:id="@+id/btn_send_image_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="发送 image 信息"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_say_hello_to_flutter" />
+        app:layout_constraintTop_toBottomOf="@id/btn_say_hello_to_flutter_with_callback" />
 
     <Button
         android:id="@+id/btn_send_json_to_flutter"

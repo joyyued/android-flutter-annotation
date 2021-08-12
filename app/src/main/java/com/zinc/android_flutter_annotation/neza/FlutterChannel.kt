@@ -1,9 +1,9 @@
 package com.zinc.android_flutter_annotation.neza
 
 import android.content.Context
+import com.joyy.neza.channel.NezaMethodChannelProxy
 import com.joyy.neza.engine.NezaEngineCreator
 import com.zinc.android_flutter_annotation.channel.receiver.basic.NezaBasicChannelProxy
-import com.zinc.android_flutter_annotation.channel.receiver.method.NezaMethodChannelProxy
 import com.zinc.android_flutter_annotation.channel.sender.event.NezaEventChannelImpl
 import com.zinc.android_flutter_annotation.channel.sender.method.NezaMethodChannelImpl
 

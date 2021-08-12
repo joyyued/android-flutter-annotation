@@ -1,6 +1,6 @@
 package com.zinc.android_flutter_annotation.channel.sender.method
 
-import com.joyy.neza_annotation.MethodChannelType
+import com.joyy.neza_annotation.model.MethodChannelType
 import com.joyy.neza_annotation.method.FlutterMethodChannel
 import com.zinc.android_flutter_annotation.config.ChannelConfig
 
@@ -11,4 +11,6 @@ import com.zinc.android_flutter_annotation.config.ChannelConfig
 interface NezaMethodChannel {
 
     fun sayHelloToFlutter()
+
+    fun sayHelloToFlutterWithCallback(name: String, age: Int, height: Int?)
 }

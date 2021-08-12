@@ -1,6 +1,7 @@
 package com.zinc.android_flutter_annotation
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.zinc.android_flutter_annotation.channel.sender.basic.NezaBasicChannelImpl
@@ -8,6 +9,9 @@ import com.joyy.neza_api.config.FlutterConfig
 import com.zinc.android_flutter_annotation.neza.Flutter
 import com.zinc.android_flutter_annotation.utils.AssetsUtils
 import io.flutter.embedding.android.FlutterActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * @author: Jiang Pengyong
@@ -25,13 +29,21 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btn_say_hello_to_flutter).setOnClickListener {
-//            NezaMethodChannelImpl.sayHelloToFlutter()
             Flutter.Channels.nezaMethodChannel.sayHelloToFlutter()
+        }
+
+        findViewById<Button>(R.id.btn_say_hello_to_flutter_with_callback).setOnClickListener {
+            CoroutineScope(Dispatchers.Main).launch {
+                val params = HashMap<String, Any>()
+                val result = Flutter.Channels.nezaMethodChannel
+                    .sayHelloToFlutterWithCallback(params)
+                Log.i("Neza", "method channel callback: $result")
+            }
+
         }
 
         findViewById<Button>(R.id.btn_send_image_info).setOnClickListener {
             val byteArray = AssetsUtils.getAssetsFile(resources, "sample.png")
-//            NezaEventChannelImpl.instance.sendImageInfo(error())
             Flutter.Channels.nezaEventChannel.sendImageInfo(byteArray)
         }
 

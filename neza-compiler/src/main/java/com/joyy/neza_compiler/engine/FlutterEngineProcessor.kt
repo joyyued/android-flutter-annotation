@@ -1,16 +1,17 @@
-package com.joyy.neza_compiler
+package com.joyy.neza_compiler.engine
 
 import com.google.auto.service.AutoService
 import com.joyy.neza_annotation.FlutterEngine
+import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
 import com.joyy.neza_compiler.config.FlutterConfig
+import com.joyy.neza_compiler.utils.EngineHelper
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asTypeName
-import java.lang.RuntimeException
 import java.util.LinkedHashSet
 import java.util.Locale
 import javax.annotation.processing.AbstractProcessor
@@ -23,7 +24,6 @@ import javax.lang.model.SourceVersion
 import javax.lang.model.element.TypeElement
 import javax.lang.model.util.Elements
 import javax.lang.model.util.Types
-import javax.tools.Diagnostic
 
 /**
  * @author: Jiang Pengyong
@@ -32,12 +32,16 @@ import javax.tools.Diagnostic
  * @des: flutter engine 处理器
  */
 @AutoService(Processor::class)
-class FlutterEngineProcessor : AbstractProcessor() {
+class FlutterEngineProcessor : AbstractProcessor(), Printer {
+
+    companion object {
+        const val TAG = "FlutterEngineProcessor"
+    }
 
     var filer: Filer? = null
     var elementUtils: Elements? = null
     var types: Types? = null
-    var messager: Messager? = null
+    var message: Messager? = null
     var options: Map<String, String>? = null
     var sourceVersion: SourceVersion? = null
     var locale: Locale? = null
@@ -48,29 +52,19 @@ class FlutterEngineProcessor : AbstractProcessor() {
         filer = processingEnv.filer
         elementUtils = processingEnv.elementUtils
         types = processingEnv.typeUtils
-        messager = processingEnv.messager
+        message = processingEnv.messager
         options = processingEnv.options
         sourceVersion = processingEnv.sourceVersion
         locale = processingEnv.locale
     }
 
     override fun process(annotations: Set<TypeElement?>, roundEnv: RoundEnvironment): Boolean {
-        messager?.printMessage(Diagnostic.Kind.NOTE, "Flutter Engine Processor running.")
+        note("Flutter Engine Processor running.")
         if (annotations.isEmpty()) {
             return false
         }
 
-        val elements = roundEnv.getElementsAnnotatedWith(FlutterEngine::class.java)
-        val size = elements.size
-        if (size > 1) {
-            throw RuntimeException("FlutterEngine can only use once time in app.")
-        } else if (size <= 0) {
-            throw RuntimeException(
-                "You should use FlutterEngine annotation to declare the engineId first."
-            )
-        }
-
-        val element = elements.first()
+        val element = EngineHelper.getFlutterEngineElements(roundEnv).first()
         val annotation = element.getAnnotation(FlutterEngine::class.java)
         val engineId = annotation.engineId
 
@@ -108,7 +102,12 @@ class FlutterEngineProcessor : AbstractProcessor() {
             .addFunction(initFun)
             .build()
 
-        val filer = filer ?: throw RuntimeException("Filer is null.Please try to run again.")
+        val filer = filer
+
+        if (filer == null) {
+            error("Filer is null.Please try to run again.")
+            return true
+        }
 
         FileSpec.get(ClazzConfig.PACKAGE.NEZA_ENGINE, engineCreatorClazz)
             .writeTo(filer)
@@ -125,4 +124,6 @@ class FlutterEngineProcessor : AbstractProcessor() {
     override fun getSupportedSourceVersion(): SourceVersion {
         return SourceVersion.latestSupported()
     }
+
+    override fun getMessager(): Messager? = message
 }

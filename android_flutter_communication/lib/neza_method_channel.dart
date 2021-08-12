@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/services.dart';
 
 const String NEZA_METHOD_CHANNEL =
@@ -32,8 +34,19 @@ class NezaMethodChannel {
   Future<dynamic> methodCallHandler(MethodCall call) async {
     var method = call.method;
     var arguments = call.arguments;
-    if (method == "sayHelloToFlutter") {
-      print("=========== [Native to Flutter] sayHelloToFlutter ===========");
+    switch (method) {
+      case "sayHelloToFlutter":
+        print("=========== [Native to Flutter] sayHelloToFlutter ===========");
+        break;
+      case "sayHelloToFlutterWithCallback":
+        print(
+            "=========== [Native to Flutter] sayHelloToFlutterWithCallback ===========");
+        if (arguments is HashMap) {
+          var name = arguments["name"];
+          var age = arguments["age"];
+          print("sayHelloToFlutterWithCallback[name: $name, age: $age]");
+        }
+        return "Flutter had received.";
     }
   }
 }

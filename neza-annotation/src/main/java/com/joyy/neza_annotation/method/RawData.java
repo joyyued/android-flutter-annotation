@@ -1,16 +1,12 @@
 package com.joyy.neza_annotation.method;
 
-import com.joyy.neza_annotation.model.MethodChannelType;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.TYPE)
+@Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.SOURCE)
-public @interface FlutterMethodChannel {
-    MethodChannelType type();
+public @interface RawData {
 
-    String channelName();
 }
