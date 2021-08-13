@@ -1,21 +1,20 @@
-package com.joyy.neza_compiler.processor.methodChannel
+package com.joyy.neza_compiler.processor.basicChannel
 
 import com.google.auto.service.AutoService
-import javax.annotation.processing.Filer
-import javax.lang.model.SourceVersion
-import javax.annotation.processing.ProcessingEnvironment
-import javax.lang.model.element.TypeElement
-import javax.annotation.processing.RoundEnvironment
 import com.joyy.neza_annotation.method.FlutterMethodChannel
 import com.joyy.neza_annotation.model.ChannelType
 import com.joyy.neza_compiler.Printer
-import com.squareup.kotlinpoet.ClassName
 import java.util.LinkedHashSet
 import java.util.Locale
 import javax.annotation.processing.AbstractProcessor
+import javax.annotation.processing.Filer
 import javax.annotation.processing.Messager
+import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.Processor
+import javax.annotation.processing.RoundEnvironment
+import javax.lang.model.SourceVersion
 import javax.lang.model.element.Element
+import javax.lang.model.element.TypeElement
 import javax.lang.model.util.Elements
 import javax.lang.model.util.Types
 
@@ -23,10 +22,10 @@ import javax.lang.model.util.Types
  * @author: Jiang Pengyong
  * @date: 2021/8/11 1:58 下午
  * @email: 56002982@qq.com
- * @des: Method Channel 处理器
+ * @des: Basic Channel 处理器
  */
 @AutoService(Processor::class)
-class MethodChannelProcessor : AbstractProcessor(), Printer {
+class BasicChannelProcessor : AbstractProcessor(), Printer {
 
     private var filer: Filer? = null
     private var elementUtils: Elements? = null
@@ -35,9 +34,6 @@ class MethodChannelProcessor : AbstractProcessor(), Printer {
     private var options: Map<String, String>? = null
     private var sourceVersion: SourceVersion? = null
     private var locale: Locale? = null
-
-    private var receiverProcessor: ReceiverProcessor? = null
-    private var senderProcessor: SenderProcessor? = null
 
     @Synchronized
     override fun init(processingEnv: ProcessingEnvironment) {
@@ -59,8 +55,6 @@ class MethodChannelProcessor : AbstractProcessor(), Printer {
             error("Filer is null.Please try to run again.")
             return true
         }
-        receiverProcessor = ReceiverProcessor(filer, this)
-        senderProcessor = SenderProcessor(filer, this)
 
         if (annotations.isEmpty()) {
             return false
@@ -83,17 +77,6 @@ class MethodChannelProcessor : AbstractProcessor(), Printer {
             }
         }
 
-        val channelReceiverMap = HashMap<String, ClassName>()
-
-        // ============================ 生成接收者 ===============================
-        receiver.forEach { element ->
-            receiverProcessor?.handle(roundEnv, element, channelReceiverMap)
-        }
-
-        // ============================ 生成发送者 ================================
-        sender.forEach { element ->
-            senderProcessor?.handle(roundEnv, element, channelReceiverMap)
-        }
 
         return true
     }

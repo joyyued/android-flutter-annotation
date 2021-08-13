@@ -1,11 +1,9 @@
 package com.zinc.android_flutter_annotation.channel.receiver.method
 
 import android.util.Log
-import com.joyy.neza_annotation.FlutterEngine
-import com.joyy.neza_annotation.model.MethodChannelType
+import com.joyy.neza_annotation.model.ChannelType
 import com.joyy.neza_annotation.method.FlutterMethodChannel
 import com.joyy.neza_annotation.method.RawData
-import com.joyy.neza_api.config.FlutterConfig
 import com.zinc.android_flutter_annotation.config.ChannelConfig
 
 /**
@@ -16,7 +14,7 @@ import com.zinc.android_flutter_annotation.config.ChannelConfig
  */
 //@FlutterEngine(engineId = "江澎涌")
 @FlutterMethodChannel(
-    type = MethodChannelType.RECEIVER,
+    type = ChannelType.RECEIVER,
     channelName = ChannelConfig.METHOD_CHANNEL
 )
 object NezaMethodChannel {

@@ -7,6 +7,9 @@ package com.joyy.neza_annotation.model
  * @des: event channel 发送类型
  */
 enum class EventChannelSenderType {
-    ERROR,// error
-    EOS,// endOfStream
+    // error
+    ERROR,
+
+    // endOfStream
+    EOS,
 }

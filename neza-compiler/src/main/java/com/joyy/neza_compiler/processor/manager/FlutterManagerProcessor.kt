@@ -3,7 +3,7 @@ package com.joyy.neza_compiler.processor.manager
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
 import com.joyy.neza_annotation.event.FlutterEventChannel
 import com.joyy.neza_annotation.method.FlutterMethodChannel
-import com.joyy.neza_annotation.model.MethodChannelType
+import com.joyy.neza_annotation.model.ChannelType
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
 import com.joyy.neza_compiler.utils.EngineHelper
@@ -103,7 +103,7 @@ class FlutterManagerProcessor(private val filer: Filer, private val printer: Pri
 
             val clazzName = element.simpleName.toString()
             val annotation = element.getAnnotation(FlutterMethodChannel::class.java) ?: continue
-            if (annotation.type == MethodChannelType.RECEIVER) {
+            if (annotation.type == ChannelType.RECEIVER) {
                 methodChannelList.add(clazzName)
                 channelSet.add(annotation.channelName)
             }
@@ -116,7 +116,7 @@ class FlutterManagerProcessor(private val filer: Filer, private val printer: Pri
 
             val clazzName = element.simpleName.toString()
             val annotation = element.getAnnotation(FlutterMethodChannel::class.java) ?: continue
-            if (annotation.type == MethodChannelType.SENDER
+            if (annotation.type == ChannelType.SENDER
                 && !channelSet.contains(annotation.channelName)
             ) {
                 methodChannelList.add(clazzName)

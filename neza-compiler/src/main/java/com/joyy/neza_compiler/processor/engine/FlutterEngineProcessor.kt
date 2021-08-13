@@ -4,7 +4,6 @@ import com.google.auto.service.AutoService
 import com.joyy.neza_annotation.FlutterEngine
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
-import com.joyy.neza_compiler.config.FlutterConfig
 import com.joyy.neza_compiler.processor.manager.FlutterManagerProcessor
 import com.joyy.neza_compiler.utils.EngineHelper
 import com.squareup.kotlinpoet.ClassName
@@ -68,8 +67,6 @@ class FlutterEngineProcessor : AbstractProcessor(), Printer {
         val element = EngineHelper.getFlutterEngineElements(roundEnv).first()
         val annotation = element.getAnnotation(FlutterEngine::class.java)
         val engineId = annotation.engineId
-
-        FlutterConfig.setEngineList(engineId)
 
         val contextClassName = ClassName(
             ClazzConfig.Android.CONTEXT_PACKAGE,
