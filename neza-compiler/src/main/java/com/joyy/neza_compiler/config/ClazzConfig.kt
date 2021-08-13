@@ -26,6 +26,11 @@ object ClazzConfig {
     const val EVENT_CHANNEL_SENDER_TYPE_PACKAGE = "com.joyy.neza_annotation.model"
     const val EVENT_CHANNEL_SENDER_TYPE_NAME = "EventChannelSenderType"
 
+    const val FLUTTER_MANAGER_NAME = "Flutter"
+    const val FLUTTER_CHANNEL_NAME = "Channels"
+    const val FLUTTER_ENGINE_NAME = "Engine"
+    const val FLUTTER_INIT_NAME = "init"
+
     object Channel {
         const val CHANNEL_PACKAGE = "com.joyy.neza_api.channel"
         const val METHOD_CHANNEL_NAME = "MethodChannelInterface"
@@ -59,6 +64,9 @@ object ClazzConfig {
 
         // channel
         const val NEZA_CHANNEL = "$NEZA_PACKAGE.channel"
+
+        // manager
+        const val FLUTTER_MANAGER = "$NEZA_PACKAGE.manager"
     }
 
     object Coroutine {

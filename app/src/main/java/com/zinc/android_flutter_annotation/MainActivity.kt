@@ -4,9 +4,9 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import com.joyy.neza.manager.Flutter
 import com.zinc.android_flutter_annotation.channel.sender.basic.NezaBasicChannelImpl
 import com.joyy.neza_api.config.FlutterConfig
-import com.zinc.android_flutter_annotation.neza.Flutter
 import com.zinc.android_flutter_annotation.utils.AssetsUtils
 import io.flutter.embedding.android.FlutterActivity
 import kotlinx.coroutines.CoroutineScope

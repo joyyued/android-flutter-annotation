@@ -1,4 +1,4 @@
-package com.joyy.neza_compiler.eventChannel
+package com.joyy.neza_compiler.processor.eventChannel
 
 import com.google.auto.service.AutoService
 import com.joyy.neza_annotation.FlutterEngine

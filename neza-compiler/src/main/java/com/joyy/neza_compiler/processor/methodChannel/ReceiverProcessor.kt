@@ -1,4 +1,4 @@
-package com.joyy.neza_compiler.methodChannel
+package com.joyy.neza_compiler.processor.methodChannel
 
 import com.joyy.neza_annotation.FlutterEngine
 import com.joyy.neza_annotation.method.FlutterMethodChannel

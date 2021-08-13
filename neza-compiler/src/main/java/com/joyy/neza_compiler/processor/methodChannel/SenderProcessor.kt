@@ -1,4 +1,4 @@
-package com.joyy.neza_compiler.methodChannel
+package com.joyy.neza_compiler.processor.methodChannel
 
 import com.joyy.neza_annotation.method.FlutterMethodChannel
 import com.joyy.neza_compiler.Printer
@@ -11,7 +11,6 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeSpec
-import com.squareup.kotlinpoet.TypeVariableName
 import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.asTypeName
 import org.jetbrains.annotations.Nullable
@@ -21,7 +20,6 @@ import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
-import kotlin.reflect.KClass
 
 class SenderProcessor(
     private val filer: Filer,

@@ -1,41 +1,23 @@
-package com.joyy.neza_compiler.methodChannel
+package com.joyy.neza_compiler.processor.methodChannel
 
 import com.google.auto.service.AutoService
-import com.joyy.neza_annotation.FlutterEngine
 import javax.annotation.processing.Filer
 import javax.lang.model.SourceVersion
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.TypeElement
 import javax.annotation.processing.RoundEnvironment
 import com.joyy.neza_annotation.method.FlutterMethodChannel
-import com.joyy.neza_annotation.method.RawData
 import com.joyy.neza_annotation.model.MethodChannelType
 import com.joyy.neza_compiler.Printer
-import com.joyy.neza_compiler.config.ClazzConfig
-import com.joyy.neza_compiler.engine.FlutterEngineProcessor
-import com.joyy.neza_compiler.utils.EngineHelper
-import com.joyy.neza_compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
-import com.squareup.kotlinpoet.CodeBlock
-import com.squareup.kotlinpoet.FileSpec
-import com.squareup.kotlinpoet.FunSpec
-import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.PropertySpec
-import com.squareup.kotlinpoet.TypeSpec
-import com.squareup.kotlinpoet.asTypeName
-import org.jetbrains.annotations.Nullable
-import java.lang.RuntimeException
 import java.util.LinkedHashSet
 import java.util.Locale
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.Messager
 import javax.annotation.processing.Processor
 import javax.lang.model.element.Element
-import javax.lang.model.element.ElementKind
-import javax.lang.model.element.ExecutableElement
 import javax.lang.model.util.Elements
 import javax.lang.model.util.Types
-import javax.tools.Diagnostic
 
 /**
  * @author: Jiang Pengyong

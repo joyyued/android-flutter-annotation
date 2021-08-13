@@ -1,10 +1,8 @@
 package com.joyy.neza_compiler
 
 import com.joyy.neza_compiler.config.ClazzConfig
-import com.joyy.neza_compiler.engine.FlutterEngineProcessor
-import java.util.ArrayList
+import com.joyy.neza_compiler.processor.engine.FlutterEngineProcessor
 import javax.annotation.processing.Messager
-import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
 interface Printer {

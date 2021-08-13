@@ -1,10 +1,11 @@
-package com.joyy.neza_compiler.engine
+package com.joyy.neza_compiler.processor.engine
 
 import com.google.auto.service.AutoService
 import com.joyy.neza_annotation.FlutterEngine
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
 import com.joyy.neza_compiler.config.FlutterConfig
+import com.joyy.neza_compiler.processor.manager.FlutterManagerProcessor
 import com.joyy.neza_compiler.utils.EngineHelper
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
@@ -111,6 +112,8 @@ class FlutterEngineProcessor : AbstractProcessor(), Printer {
 
         FileSpec.get(ClazzConfig.PACKAGE.NEZA_ENGINE, engineCreatorClazz)
             .writeTo(filer)
+
+        FlutterManagerProcessor(filer, this).process(roundEnv)
 
         return true
     }
