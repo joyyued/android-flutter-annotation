@@ -1,5 +1,6 @@
 package com.joyy.neza_compiler.utils
 
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 
@@ -37,6 +38,11 @@ object TypeChangeUtils {
             java.lang.Boolean::class.java.asTypeName().toString() -> Boolean::class.asTypeName()
             java.lang.Byte::class.java.asTypeName().toString() -> Byte::class.asTypeName()
             java.lang.Object::class.java.asTypeName().toString() -> Any::class.asTypeName()
+            "kotlin.Array<kotlin.Byte>" -> ByteArray::class.asTypeName()
+            Array<Byte>::class.java.asTypeName().toString() -> Array::class.asTypeName()
+                .parameterizedBy(
+                    Byte::class.asTypeName()
+                )
             else -> type
         }
     }

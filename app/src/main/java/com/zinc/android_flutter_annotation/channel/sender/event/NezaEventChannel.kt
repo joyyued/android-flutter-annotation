@@ -12,4 +12,6 @@ import com.zinc.android_flutter_annotation.config.ChannelConfig
 @FlutterEventChannel(channelName = ChannelConfig.EVENT_CHANNEL)
 interface NezaEventChannel {
     fun sendImageInfo(byteArray: ByteArray)
+    fun sendImageInfo(a: Int, byteArray: ByteArray)
+    fun sendImageInfo(a: Int, b: String, byteArray: ByteArray)
 }

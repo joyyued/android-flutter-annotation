@@ -1,6 +1,7 @@
 package com.zinc.android_flutter_annotation.channel.sender.event
 
 import android.content.Context
+import com.joyy.neza_annotation.model.EventChannelSenderType
 import com.joyy.neza_api.channel.EventChannelInterface
 import com.joyy.neza_api.utils.FlutterEngineHelper
 import io.flutter.embedding.engine.FlutterEngine
@@ -35,21 +36,20 @@ class NezaEventChannelImpl private constructor() :
                 channel = EventChannel(
                     this.dartExecutor.binaryMessenger,
                     name
-                ).apply {
-                    setStreamHandler(
-                        object : EventChannel.StreamHandler {
-                            override fun onListen(
-                                arguments: Any?,
-                                events: EventChannel.EventSink
-                            ) {
-                                eventSink = events
-                            }
+                )
+                channel?.setStreamHandler(
+                    object : EventChannel.StreamHandler {
+                        override fun onListen(
+                            arguments: Any?,
+                            events: EventChannel.EventSink
+                        ) {
+                            eventSink = events
+                        }
 
-                            override fun onCancel(arguments: Any?) {
-                                eventSink = null
-                            }
-                        })
-                }
+                        override fun onCancel(arguments: Any?) {
+                            eventSink = null
+                        }
+                    })
             }
     }
 
@@ -60,14 +60,43 @@ class NezaEventChannelImpl private constructor() :
     override fun getEventSink(): EventChannel.EventSink? = eventSink
 
     override fun sendImageInfo(byteArray: ByteArray) {
-        // TODO No:2
         eventSink?.success(byteArray)
-
-//        eventSink?.error()
-//
-//        eventSink?.endOfStream()
     }
-//
+
+    override fun sendImageInfo(a: Int, byteArray: ByteArray) {
+        val params = HashMap<String, Any?>()
+        params["a"] = a
+        params["byteArray"] = byteArray
+        sendImageInfo(params)
+    }
+
+    override fun sendImageInfo(a: Int, b: String, byteArray: ByteArray) {
+        val params = HashMap<String, Any?>()
+        params["a"] = a
+        params["b"] = b
+        params["byteArray"] = byteArray
+        sendImageInfo(params)
+    }
+
+    fun sendImageInfo(params: HashMap<String, Any?>) {
+        eventSink?.success(params)
+    }
+
+    fun sendImageInfo(
+        type: EventChannelSenderType = EventChannelSenderType.ERROR,
+        errorCode: String,
+        errorMessage: String,
+        errorDetails: Any
+    ) {
+        eventSink?.error(errorCode, errorMessage, errorDetails)
+    }
+
+    fun sendImageInfo(
+        type: EventChannelSenderType = EventChannelSenderType.EOS,
+    ) {
+        eventSink?.endOfStream()
+    }
+
 //    sendImageInfor(type= type.success, type)
 //    fun sendImageInfor(
 //                       type :Type = ErrorType.error, byteArray: ByteArray) {

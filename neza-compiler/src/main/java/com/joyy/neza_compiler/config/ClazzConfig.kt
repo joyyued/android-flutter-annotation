@@ -23,9 +23,13 @@ object ClazzConfig {
     const val METHOD_RESULT_ERROR_NAME = "ErrorResult"
     const val METHOD_RESULT_TYPE_NAME = "MethodChannelResultType"
 
+    const val EVENT_CHANNEL_SENDER_TYPE_PACKAGE = "com.joyy.neza_annotation.model"
+    const val EVENT_CHANNEL_SENDER_TYPE_NAME = "EventChannelSenderType"
+
     object Channel {
         const val CHANNEL_PACKAGE = "com.joyy.neza_api.channel"
         const val METHOD_CHANNEL_NAME = "MethodChannelInterface"
+        const val EVENT_CHANNEL_NAME = "EventChannelInterface"
 
         const val METHOD_RESULT_PACKAGE = "io.flutter.plugin.common.MethodChannel"
         const val METHOD_RESULT_NAME = "Result"
@@ -37,6 +41,8 @@ object ClazzConfig {
 
         const val METHOD_CHANNEL_PACKAGE = "io.flutter.plugin.common"
         const val METHOD_CHANNEL_NAME = "MethodChannel"
+        const val EVENT_CHANNEL_NAME = "EventChannel"
+        const val SINK_NAME = "EventChannel.EventSink"
     }
 
     object Android {
