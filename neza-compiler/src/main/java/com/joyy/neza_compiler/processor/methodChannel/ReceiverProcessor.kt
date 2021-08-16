@@ -103,8 +103,7 @@ class ReceiverProcessor(
         val methodChannelProperty = PropertySpec.builder(
             methodChannelName,
             element.asType().asTypeName()
-        ).mutable()
-            .addModifiers(KModifier.PRIVATE)
+        ).addModifiers(KModifier.PRIVATE)
             .initializer("%T()", element)
             .build()
 

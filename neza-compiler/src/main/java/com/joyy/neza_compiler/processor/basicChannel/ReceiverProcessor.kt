@@ -1,5 +1,6 @@
 package com.joyy.neza_compiler.processor.basicChannel
 
+import com.joyy.neza_annotation.Callback
 import com.joyy.neza_annotation.FlutterEngine
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
 import com.joyy.neza_annotation.basic.MessageHandler
@@ -17,12 +18,13 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asTypeName
 import org.jetbrains.annotations.Nullable
+import java.util.Locale
 import javax.annotation.processing.Filer
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
-import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
+import javax.lang.model.element.VariableElement
 import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.MirroredTypeException
 import javax.lang.model.type.TypeMirror
@@ -109,6 +111,17 @@ class ReceiverProcessor(
             .initializer("null")
             .build()
 
+        // private val nezaStringBasicChannel: NezaStringBasicChannel = NezaStringBasicChannel()
+        val basicChannelName = element.simpleName.toString().replaceFirstChar {
+            it.uppercase(Locale.getDefault())
+        }
+        val basicChannelProperty = PropertySpec.builder(
+            basicChannelName,
+            element.asType().asTypeName()
+        ).addModifiers(KModifier.PRIVATE)
+            .initializer("%T()", element)
+            .build()
+
         val contextClassName = ClassName(
             ClazzConfig.Android.CONTEXT_PACKAGE,
             ClazzConfig.Android.CONTEXT_NAME,
@@ -117,8 +130,6 @@ class ReceiverProcessor(
             ClazzConfig.ENGINE_HELPER_PACKAGE,
             ClazzConfig.ENGINE_HELPER_NAME,
         )
-
-
         val initFun = FunSpec.builder("init")
             .addModifiers(KModifier.OVERRIDE)
             .addParameter("context", contextClassName)
@@ -132,6 +143,13 @@ class ReceiverProcessor(
             .addStatement("  %T.INSTANCE", codecTypeMirror)
             .addStatement(")")
             .addStatement("channel?.setMessageHandler { message, reply ->")
+
+        assembleReplyField(
+            basicChannelName,
+            element as TypeElement,
+            initFun,
+            genericsType
+        )
 
         // 拼装方法
         assembleHandleMethod(element as TypeElement, initFun)
@@ -192,6 +210,7 @@ class ReceiverProcessor(
             .addProperty(nameProperty)
             .addProperty(flutterEngineProperty)
             .addProperty(channelProperty)
+            .addProperty(basicChannelProperty)
             .addFunction(initFun.build())
             .addFunction(getChannelFun)
             .addFunction(getChannelNameFun)
@@ -207,6 +226,56 @@ class ReceiverProcessor(
             ),
             genericsType
         )
+    }
+
+    private fun assembleReplyField(
+        basicChannelName: String,
+        element: TypeElement,
+        initFun: FunSpec.Builder,
+        genericsType: TypeMirror
+    ) {
+        val enclosedElements = element.enclosedElements
+        val resultPath = ClazzConfig.Channel.METHOD_REPLY_PACKAGE +
+                "." +
+                ClazzConfig.Channel.METHOD_REPLY_NAME
+
+        val className = ClassName(
+            ClazzConfig.Channel.METHOD_REPLY_PACKAGE,
+            ClazzConfig.Channel.METHOD_REPLY_NAME
+        ).parameterizedBy(
+            TypeChangeUtils.change(genericsType.asTypeName())
+        )
+
+        val resultElements = ArrayList<VariableElement>()
+        for (item in enclosedElements) {
+            if (item !is VariableElement) {
+                continue
+            }
+
+            if (item.getAnnotation(Callback::class.java) == null) {
+                continue
+            }
+
+            val type = item.asType().toString()
+            printer.note(
+                "type: $type |" +
+                        "result: $resultPath |" +
+                        "className: $className"
+            )
+            if (type == className.toString()) {
+                printer.error(
+                    "The parameter must be a $resultPath type if you use @Callback." +
+                            "[$element -- $item]"
+                )
+                return
+            }
+            resultElements.add(item)
+//            DebugUtils.showPropertyInfo(printer, item)
+        }
+
+        for (resultElement in resultElements) {
+            initFun.addStatement("  $basicChannelName.${resultElement.simpleName} = reply")
+        }
     }
 
     private fun assembleHandleMethod(

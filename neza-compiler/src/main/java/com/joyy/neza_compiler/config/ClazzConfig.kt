@@ -39,6 +39,10 @@ object ClazzConfig {
 
         const val METHOD_RESULT_PACKAGE = "io.flutter.plugin.common.MethodChannel"
         const val METHOD_RESULT_NAME = "Result"
+
+        const val METHOD_REPLY_PACKAGE = "io.flutter.plugin.common.BasicMessageChannel"
+        const val METHOD_REPLY_NAME = "Reply"
+
     }
 
     object Flutter {
