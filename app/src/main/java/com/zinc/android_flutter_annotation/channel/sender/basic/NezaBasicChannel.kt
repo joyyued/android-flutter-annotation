@@ -17,6 +17,5 @@ import io.flutter.plugin.common.StringCodec
     type = ChannelType.SENDER
 )
 interface NezaBasicChannel {
-
     fun sendJsonToFlutter(json: String)
 }

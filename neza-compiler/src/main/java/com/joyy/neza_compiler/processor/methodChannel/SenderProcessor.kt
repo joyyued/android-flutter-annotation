@@ -38,7 +38,7 @@ class SenderProcessor(
         val kind = element.kind
 
         if (kind != ElementKind.INTERFACE) {
-            error("The sender of Method channel must be a interface.[$clazzName]")
+            printer.error("The sender of Method channel must be a interface.[$clazzName]")
         }
 
         val enclosedElements = (element as TypeElement).enclosedElements

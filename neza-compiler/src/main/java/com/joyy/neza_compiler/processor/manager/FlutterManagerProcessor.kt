@@ -93,7 +93,6 @@ class FlutterManagerProcessor(private val filer: Filer, private val printer: Pri
     private fun handleMethodChannel(roundEnv: RoundEnvironment): ArrayList<PropertySpec> {
         val methodChannel = roundEnv.getElementsAnnotatedWith(FlutterMethodChannel::class.java)
 
-
         val channelSet: HashSet<String> = HashSet()
 
         for (element in methodChannel) {
@@ -127,7 +126,7 @@ class FlutterManagerProcessor(private val filer: Filer, private val printer: Pri
         return assembleProperty(
             methodChannelList,
             "%T",
-            "============  Method Channel ============"
+            "============ Method Channel ============"
         )
     }
 
@@ -145,16 +144,48 @@ class FlutterManagerProcessor(private val filer: Filer, private val printer: Pri
         return assembleProperty(
             eventChannelList,
             "%T.instance",
-            "============  Event Channel ============"
+            "============ Event Channel ============"
         )
     }
 
     private fun handleBasicChannel(roundEnv: RoundEnvironment): ArrayList<PropertySpec> {
         val basicChannel = roundEnv.getElementsAnnotatedWith(FlutterBasicChannel::class.java)
 
-        val propertySpecList = ArrayList<PropertySpec>()
+        val channelSet: HashSet<String> = HashSet()
 
-        return propertySpecList
+        for (element in basicChannel) {
+            if (element !is TypeElement) {
+                continue
+            }
+
+            val clazzName = element.simpleName.toString()
+            val annotation = element.getAnnotation(FlutterBasicChannel::class.java) ?: continue
+            if (annotation.type == ChannelType.RECEIVER) {
+                basicChannelList.add(clazzName)
+                channelSet.add(annotation.channelName)
+            }
+        }
+
+        for (element in basicChannel) {
+            if (element !is TypeElement) {
+                continue
+            }
+
+            val clazzName = element.simpleName.toString()
+            val annotation = element.getAnnotation(FlutterBasicChannel::class.java) ?: continue
+            if (annotation.type == ChannelType.SENDER
+                && !channelSet.contains(annotation.channelName)
+            ) {
+                basicChannelList.add(clazzName)
+                channelSet.add(annotation.channelName)
+            }
+        }
+
+        return assembleProperty(
+            basicChannelList,
+            "%T",
+            "============ Basic Channel ============"
+        )
     }
 
     private fun assembleProperty(

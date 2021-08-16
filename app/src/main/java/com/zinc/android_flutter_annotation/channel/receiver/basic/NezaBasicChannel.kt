@@ -19,7 +19,7 @@ import java.lang.reflect.Type
     type = ChannelType.RECEIVER
 )
 object NezaBasicChannel {
-    fun receiverJsonFromFlutter(json: String) {
+    fun receiverJsonFromFlutter(json: String?) {
         Log.e("NezaBasicChannel", "[Flutter -> Native]$json")
     }
 }

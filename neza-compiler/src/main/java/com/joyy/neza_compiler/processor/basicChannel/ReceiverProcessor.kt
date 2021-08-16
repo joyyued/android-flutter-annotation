@@ -1,7 +1,7 @@
-package com.joyy.neza_compiler.processor.methodChannel
+package com.joyy.neza_compiler.processor.basicChannel
 
 import com.joyy.neza_annotation.FlutterEngine
-import com.joyy.neza_annotation.method.FlutterMethodChannel
+import com.joyy.neza_annotation.basic.FlutterBasicChannel
 import com.joyy.neza_annotation.method.RawData
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
@@ -12,6 +12,7 @@ import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asTypeName
@@ -22,6 +23,10 @@ import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
+import javax.lang.model.type.DeclaredType
+import javax.lang.model.type.MirroredTypeException
+import javax.lang.model.type.TypeMirror
+import javax.lang.model.util.Types
 
 /**
  * @author: Jiang Pengyong
@@ -31,21 +36,37 @@ import javax.lang.model.element.TypeElement
  */
 class ReceiverProcessor(
     private val filer: Filer,
-    private val printer: Printer
+    private val printer: Printer,
+    private val typeUtils: Types
 ) {
 
     fun handle(
         roundEnv: RoundEnvironment,
         element: Element,
-        channelReceiverMap: HashMap<String, ClassName>
+        channelReceiverMap: HashMap<String, ChannelInfo>
     ) {
         val clazzName = element.simpleName
         val generateClazzName = "${clazzName}Proxy"
-        val channelAnnotation = element.getAnnotation(FlutterMethodChannel::class.java)
+        val channelAnnotation = element.getAnnotation(FlutterBasicChannel::class.java)
         val engineAnnotation = element.getAnnotation(FlutterEngine::class.java)
         val channelName = channelAnnotation.channelName
 
-        printer.note("receiver kind: ${element.kind}")
+        var codecTypeMirror: TypeMirror? = null
+        try {
+            channelAnnotation.codecClass
+        } catch (e: MirroredTypeException) {
+            codecTypeMirror = e.typeMirror
+        }
+        if (codecTypeMirror == null) {
+            printer.error("Can not get codec.Check the codec is exist.")
+            return
+        }
+
+        val genericsType = getGenericsType(codecTypeMirror)
+        if (genericsType == null) {
+            printer.error("You must support a generic in codec.")
+            return
+        }
 
         // private val engineId = "NEZA_ENGINE_ID"
         val engineId = engineAnnotation?.engineId ?: EngineHelper.getEngineId(roundEnv)
@@ -54,7 +75,7 @@ class ReceiverProcessor(
             .initializer("%S", engineId)
             .build()
 
-        // private val name = "com.zinc.android_flutter_annotation/nezaMethodChannel"
+        // private val name = "com.zinc.android_flutter_annotation/nezaBasicChannel"
         val nameProperty = PropertySpec.builder("name", String::class)
             .addModifiers(KModifier.PRIVATE)
             .initializer("%S", channelName)
@@ -73,10 +94,12 @@ class ReceiverProcessor(
             .initializer("null")
             .build()
 
-        // private var channel: MethodChannel? = null
+        // private var channel: BasicMessageChannel? = null
         val channelClassName = ClassName(
             ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
-            ClazzConfig.Flutter.METHOD_CHANNEL_NAME,
+            ClazzConfig.Flutter.Basic_CHANNEL_NAME,
+        ).parameterizedBy(
+            TypeChangeUtils.change(genericsType.asTypeName())
         )
         val channelProperty = PropertySpec.builder(
             "channel",
@@ -95,6 +118,7 @@ class ReceiverProcessor(
             ClazzConfig.ENGINE_HELPER_NAME,
         )
 
+
         val initFun = FunSpec.builder("init")
             .addModifiers(KModifier.OVERRIDE)
             .addParameter("context", contextClassName)
@@ -102,18 +126,17 @@ class ReceiverProcessor(
                 "engine = %T.getFlutterEngine(engineId)?.apply",
                 engineHelperClassName
             )
-            .addStatement("channel = MethodChannel(")
+            .addStatement("channel = BasicMessageChannel(")
             .addStatement("  dartExecutor.binaryMessenger,")
-            .addStatement("  name")
+            .addStatement("  name,")
+            .addStatement("  %T.INSTANCE", codecTypeMirror)
             .addStatement(")")
-            .addStatement("channel?.setMethodCallHandler { call, result ->")
-            .addStatement("  val method = call.method")
-            .addStatement("  val arguments = call.arguments")
-            .addStatement("  when (method) {")
+            .addStatement("channel?.setMessageHandler { message, reply ->")
+
         // 拼装方法
         assembleMethod(element, initFun)
-        initFun.addStatement("  }")
-            .addStatement("}")
+
+        initFun.addStatement("}")
             .endControlFlow()
 
         val getChannelFun = FunSpec.builder("getChannel")
@@ -153,9 +176,11 @@ class ReceiverProcessor(
         // MethodChannelInterface
         val methodChannelInterface = ClassName(
             ClazzConfig.Channel.CHANNEL_PACKAGE,
-            ClazzConfig.Channel.METHOD_CHANNEL_NAME,
+            ClazzConfig.Channel.BASIC_CHANNEL_NAME,
+        ).parameterizedBy(
+            TypeChangeUtils.change(genericsType.asTypeName())
         )
-        val engineCreatorClazz = TypeSpec.classBuilder(generateClazzName)
+        val receiverClazz = TypeSpec.classBuilder(generateClazzName)
             .addSuperinterface(methodChannelInterface)
             .primaryConstructor(
                 FunSpec.constructorBuilder()
@@ -172,17 +197,20 @@ class ReceiverProcessor(
             .addFunction(getChannelNameFun)
             .build()
 
-        FileSpec.get(ClazzConfig.PACKAGE.NEZA_CHANNEL, engineCreatorClazz)
+        FileSpec.get(ClazzConfig.PACKAGE.NEZA_CHANNEL, receiverClazz)
             .writeTo(filer)
 
-        channelReceiverMap[channelName] = ClassName(
-            ClazzConfig.PACKAGE.NEZA_CHANNEL,
-            generateClazzName
+        channelReceiverMap[channelName] = ChannelInfo(
+            ClassName(
+                ClazzConfig.PACKAGE.NEZA_CHANNEL,
+                generateClazzName
+            ),
+            genericsType
         )
     }
 
     private fun assembleMethod(element: Element, initFun: FunSpec.Builder) {
-        val spacing = "    "
+        val spacing = "  "
         val enclosedElements = (element as TypeElement).enclosedElements
         val methodNameSet = HashSet<String>()
         for (method in enclosedElements) {
@@ -201,64 +229,84 @@ class ReceiverProcessor(
                     "Method name[$methodName] already exists in $element." +
                             "You should use different method name in this class."
                 )
+            } else if (parameters.size > 1) {
+                printer.error(
+                    "Basic method channel only can accept one parameters."
+                )
             }
 
-            printer.note(
-                "[${ClazzConfig.PROJECT_NAME}] method: $methodName |" +
-                        " ${method.asType()} |" +
-                        " ${method.kind} |" +
-                        " ${method.parameters} |" +
-                        " ${method.typeParameters}"
-            )
-
-            // "sayHelloToNative" -> {
-            val block = initFun.addStatement("$spacing%S -> {", methodName)
             if (parameters.isEmpty()) {   // 没有参数
-                block.addStatement("$spacing  %T.$methodName()", element)
+                initFun.addStatement("$spacing  %T.$methodName()", element)
             } else {    // 构建参数
-                block.addStatement("$spacing  %T.$methodName(", element)
+                initFun.addStatement("$spacing  %T.$methodName(", element)
                 for (parameter in parameters) {
                     parameter ?: continue
 
                     val paramName = parameter.simpleName
                     val paramType = parameter.asType()
-                    val rawDataAnnotation = parameter.getAnnotation(RawData::class.java)
                     val nullableAnnotation = parameter.getAnnotation(Nullable::class.java)
 
-//                    printer.note(
-//                        "params: $parameter |" +
-//                                " ${parameter.constantValue} |" +
-//                                " $paramType |" +
-//                                " $rawDataAnnotation |" +
-//                                " $nullableAnnotation |" +
-//                                " $paramName |" +
-//                                " ${parameter.modifiers}"
-//                    )
-
                     val type = TypeChangeUtils.change(paramType.toString())
-                    if (rawDataAnnotation != null) {
-                        if (type != "Any") {
-                            printer.error("Only Any type parameter can use @RawData.")
-                        }
-                        block.addStatement(
-                            "$spacing    $paramName = arguments",
-                        )
-                    } else {
-                        if (nullableAnnotation == null) {
-                            printer.error(
-                                "Parameter must be nullable unless use @RawData to the Any type" +
-                                        "parameter.[$methodName]"
-                            )
-                        }
-                        block.addStatement(
-                            "$spacing    $paramName = call.argument<$type>(\"$paramName\")",
-                        )
+
+                    if (nullableAnnotation == null) {
+                        error("Parameter must be nullable.[$methodName]")
                     }
+                    initFun.addStatement(
+                        "$spacing    $paramName = message",
+                    )
                 }
-                block.addStatement("$spacing  )")
+                initFun.addStatement("$spacing  )")
             }
-            block.addStatement("$spacing}")
             methodNameSet.add(methodName.toString())
         }
+    }
+
+    private fun getGenericsType(codecTypeMirror: TypeMirror): TypeMirror? {
+        if (codecTypeMirror !is DeclaredType) {
+            printer.error("$codecTypeMirror must be a class.")
+            return null
+        }
+        val codecElement = codecTypeMirror.asElement()
+        if (codecElement !is TypeElement) {
+            printer.error("$codecTypeMirror must be a class.")
+            return null
+        }
+        printer.note(
+            "[test] typeElement: $codecElement |" +
+                    " ${codecElement.kind} |" +
+                    " ${codecElement.superclass} |" +
+                    " ${codecElement.interfaces} |" +
+                    " ${codecElement.nestingKind} |" +
+                    " ${codecElement.enclosedElements} |" +
+                    " ${codecElement.annotationMirrors} |" +
+                    " ${codecElement.kind}"
+        )
+
+        var extendTypeMirror: TypeMirror? = null
+        for (interfaceTypeMirror in codecElement.interfaces) {
+            if (!interfaceTypeMirror.toString().startsWith(
+                    "io.flutter.plugin.common.MessageCodec"
+                )
+            ) {
+                continue
+            }
+            if (interfaceTypeMirror !is DeclaredType) {
+                continue
+            }
+            printer.note(
+                "[test] interfaceTypeMirror: $interfaceTypeMirror |" +
+                        " ${interfaceTypeMirror.annotationMirrors} |" +
+                        " ${interfaceTypeMirror.enclosingType} |" +
+                        " ${interfaceTypeMirror.typeArguments} |" +
+                        " ${interfaceTypeMirror.kind}"
+            )
+            val typeArguments = interfaceTypeMirror.typeArguments
+            if (typeArguments.size <= 0) {
+                continue
+            }
+            extendTypeMirror = typeArguments[0]
+        }
+
+        return extendTypeMirror
     }
 }

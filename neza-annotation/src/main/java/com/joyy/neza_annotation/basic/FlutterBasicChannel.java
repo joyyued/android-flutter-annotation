@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
 public @interface FlutterBasicChannel {
-    Class codecClass();
+    Class<?> codecClass();
 
     String channelName();
 

@@ -1,9 +1,10 @@
 package com.joyy.neza_compiler.processor.basicChannel
 
 import com.google.auto.service.AutoService
-import com.joyy.neza_annotation.method.FlutterMethodChannel
+import com.joyy.neza_annotation.basic.FlutterBasicChannel
 import com.joyy.neza_annotation.model.ChannelType
 import com.joyy.neza_compiler.Printer
+import com.squareup.kotlinpoet.ClassName
 import java.util.LinkedHashSet
 import java.util.Locale
 import javax.annotation.processing.AbstractProcessor
@@ -35,6 +36,9 @@ class BasicChannelProcessor : AbstractProcessor(), Printer {
     private var sourceVersion: SourceVersion? = null
     private var locale: Locale? = null
 
+    private var receiverProcessor: ReceiverProcessor? = null
+    private var senderProcessor: SenderProcessor? = null
+
     @Synchronized
     override fun init(processingEnv: ProcessingEnvironment) {
         super.init(processingEnv)
@@ -48,19 +52,31 @@ class BasicChannelProcessor : AbstractProcessor(), Printer {
     }
 
     override fun process(annotations: Set<TypeElement?>, roundEnv: RoundEnvironment): Boolean {
-        note("Method Channel Processor running .")
+        note("Basic Channel Processor running .")
 
         val filer = filer
         if (filer == null) {
             error("Filer is null.Please try to run again.")
             return true
         }
+        val elementUtils = elementUtils
+        if (elementUtils == null) {
+            error("Element utils is null.Please try to run again.")
+            return true
+        }
+        val typeUtils = types
+        if (typeUtils == null) {
+            error("Type utils is null.Please try to run again.")
+            return true
+        }
+        receiverProcessor = ReceiverProcessor(filer, this, typeUtils)
+        senderProcessor = SenderProcessor(filer, this, typeUtils)
 
         if (annotations.isEmpty()) {
             return false
         }
 
-        val elements = roundEnv.getElementsAnnotatedWith(FlutterMethodChannel::class.java)
+        val elements = roundEnv.getElementsAnnotatedWith(FlutterBasicChannel::class.java)
         if (elements.isEmpty()) {
             return true
         }
@@ -70,20 +86,31 @@ class BasicChannelProcessor : AbstractProcessor(), Printer {
         // 发送者
         val sender = ArrayList<Element>()
         elements.filterNotNull().forEach { element ->
-            val annotation = element.getAnnotation(FlutterMethodChannel::class.java)
+            val annotation = element.getAnnotation(FlutterBasicChannel::class.java)
             when (annotation.type) {
                 ChannelType.RECEIVER -> receiver.add(element)
                 ChannelType.SENDER -> sender.add(element)
             }
         }
 
+        val channelReceiverMap = HashMap<String, ChannelInfo>()
+
+        // ============================ 生成接收者 ===============================
+        receiver.forEach { element ->
+            receiverProcessor?.handle(roundEnv, element, channelReceiverMap)
+        }
+
+        // ============================ 生成发送者 ================================
+        sender.forEach { element ->
+            senderProcessor?.handle(roundEnv, element, channelReceiverMap)
+        }
 
         return true
     }
 
     override fun getSupportedAnnotationTypes(): Set<String> {
         val types: MutableSet<String> = LinkedHashSet()
-        types.add(FlutterMethodChannel::class.java.canonicalName)
+        types.add(FlutterBasicChannel::class.java.canonicalName)
         return types
     }
 
