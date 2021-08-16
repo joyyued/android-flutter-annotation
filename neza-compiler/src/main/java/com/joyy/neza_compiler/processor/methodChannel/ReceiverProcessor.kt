@@ -2,7 +2,7 @@ package com.joyy.neza_compiler.processor.methodChannel
 
 import com.joyy.neza_annotation.FlutterEngine
 import com.joyy.neza_annotation.method.FlutterMethodChannel
-import com.joyy.neza_annotation.method.RawData
+import com.joyy.neza_annotation.method.ParseData
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
 import com.joyy.neza_compiler.utils.EngineHelper
@@ -217,44 +217,51 @@ class ReceiverProcessor(
                 block.addStatement("$spacing  %T.$methodName()", element)
             } else {    // 构建参数
                 block.addStatement("$spacing  %T.$methodName(", element)
-                for (parameter in parameters) {
-                    parameter ?: continue
+                val parseDataAnnotation = method.getAnnotation(ParseData::class.java)
 
-                    val paramName = parameter.simpleName
-                    val paramType = parameter.asType()
-                    val rawDataAnnotation = parameter.getAnnotation(RawData::class.java)
-                    val nullableAnnotation = parameter.getAnnotation(Nullable::class.java)
+                if (parseDataAnnotation != null) {
+                    for (parameter in parameters) {
+                        parameter ?: continue
 
-//                    printer.note(
-//                        "params: $parameter |" +
-//                                " ${parameter.constantValue} |" +
-//                                " $paramType |" +
-//                                " $rawDataAnnotation |" +
-//                                " $nullableAnnotation |" +
-//                                " $paramName |" +
-//                                " ${parameter.modifiers}"
-//                    )
+                        val paramName = parameter.simpleName
+                        val paramType = parameter.asType()
+                        val nullableAnnotation = parameter.getAnnotation(Nullable::class.java)
 
-                    val type = TypeChangeUtils.change(paramType.toString())
-                    if (rawDataAnnotation != null) {
-                        if (type != "Any") {
-                            printer.error("Only Any type parameter can use @RawData.")
-                        }
-                        block.addStatement(
-                            "$spacing    $paramName = arguments",
-                        )
-                    } else {
+                        val type = TypeChangeUtils.change(paramType.toString())
+
                         if (nullableAnnotation == null) {
                             printer.error(
-                                "Parameter must be nullable unless use @RawData to the Any type" +
-                                        "parameter.[$methodName]"
+                                "Parameter must be nullable " +
+                                        "when you use @ParseData annotation. [$methodName]"
                             )
+                            return
                         }
                         block.addStatement(
-                            "$spacing    $paramName = call.argument<$type>(\"$paramName\")",
+                            "$spacing    $paramName = call.argument<$type>(\"$paramName\"),",
                         )
                     }
+                } else if (parameters.size == 1) {
+                    val parameter = parameters[0]
+                    val type = TypeChangeUtils.change(parameter.asType().asTypeName().toString())
+                    val name = parameter.simpleName.toString()
+                    if (type != "Any") {
+                        printer.error(
+                            "Only Any type can be use in one parameter function. [$methodName]"
+                        )
+                    }
+                    block.addStatement(
+                        "$spacing    $name = arguments",
+                    )
+                } else {
+                    printer.error(
+                        "There are more than one parameter in $methodName function." +
+                                "You have two choice:\n" +
+                                "1、Change the parameters size and the parameter must be a Any type\n" +
+                                "2、User @ParseData annotation on this method, we'll parse the data " +
+                                "for you，while it may be cause some error if you use the complex type."
+                    )
                 }
+
                 block.addStatement("$spacing  )")
             }
             block.addStatement("$spacing}")

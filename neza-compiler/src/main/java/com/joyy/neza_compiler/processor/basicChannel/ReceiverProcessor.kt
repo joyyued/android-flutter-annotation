@@ -2,7 +2,6 @@ package com.joyy.neza_compiler.processor.basicChannel
 
 import com.joyy.neza_annotation.FlutterEngine
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
-import com.joyy.neza_annotation.method.RawData
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
 import com.joyy.neza_compiler.utils.EngineHelper

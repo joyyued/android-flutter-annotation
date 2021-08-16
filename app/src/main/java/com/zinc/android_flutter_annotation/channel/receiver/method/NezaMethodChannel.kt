@@ -1,10 +1,12 @@
 package com.zinc.android_flutter_annotation.channel.receiver.method
 
 import android.util.Log
+import com.joyy.neza_annotation.Callback
 import com.joyy.neza_annotation.model.ChannelType
 import com.joyy.neza_annotation.method.FlutterMethodChannel
-import com.joyy.neza_annotation.method.RawData
+import com.joyy.neza_annotation.method.ParseData
 import com.zinc.android_flutter_annotation.config.Config
+import io.flutter.plugin.common.MethodChannel
 
 /**
  * @author: Jiang Pengyong
@@ -18,16 +20,18 @@ import com.zinc.android_flutter_annotation.config.Config
     channelName = Config.METHOD_CHANNEL
 )
 object NezaMethodChannel {
+
+//    @Callback
+//    var result: MethodChannel.Result? = null
+
     fun sayHelloToNative() {
         Log.e("NezaMethodChannel", "[Flutter -> Native]sayHelloToNative")
     }
 
-    fun sayHelloToNativeWithParam(a: Int?) {
+    @ParseData
+    fun sayHelloToNativeWithParam(name: String?, age: Int?) {
     }
 
-    fun sayHelloToNativeWithRaw(@RawData a: Any) {
+    fun sayHelloToNativeWithRaw(map: Any) {
     }
-
-//    fun sayHelloToNativeWithRawError(@RawData a: Int) {
-//    }
 }
