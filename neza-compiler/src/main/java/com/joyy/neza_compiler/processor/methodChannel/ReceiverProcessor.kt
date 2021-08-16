@@ -1,10 +1,12 @@
 package com.joyy.neza_compiler.processor.methodChannel
 
+import com.joyy.neza_annotation.Callback
 import com.joyy.neza_annotation.FlutterEngine
 import com.joyy.neza_annotation.method.FlutterMethodChannel
 import com.joyy.neza_annotation.method.ParseData
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
+import com.joyy.neza_compiler.utils.DebugUtils
 import com.joyy.neza_compiler.utils.EngineHelper
 import com.joyy.neza_compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
@@ -16,12 +18,16 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asTypeName
 import org.jetbrains.annotations.Nullable
+import java.util.Locale
 import javax.annotation.processing.Filer
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
+import javax.lang.model.element.VariableElement
+import javax.lang.model.util.Elements
+import javax.lang.model.util.Types
 
 /**
  * @author: Jiang Pengyong
@@ -30,15 +36,18 @@ import javax.lang.model.element.TypeElement
  * @des: 接收者处理器
  */
 class ReceiverProcessor(
+    private var elementUtils: Elements,
+    private var typeUtils: Types,
     private val filer: Filer,
     private val printer: Printer
 ) {
 
     fun handle(
         roundEnv: RoundEnvironment,
-        element: Element,
+        element: TypeElement,
         channelReceiverMap: HashMap<String, ClassName>
     ) {
+
         val clazzName = element.simpleName
         val generateClazzName = "${clazzName}Proxy"
         val channelAnnotation = element.getAnnotation(FlutterMethodChannel::class.java)
@@ -86,6 +95,18 @@ class ReceiverProcessor(
             .initializer("null")
             .build()
 
+        //  private val nezaMethodChannel:NezaMethodChannel = NezaMethodChannel()
+        val methodChannelName = element.simpleName.toString().replaceFirstChar {
+            it.lowercase(Locale.getDefault())
+        }
+        val methodChannelProperty = PropertySpec.builder(
+            methodChannelName,
+            element.asType().asTypeName()
+        ).mutable()
+            .addModifiers(KModifier.PRIVATE)
+            .initializer("%T()", element)
+            .build()
+
         val contextClassName = ClassName(
             ClazzConfig.Android.CONTEXT_PACKAGE,
             ClazzConfig.Android.CONTEXT_NAME,
@@ -94,7 +115,6 @@ class ReceiverProcessor(
             ClazzConfig.ENGINE_HELPER_PACKAGE,
             ClazzConfig.ENGINE_HELPER_NAME,
         )
-
         val initFun = FunSpec.builder("init")
             .addModifiers(KModifier.OVERRIDE)
             .addParameter("context", contextClassName)
@@ -107,11 +127,12 @@ class ReceiverProcessor(
             .addStatement("  name")
             .addStatement(")")
             .addStatement("channel?.setMethodCallHandler { call, result ->")
-            .addStatement("  val method = call.method")
+        assembleResultField(methodChannelName, element, initFun)
+        initFun.addStatement("  val method = call.method")
             .addStatement("  val arguments = call.arguments")
             .addStatement("  when (method) {")
         // 拼装方法
-        assembleMethod(element, initFun)
+        assembleMethod(methodChannelName, element, initFun)
         initFun.addStatement("  }")
             .addStatement("}")
             .endControlFlow()
@@ -167,6 +188,7 @@ class ReceiverProcessor(
             .addProperty(nameProperty)
             .addProperty(flutterEngineProperty)
             .addProperty(channelProperty)
+            .addProperty(methodChannelProperty)
             .addFunction(initFun.build())
             .addFunction(getChannelFun)
             .addFunction(getChannelNameFun)
@@ -181,14 +203,116 @@ class ReceiverProcessor(
         )
     }
 
-    private fun assembleMethod(element: Element, initFun: FunSpec.Builder) {
-        val spacing = "    "
-        val enclosedElements = (element as TypeElement).enclosedElements
-        val methodNameSet = HashSet<String>()
-        for (method in enclosedElements) {
-            if (method !is ExecutableElement) {
+    private fun assembleResultField(
+        methodChannelName: String,
+        element: TypeElement,
+        initFun: FunSpec.Builder
+    ) {
+        val enclosedElements = element.enclosedElements
+        val resultPath = ClazzConfig.Channel.METHOD_RESULT_PACKAGE +
+                "." +
+                ClazzConfig.Channel.METHOD_RESULT_NAME
+
+        val resultElements = ArrayList<VariableElement>()
+        for (item in enclosedElements) {
+            if (item !is VariableElement) {
                 continue
             }
+
+            if (item.getAnnotation(Callback::class.java) == null) {
+                continue
+            }
+
+            val type = item.asType()?.toString()
+            if (type != resultPath) {
+                printer.error(
+                    "The parameter must be a $resultPath type if you use @Callback." +
+                            "[$element -- $item]"
+                )
+                return
+            }
+            resultElements.add(item)
+//            DebugUtils.showPropertyInfo(printer, item)
+        }
+
+        for (resultElement in resultElements) {
+            initFun.addStatement("  $methodChannelName.${resultElement.simpleName} = result")
+        }
+    }
+
+    private fun assembleMethod(
+        methodChannelName: String,
+        element: TypeElement,
+        initFun: FunSpec.Builder
+    ) {
+        val enclosedElements = element.enclosedElements
+
+        val fieldElements = ArrayList<VariableElement>()
+        for (item in enclosedElements) {
+            if (item !is VariableElement) {
+                continue
+            }
+            fieldElements.add(item)
+//            DebugUtils.showPropertyInfo(printer, item)
+        }
+
+        val methodList = ArrayList<ExecutableElement>()
+        for (item in enclosedElements) {
+            if (item !is ExecutableElement) {
+                continue
+            }
+
+            var isSkip = false
+            for (fieldElement in fieldElements) {
+                var fieldName = fieldElement.simpleName.toString()
+                fieldName = fieldName.replaceFirstChar { it.uppercase(Locale.getDefault()) }
+                val fieldType = fieldElement.asType()
+
+                val methodName = item.simpleName.toString()
+                val parameters = item.parameters
+                if (methodName == "set${fieldName}") {
+                    if (parameters.size == 1) {
+                        val parameter = parameters[0]
+                        if (typeUtils.isSameType(parameter.asType(), fieldType)) {
+                            isSkip = true
+                            break
+                        }
+                    }
+                } else if (methodName == "get${fieldName}") {
+                    if (parameters.size == 0) {
+                        if (typeUtils.isSameType(item.returnType, fieldType)) {
+                            isSkip = true
+                            break
+                        }
+                    }
+                }
+            }
+
+            if (isSkip) {
+                continue
+            }
+
+            methodList.add(item)
+//            DebugUtils.showMethodInfo(printer, item)
+        }
+
+        assembleMethod(
+            methodChannelName = methodChannelName,
+            element = element,
+            methodList = methodList,
+            initFun = initFun,
+        )
+    }
+
+    private fun assembleMethod(
+        methodChannelName: String,
+        element: Element,
+        methodList: List<ExecutableElement>,
+        initFun: FunSpec.Builder,
+    ) {
+        val spacing = "    "
+        val methodNameSet = HashSet<String>()
+        for (method in methodList) {
             if (method.kind != ElementKind.METHOD) {
                 continue
             }
@@ -214,9 +338,9 @@ class ReceiverProcessor(
             // "sayHelloToNative" -> {
             val block = initFun.addStatement("$spacing%S -> {", methodName)
             if (parameters.isEmpty()) {   // 没有参数
-                block.addStatement("$spacing  %T.$methodName()", element)
+                block.addStatement("$spacing  $methodChannelName.$methodName()")
             } else {    // 构建参数
-                block.addStatement("$spacing  %T.$methodName(", element)
+                block.addStatement("$spacing  $methodChannelName.$methodName(")
                 val parseDataAnnotation = method.getAnnotation(ParseData::class.java)
 
                 if (parseDataAnnotation != null) {
@@ -242,7 +366,8 @@ class ReceiverProcessor(
                     }
                 } else if (parameters.size == 1) {
                     val parameter = parameters[0]
-                    val type = TypeChangeUtils.change(parameter.asType().asTypeName().toString())
+                    val type =
+                        TypeChangeUtils.change(parameter.asType().asTypeName().toString())
                     val name = parameter.simpleName.toString()
                     if (type != "Any") {
                         printer.error(

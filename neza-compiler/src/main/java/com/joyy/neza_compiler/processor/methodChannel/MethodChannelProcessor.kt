@@ -59,8 +59,20 @@ class MethodChannelProcessor : AbstractProcessor(), Printer {
             error("Filer is null.Please try to run again.")
             return true
         }
-        receiverProcessor = ReceiverProcessor(filer, this)
-        senderProcessor = SenderProcessor(filer, this)
+
+        val elementUtils = elementUtils
+        if (elementUtils == null) {
+            error("Element utils is null.Please try to run again.")
+            return true
+        }
+        val typeUtils = types
+        if (typeUtils == null) {
+            error("Type utils is null.Please try to run again.")
+            return true
+        }
+
+        receiverProcessor = ReceiverProcessor(elementUtils, typeUtils, filer, this)
+        senderProcessor = SenderProcessor(elementUtils, typeUtils, filer, this)
 
         if (annotations.isEmpty()) {
             return false
@@ -87,6 +99,9 @@ class MethodChannelProcessor : AbstractProcessor(), Printer {
 
         // ============================ 生成接收者 ===============================
         receiver.forEach { element ->
+            if(element !is TypeElement){
+                return@forEach
+            }
             receiverProcessor?.handle(roundEnv, element, channelReceiverMap)
         }
 

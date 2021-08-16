@@ -19,10 +19,12 @@ import io.flutter.plugin.common.MethodChannel
     type = ChannelType.RECEIVER,
     channelName = Config.METHOD_CHANNEL
 )
-object NezaMethodChannel {
+class NezaMethodChannel {
 
-//    @Callback
-//    var result: MethodChannel.Result? = null
+    var name :String = "jiang peng yong"
+
+    @Callback
+    var result: MethodChannel.Result? = null
 
     fun sayHelloToNative() {
         Log.e("NezaMethodChannel", "[Flutter -> Native]sayHelloToNative")

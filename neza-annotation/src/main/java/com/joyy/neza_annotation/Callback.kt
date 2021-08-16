@@ -1,9 +1,4 @@
-package com.joyy.neza_annotation;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package com.joyy.neza_annotation
 
 /**
  * @author: Jiang Pengyong
@@ -14,8 +9,7 @@ import java.lang.annotation.Target;
  * 的类中使用，并且只能标记于 io.flutter.plugin.common.MethodChannel.Result 的类型上，否则报错
  * 2、在 Basic Message Channel 的接收者中使用，即 @FlutterBasicChannel(type=ChannelType.RECEIVER)
  * 的类中使用，并且只能标记于 io.flutter.plugin.common.BasicMessageChannel.Reply<T> 的类型上，否则报错
- */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.SOURCE)
-public @interface Callback {
-}
+</T> */
+@Target(AnnotationTarget.FIELD)
+@Retention(AnnotationRetention.SOURCE)
+annotation class Callback 
