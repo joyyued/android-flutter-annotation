@@ -2,6 +2,7 @@ package com.joyy.neza_compiler.processor.basicChannel
 
 import com.joyy.neza_annotation.FlutterEngine
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
+import com.joyy.neza_annotation.basic.MessageHandler
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
 import com.joyy.neza_compiler.utils.EngineHelper
@@ -133,7 +134,7 @@ class ReceiverProcessor(
             .addStatement("channel?.setMessageHandler { message, reply ->")
 
         // 拼装方法
-        assembleMethod(element, initFun)
+        assembleHandleMethod(element as TypeElement, initFun)
 
         initFun.addStatement("}")
             .endControlFlow()
@@ -208,55 +209,68 @@ class ReceiverProcessor(
         )
     }
 
-    private fun assembleMethod(element: Element, initFun: FunSpec.Builder) {
+    private fun assembleHandleMethod(
+        typeElement: TypeElement,
+        initFun: FunSpec.Builder
+    ) {
+        val enclosedElements = typeElement.enclosedElements
+        var handleMethod: ExecutableElement? = null
+        for (enclosedElement in enclosedElements) {
+            if (enclosedElement !is ExecutableElement) {
+                continue
+            }
+            if (enclosedElement.getAnnotation(MessageHandler::class.java) == null) {
+                continue
+            }
+            handleMethod = enclosedElement
+        }
+        if (handleMethod != null) {
+            assembleHandleMethod(
+                typeElement = typeElement,
+                initFun = initFun,
+                handleMethod = handleMethod
+            )
+        }
+    }
+
+    private fun assembleHandleMethod(
+        typeElement: TypeElement,
+        initFun: FunSpec.Builder,
+        handleMethod: ExecutableElement,
+    ) {
         val spacing = "  "
-        val enclosedElements = (element as TypeElement).enclosedElements
-        val methodNameSet = HashSet<String>()
-        for (method in enclosedElements) {
-            if (method !is ExecutableElement) {
-                continue
-            }
-            if (method.kind != ElementKind.METHOD) {
-                continue
-            }
 
-            val methodName = method.simpleName
-            val parameters = method.parameters
+        val methodName = handleMethod.simpleName
+        val parameters = handleMethod.parameters
 
-            if (methodNameSet.contains(methodName.toString())) {
-                printer.error(
-                    "Method name[$methodName] already exists in $element." +
-                            "You should use different method name in this class."
-                )
-            } else if (parameters.size > 1) {
-                printer.error(
-                    "Basic method channel only can accept one parameters."
-                )
-            }
+        if (parameters.size > 1) {
+            printer.error(
+                "Basic method channel only can accept one parameters."
+            )
+            return
+        }
 
-            if (parameters.isEmpty()) {   // 没有参数
-                initFun.addStatement("$spacing  %T.$methodName()", element)
-            } else {    // 构建参数
-                initFun.addStatement("$spacing  %T.$methodName(", element)
-                for (parameter in parameters) {
-                    parameter ?: continue
+        if (parameters.isEmpty()) {   // 没有参数
+            initFun.addStatement("$spacing  %T.$methodName()", typeElement)
+        } else {    // 构建参数
+            initFun.addStatement("$spacing  %T.$methodName(", typeElement)
+            for (parameter in parameters) {
+                parameter ?: continue
 
-                    val paramName = parameter.simpleName
-                    val paramType = parameter.asType()
-                    val nullableAnnotation = parameter.getAnnotation(Nullable::class.java)
+                val paramName = parameter.simpleName
+                val paramType = parameter.asType()
+                val nullableAnnotation = parameter.getAnnotation(Nullable::class.java)
 
-                    val type = TypeChangeUtils.change(paramType.toString())
+                val type = TypeChangeUtils.change(paramType.toString())
 
-                    if (nullableAnnotation == null) {
-                        error("Parameter must be nullable.[$methodName]")
-                    }
-                    initFun.addStatement(
-                        "$spacing    $paramName = message",
-                    )
+                if (nullableAnnotation == null) {
+                    error("Parameter must be nullable.[$methodName]")
                 }
-                initFun.addStatement("$spacing  )")
+                initFun.addStatement(
+                    "$spacing    $paramName = message",
+                )
             }
-            methodNameSet.add(methodName.toString())
+            initFun.addStatement("$spacing  )")
         }
     }
 

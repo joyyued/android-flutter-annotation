@@ -2,6 +2,7 @@ package com.zinc.android_flutter_annotation.channel.receiver.basic
 
 import android.util.Log
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
+import com.joyy.neza_annotation.basic.MessageHandler
 import com.joyy.neza_annotation.model.ChannelType
 import com.zinc.android_flutter_annotation.config.Config
 import io.flutter.plugin.common.StringCodec
@@ -18,6 +19,7 @@ import io.flutter.plugin.common.StringCodec
     type = ChannelType.RECEIVER
 )
 object NezaStringBasicChannel {
+    @MessageHandler
     fun receiverJsonFromFlutter(json: String?) {
         Log.e("NezaBasicChannel", "[Flutter -> Native]$json")
     }

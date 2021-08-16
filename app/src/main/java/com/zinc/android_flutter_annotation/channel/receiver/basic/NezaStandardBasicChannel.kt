@@ -2,6 +2,7 @@ package com.zinc.android_flutter_annotation.channel.receiver.basic
 
 import android.util.Log
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
+import com.joyy.neza_annotation.basic.MessageHandler
 import com.joyy.neza_annotation.model.ChannelType
 import com.zinc.android_flutter_annotation.config.Config
 import io.flutter.plugin.common.StandardMessageCodec
@@ -18,6 +19,7 @@ import io.flutter.plugin.common.StandardMessageCodec
     type = ChannelType.RECEIVER
 )
 object NezaStandardBasicChannel {
+    @MessageHandler
     fun receiverFromFlutter(receiver: Any?) {
         val map = receiver as? HashMap<*, *> ?: return
         val name = map["name"]
