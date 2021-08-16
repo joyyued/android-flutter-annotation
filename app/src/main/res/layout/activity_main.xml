@@ -51,4 +51,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btn_send_image_info" />
 
+    <Button
+        android:id="@+id/btn_send_map_to_flutter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送 map 信息"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_send_json_to_flutter" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

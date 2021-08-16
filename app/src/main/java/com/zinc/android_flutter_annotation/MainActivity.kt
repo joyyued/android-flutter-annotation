@@ -5,8 +5,7 @@ import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.joyy.neza.manager.Flutter
-import com.zinc.android_flutter_annotation.channel.sender.basic.NezaBasicChannelImpl
-import com.joyy.neza_api.config.FlutterConfig
+import com.zinc.android_flutter_annotation.config.Config
 import com.zinc.android_flutter_annotation.utils.AssetsUtils
 import io.flutter.embedding.android.FlutterActivity
 import kotlinx.coroutines.CoroutineScope
@@ -48,14 +47,21 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btn_send_json_to_flutter).setOnClickListener {
-            NezaBasicChannelImpl.sendJsonToFlutter("{\"name\":\"江澎涌\", \"age\":28}")
+            Flutter.Channels.nezaStringBasicChannel.sendJsonToFlutter("{\"name\":\"江澎涌\", \"age\":28}")
+        }
+
+        findViewById<Button>(R.id.btn_send_map_to_flutter).setOnClickListener {
+            val map = HashMap<String, Any>()
+            map["name"] = "Jiang Peng Yong"
+            map["age"] = 28
+            Flutter.Channels.nezaStandardBasicChannel.sendToFlutter(map)
         }
     }
 
     private fun openFlutterPage() {
         startActivity(
             FlutterActivity
-                .withCachedEngine(FlutterConfig.ENGINE_ID)
+                .withCachedEngine(Config.ENGINE_ID)
                 ?.build(this)
         )
     }

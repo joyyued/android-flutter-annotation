@@ -2,7 +2,8 @@ package com.zinc.android_flutter_annotation.channel.sender.basic
 
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
 import com.joyy.neza_annotation.model.ChannelType
-import com.zinc.android_flutter_annotation.config.ChannelConfig
+import com.zinc.android_flutter_annotation.config.Config
+import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.common.StringCodec
 
 /**
@@ -12,10 +13,10 @@ import io.flutter.plugin.common.StringCodec
  * @des:
  */
 @FlutterBasicChannel(
-    codecClass = StringCodec::class,
-    channelName = ChannelConfig.EVENT_CHANNEL,
+    codecClass = StandardMessageCodec::class,
+    channelName = Config.STANDER_BASIC_CHANNEL,
     type = ChannelType.SENDER
 )
-interface NezaBasicChannel {
-    fun sendJsonToFlutter(json: String)
+interface NezaStandardBasicChannel {
+    fun sendToFlutter(sender: Any)
 }

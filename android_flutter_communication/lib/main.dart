@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:android_flutter_communication/neza_basic_channel.dart';
+import 'package:android_flutter_communication/neza_standard_basic_channel.dart';
+import 'package:android_flutter_communication/neza_string_basic_channel.dart';
 import 'package:android_flutter_communication/neza_event_channel.dart';
 import 'package:android_flutter_communication/neza_method_channel.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +10,8 @@ void main() {
   runApp(MyApp());
   NezaMethodChannel.instance.init();
   NezaEventChannel.instance.init();
-  NezaBasicChannel.instance.init();
+  NezaStringBasicChannel.instance.init();
+  NezaStandardBasicChannel.instance.init();
 }
 
 class MyApp extends StatelessWidget {
@@ -77,9 +79,17 @@ class _MyHomePageState extends State<MyHomePage> {
     result.add(
       TextButton(
         onPressed: () {
-          NezaBasicChannel.instance.sendJsonToNative();
+          NezaStringBasicChannel.instance.sendJsonToNative();
         },
         child: Text('Send json to native'),
+      ),
+    );
+    result.add(
+      TextButton(
+        onPressed: () {
+          NezaStandardBasicChannel.instance.sendToNative();
+        },
+        child: Text('Send map to native'),
       ),
     );
     return result;

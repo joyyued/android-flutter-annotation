@@ -109,7 +109,9 @@ class SenderProcessor(
                     receiverChannelInfo.typeMirror
                 )
             ) {
-                printer.error("The parameter type is not same to the basic message.")
+                printer.error("The parameter type is not same to the basic message.[$method]|" +
+                        "${parameters[0].asType()} |" +
+                        "${receiverChannelInfo.typeMirror}")
                 return list
             }
             return assembleSingleParameterFun(

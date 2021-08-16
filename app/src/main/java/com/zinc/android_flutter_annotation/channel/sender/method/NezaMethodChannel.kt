@@ -2,11 +2,11 @@ package com.zinc.android_flutter_annotation.channel.sender.method
 
 import com.joyy.neza_annotation.method.FlutterMethodChannel
 import com.joyy.neza_annotation.model.ChannelType
-import com.zinc.android_flutter_annotation.config.ChannelConfig
+import com.zinc.android_flutter_annotation.config.Config
 
 @FlutterMethodChannel(
     type = ChannelType.SENDER,
-    channelName = ChannelConfig.METHOD_CHANNEL
+    channelName = Config.METHOD_CHANNEL
 )
 interface NezaMethodChannel {
 

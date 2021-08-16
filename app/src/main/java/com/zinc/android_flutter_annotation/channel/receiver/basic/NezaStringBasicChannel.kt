@@ -3,9 +3,8 @@ package com.zinc.android_flutter_annotation.channel.receiver.basic
 import android.util.Log
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
 import com.joyy.neza_annotation.model.ChannelType
-import com.zinc.android_flutter_annotation.config.ChannelConfig
+import com.zinc.android_flutter_annotation.config.Config
 import io.flutter.plugin.common.StringCodec
-import java.lang.reflect.Type
 
 /**
  * @author: Jiang Pengyong
@@ -15,10 +14,10 @@ import java.lang.reflect.Type
  */
 @FlutterBasicChannel(
     codecClass = StringCodec::class,
-    channelName = ChannelConfig.EVENT_CHANNEL,
+    channelName = Config.STRING_BASIC_CHANNEL,
     type = ChannelType.RECEIVER
 )
-object NezaBasicChannel {
+object NezaStringBasicChannel {
     fun receiverJsonFromFlutter(json: String?) {
         Log.e("NezaBasicChannel", "[Flutter -> Native]$json")
     }

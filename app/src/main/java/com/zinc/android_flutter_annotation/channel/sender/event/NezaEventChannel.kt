@@ -1,8 +1,7 @@
 package com.zinc.android_flutter_annotation.channel.sender.event
 
-import com.joyy.neza_annotation.FlutterEngine
 import com.joyy.neza_annotation.event.FlutterEventChannel
-import com.zinc.android_flutter_annotation.config.ChannelConfig
+import com.zinc.android_flutter_annotation.config.Config
 
 /**
  * @author: Jiang Pengyong
@@ -11,7 +10,7 @@ import com.zinc.android_flutter_annotation.config.ChannelConfig
  * @des: Event Channel
  */
 //@FlutterEngine(engineId = "江澎涌")
-@FlutterEventChannel(channelName = ChannelConfig.EVENT_CHANNEL)
+@FlutterEventChannel(channelName = Config.EVENT_CHANNEL)
 interface NezaEventChannel {
     fun sendImageInfo(byteArray: ByteArray)
     fun sendImageInfo(a: Int, byteArray: ByteArray)
