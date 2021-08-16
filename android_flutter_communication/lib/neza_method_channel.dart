@@ -47,6 +47,10 @@ class NezaMethodChannel {
     print('sayHelloToNativeWithParam result: $result');
   }
 
+  methodNewName() {
+    _channel?.invokeMethod("methodNewName");
+  }
+
   Future<dynamic> methodCallHandler(MethodCall call) async {
     var method = call.method;
     var arguments = call.arguments;

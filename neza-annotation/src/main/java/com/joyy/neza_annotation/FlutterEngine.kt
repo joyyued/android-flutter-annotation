@@ -1,18 +1,11 @@
-package com.joyy.neza_annotation;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package com.joyy.neza_annotation
 
 /**
  * @author: Jiang Pengyong
  * @date: 2021/8/13 3:17 下午
  * @email: 56002982@qq.com
- * @des: flutter 的注解
+ * @des: flutter engine
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.SOURCE)
-public @interface FlutterEngine {
-    String engineId();
-}
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.SOURCE)
+annotation class FlutterEngine(val engineId: String)

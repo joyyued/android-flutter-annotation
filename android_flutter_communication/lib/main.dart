@@ -95,6 +95,14 @@ class _MyHomePageState extends State<MyHomePage> {
     result.add(
       TextButton(
         onPressed: () {
+          NezaMethodChannel.instance.methodNewName();
+        },
+        child: Text('Say hello to native [method]'),
+      ),
+    );
+    result.add(
+      TextButton(
+        onPressed: () {
           NezaStringBasicChannel.instance.sendJsonToNative();
         },
         child: Text('Send json to native'),
