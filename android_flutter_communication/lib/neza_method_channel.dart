@@ -31,6 +31,22 @@ class NezaMethodChannel {
     _channel?.invokeMethod("sayHelloToNative");
   }
 
+  sayHelloToNativeWithParam() async {
+    var map = HashMap();
+    map['name'] = '江澎涌';
+    map['age'] = 28;
+    var result = await _channel?.invokeMethod("sayHelloToNativeWithParam", map);
+    print('sayHelloToNativeWithParam result: $result');
+  }
+
+  sayHelloToNativeWithRaw() async {
+    var map = HashMap();
+    map['name'] = 'Jiang Peng Yong';
+    map['age'] = 27;
+    var result = await _channel?.invokeMethod("sayHelloToNativeWithRaw", map);
+    print('sayHelloToNativeWithParam result: $result');
+  }
+
   Future<dynamic> methodCallHandler(MethodCall call) async {
     var method = call.method;
     var arguments = call.arguments;

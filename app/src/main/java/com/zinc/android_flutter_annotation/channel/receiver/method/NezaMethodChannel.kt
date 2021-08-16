@@ -21,7 +21,7 @@ import io.flutter.plugin.common.MethodChannel
 )
 class NezaMethodChannel {
 
-    var name :String = "jiang peng yong"
+    var name: String = "jiang peng yong"
 
     @Callback
     var result: MethodChannel.Result? = null
@@ -32,8 +32,10 @@ class NezaMethodChannel {
 
     @ParseData
     fun sayHelloToNativeWithParam(name: String?, age: Int?) {
+        result?.success("receiver success[name: $name, $age]")
     }
 
     fun sayHelloToNativeWithRaw(map: Any) {
+        result?.error("100", "receiver error[$map]", null)
     }
 }

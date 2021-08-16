@@ -79,6 +79,22 @@ class _MyHomePageState extends State<MyHomePage> {
     result.add(
       TextButton(
         onPressed: () {
+          NezaMethodChannel.instance.sayHelloToNativeWithParam();
+        },
+        child: Text('Say hello to native [callback success]'),
+      ),
+    );
+    result.add(
+      TextButton(
+        onPressed: () {
+          NezaMethodChannel.instance.sayHelloToNativeWithRaw();
+        },
+        child: Text('Say hello to native [callback error]'),
+      ),
+    );
+    result.add(
+      TextButton(
+        onPressed: () {
           NezaStringBasicChannel.instance.sendJsonToNative();
         },
         child: Text('Send json to native'),
