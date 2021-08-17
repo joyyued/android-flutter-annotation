@@ -16,10 +16,10 @@ import io.flutter.plugin.common.MethodChannel
  * @des: Method Channel
  */
 //@FlutterEngine(engineId = "江澎涌")
-//@FlutterMethodChannel(
-//    type = ChannelType.RECEIVER,
-//    channelName = Config.METHOD_CHANNEL
-//)
+@FlutterMethodChannel(
+    type = ChannelType.RECEIVER,
+    channelName = Config.METHOD_CHANNEL
+)
 class NezaMethodChannel {
 
     var name: String = "jiang peng yong"

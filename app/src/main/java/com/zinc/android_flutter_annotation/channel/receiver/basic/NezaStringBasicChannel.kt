@@ -16,11 +16,11 @@ import io.flutter.plugin.common.BasicMessageChannel
  * @email: 56002982@qq.com
  * @des:
  */
-//@FlutterBasicChannel(
-//    codecClass = StringCodec::class,
-//    channelName = Config.STRING_BASIC_CHANNEL,
-//    type = ChannelType.RECEIVER
-//)
+@FlutterBasicChannel(
+    codecClass = StringCodec::class,
+    channelName = Config.STRING_BASIC_CHANNEL,
+    type = ChannelType.RECEIVER
+)
 class NezaStringBasicChannel {
 
     @Callback
