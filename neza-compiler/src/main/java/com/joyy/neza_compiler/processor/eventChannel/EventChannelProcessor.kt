@@ -284,18 +284,19 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
 
         if (!existMethods.contains(methodName)) {
             val errorFun = FunSpec.builder(methodName)
+                .addParameter("errorCode", String::class)
+                .addParameter("errorMessage", String::class)
+                .addParameter("errorDetails", Any::class)
                 .addParameter(
                     ParameterSpec.builder(
                         "type",
                         ClassName(
                             ClazzConfig.EVENT_CHANNEL_SENDER_TYPE_PACKAGE,
-                            ClazzConfig.EVENT_CHANNEL_SENDER_TYPE_NAME,
+                            ClazzConfig.EVENT_CHANNEL_SENDER_ERROR_TYPE_NAME,
                         )
-                    ).defaultValue("EventChannelSenderType.ERROR")
+                    ).defaultValue("EventChannelSenderErrorType.ERROR")
                         .build()
-                ).addParameter("errorCode", String::class)
-                .addParameter("errorMessage", String::class)
-                .addParameter("errorDetails", Any::class)
+                )
                 .addStatement("eventSink?.error(errorCode, errorMessage, errorDetails)")
                 .build()
             list.add(errorFun)
@@ -305,9 +306,9 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
                         "type",
                         ClassName(
                             ClazzConfig.EVENT_CHANNEL_SENDER_TYPE_PACKAGE,
-                            ClazzConfig.EVENT_CHANNEL_SENDER_TYPE_NAME,
+                            ClazzConfig.EVENT_CHANNEL_SENDER_EOS_TYPE_NAME,
                         )
-                    ).defaultValue("EventChannelSenderType.EOS")
+                    ).defaultValue("EventChannelSenderEOSType.EOS")
                         .build()
                 ).addStatement("eventSink?.endOfStream()")
                 .build()

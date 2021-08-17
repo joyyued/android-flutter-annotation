@@ -44,6 +44,11 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_send_image_info).setOnClickListener {
             val byteArray = AssetsUtils.getAssetsFile(resources, "sample.png")
             Flutter.Channels.nezaEventChannel.sendImageInfo(byteArray)
+            Flutter.Channels.nezaEventChannel.sendImageInfo(
+                errorCode = "",
+                errorDetails = "",
+                errorMessage = ""
+            )
         }
 
         findViewById<Button>(R.id.btn_send_json_to_flutter).setOnClickListener {

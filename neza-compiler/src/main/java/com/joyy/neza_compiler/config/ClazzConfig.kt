@@ -24,7 +24,8 @@ object ClazzConfig {
     const val METHOD_RESULT_TYPE_NAME = "MethodChannelResultType"
 
     const val EVENT_CHANNEL_SENDER_TYPE_PACKAGE = "com.joyy.neza_annotation.model"
-    const val EVENT_CHANNEL_SENDER_TYPE_NAME = "EventChannelSenderType"
+    const val EVENT_CHANNEL_SENDER_ERROR_TYPE_NAME = "EventChannelSenderErrorType"
+    const val EVENT_CHANNEL_SENDER_EOS_TYPE_NAME = "EventChannelSenderEOSType"
 
     const val FLUTTER_MANAGER_NAME = "Flutter"
     const val FLUTTER_CHANNEL_NAME = "Channels"

@@ -1,6 +1,7 @@
 package com.joyy.neza_annotation.method
 
 import com.joyy.neza_annotation.model.ChannelType
+import java.lang.annotation.RetentionPolicy
 
 /**
  * @author: Jiang Pengyong
