@@ -325,13 +325,13 @@ class ReceiverProcessor(
         genericsTypeName: TypeName
     ) {
         val enclosedElements = element.enclosedElements
-        val resultPath = ClazzConfig.Channel.METHOD_REPLY_PACKAGE +
+        val resultPath = ClazzConfig.Flutter.BASIC_REPLY_PACKAGE +
                 "." +
-                ClazzConfig.Channel.METHOD_REPLY_NAME
+                ClazzConfig.Flutter.BASIC_REPLY_NAME
 
         val className = ClassName(
-            ClazzConfig.Channel.METHOD_REPLY_PACKAGE,
-            ClazzConfig.Channel.METHOD_REPLY_NAME
+            ClazzConfig.Flutter.BASIC_REPLY_PACKAGE,
+            ClazzConfig.Flutter.BASIC_REPLY_NAME
         ).parameterizedBy(
             genericsTypeName
         )

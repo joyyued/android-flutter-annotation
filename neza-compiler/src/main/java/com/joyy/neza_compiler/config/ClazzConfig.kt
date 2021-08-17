@@ -34,16 +34,10 @@ object ClazzConfig {
 
     object Channel {
         const val CHANNEL_PACKAGE = "com.joyy.neza_api.channel"
+
         const val METHOD_CHANNEL_NAME = "MethodChannelInterface"
         const val EVENT_CHANNEL_NAME = "EventChannelInterface"
         const val BASIC_CHANNEL_NAME = "BasicChannelInterface"
-
-        const val METHOD_RESULT_PACKAGE = "io.flutter.plugin.common.MethodChannel"
-        const val METHOD_RESULT_NAME = "Result"
-
-        const val METHOD_REPLY_PACKAGE = "io.flutter.plugin.common.BasicMessageChannel"
-        const val METHOD_REPLY_NAME = "Reply"
-
     }
 
     object Flutter {
@@ -54,8 +48,14 @@ object ClazzConfig {
         const val METHOD_CHANNEL_NAME = "MethodChannel"
         const val EVENT_CHANNEL_NAME = "EventChannel"
         const val Basic_CHANNEL_NAME = "BasicMessageChannel"
-        const val Basic_CHANNEL_REPLY_NAME = "BasicMessageChannel.Reply"
-        const val SINK_NAME = "EventChannel.EventSink"
+
+        const val SINK_NAME = "$EVENT_CHANNEL_NAME.EventSink"
+
+        const val METHOD_RESULT_PACKAGE = "$METHOD_CHANNEL_PACKAGE.$METHOD_CHANNEL_NAME"
+        const val METHOD_RESULT_NAME = "Result"
+
+        const val BASIC_REPLY_PACKAGE = "$METHOD_CHANNEL_PACKAGE.$Basic_CHANNEL_NAME"
+        const val BASIC_REPLY_NAME = "Reply"
     }
 
     object Android {

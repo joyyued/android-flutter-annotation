@@ -221,9 +221,9 @@ class ReceiverProcessor(
         initFun: FunSpec.Builder
     ) {
         val enclosedElements = element.enclosedElements
-        val resultPath = ClazzConfig.Channel.METHOD_RESULT_PACKAGE +
+        val resultPath = ClazzConfig.Flutter.METHOD_RESULT_PACKAGE +
                 "." +
-                ClazzConfig.Channel.METHOD_RESULT_NAME
+                ClazzConfig.Flutter.METHOD_RESULT_NAME
 
         val resultElements = ArrayList<VariableElement>()
         for (item in enclosedElements) {

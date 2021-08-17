@@ -166,8 +166,8 @@ class SenderProcessor(
             ClazzConfig.METHOD_RESULT_TYPE_NAME
         )
         val callbackClassName = ClassName(
-            ClazzConfig.Channel.METHOD_RESULT_PACKAGE,
-            ClazzConfig.Channel.METHOD_RESULT_NAME
+            ClazzConfig.Flutter.METHOD_RESULT_PACKAGE,
+            ClazzConfig.Flutter.METHOD_RESULT_NAME
         )
 
         val asyncFun = FunSpec.builder(methodName)
