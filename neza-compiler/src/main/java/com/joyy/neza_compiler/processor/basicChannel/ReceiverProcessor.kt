@@ -6,6 +6,7 @@ import com.joyy.neza_annotation.basic.FlutterBasicChannel
 import com.joyy.neza_annotation.basic.MessageHandler
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
+import com.joyy.neza_compiler.utils.DebugUtils
 import com.joyy.neza_compiler.utils.EngineHelper
 import com.joyy.neza_compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
@@ -15,6 +16,7 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asTypeName
 import org.jetbrains.annotations.Nullable
@@ -22,7 +24,9 @@ import java.util.Locale
 import javax.annotation.processing.Filer
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
+import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
+import javax.lang.model.element.Modifier
 import javax.lang.model.element.TypeElement
 import javax.lang.model.element.VariableElement
 import javax.lang.model.type.DeclaredType
@@ -44,7 +48,7 @@ class ReceiverProcessor(
 
     fun handle(
         roundEnv: RoundEnvironment,
-        element: Element,
+        element: TypeElement,
         channelReceiverMap: HashMap<String, ChannelInfo>
     ) {
         val clazzName = element.simpleName
@@ -64,11 +68,21 @@ class ReceiverProcessor(
             return
         }
 
+        checkCodecClass(element, codecTypeMirror)
+
         val genericsType = getGenericsType(codecTypeMirror)
         if (genericsType == null) {
             printer.error("You must support a generic in codec.")
             return
         }
+        DebugUtils.showInfo(printer, genericsType)
+//        val isGenericsNullable = genericsType.getAnnotation(Nullable::class.java) != null
+//        val genericsTypeName = if (isGenericsNullable) {
+//            TypeChangeUtils.change(genericsType.asTypeName()).copy(nullable = true)
+//        } else {
+//            TypeChangeUtils.change(genericsType.asTypeName())
+//        }
+        val genericsTypeName = TypeChangeUtils.change(genericsType.asTypeName())
 
         // private val engineId = "NEZA_ENGINE_ID"
         val engineId = engineAnnotation?.engineId ?: EngineHelper.getEngineId(roundEnv)
@@ -96,12 +110,13 @@ class ReceiverProcessor(
             .initializer("null")
             .build()
 
+
         // private var channel: BasicMessageChannel? = null
         val channelClassName = ClassName(
             ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
             ClazzConfig.Flutter.Basic_CHANNEL_NAME,
         ).parameterizedBy(
-            TypeChangeUtils.change(genericsType.asTypeName())
+            genericsTypeName
         )
         val channelProperty = PropertySpec.builder(
             "channel",
@@ -146,13 +161,13 @@ class ReceiverProcessor(
 
         assembleReplyField(
             basicChannelName,
-            element as TypeElement,
+            element,
             initFun,
-            genericsType
+            genericsTypeName
         )
 
         // 拼装方法
-        assembleHandleMethod(element as TypeElement, initFun)
+        assembleHandleMethod(element, initFun)
 
         initFun.addStatement("}")
             .endControlFlow()
@@ -228,11 +243,85 @@ class ReceiverProcessor(
         )
     }
 
+    private fun checkCodecClass(
+        typeElement: TypeElement,
+        codecTypeMirror: TypeMirror
+    ) {
+        if (codecTypeMirror !is DeclaredType) {
+            printer.error("$codecTypeMirror must be a class.")
+            return
+        }
+        val codecElement = codecTypeMirror.asElement()
+        if (codecElement !is TypeElement) {
+            printer.error("$codecTypeMirror must be a class.")
+            return
+        }
+
+        val enclosedElements = codecElement.enclosedElements
+        var isFindInstance = false
+//        var isFindInstancePrivate = false
+        for (enclosedElement in enclosedElements) {
+            if (enclosedElement.kind != ElementKind.FIELD) {
+                continue
+            }
+            if (enclosedElement !is VariableElement) {
+                continue
+            }
+
+            printer.note("===== $typeElement =====")
+            DebugUtils.showInfo(printer, enclosedElement)
+
+            if (enclosedElement.simpleName.toString() != "INSTANCE") {
+                continue
+            }
+
+            var isFindStatic = false
+            for (modifier in enclosedElement.modifiers) {
+                if (modifier == Modifier.STATIC) {
+                    isFindStatic = true
+                }
+//                else if (modifier == Modifier.PRIVATE) {
+//                    isFindInstancePrivate = true
+//                }
+            }
+
+            if (isFindStatic) {
+                isFindInstance = true
+                break
+            }
+        }
+
+//        printer.note("===== $typeElement ===== | $isFindInstance | $isFindInstancePrivate")
+
+        if (!isFindInstance) {
+            printer.error("You need support a static INSTANCE field. [$typeElement]")
+            return
+        }
+
+//        if (isFindInstancePrivate) {
+//            for (enclosedElement in enclosedElements) {
+//                if (enclosedElement !is ExecutableElement) {
+//                    continue
+//                }
+//                if (enclosedElement.simpleName.toString() != "getINSTANCE") {
+//                    continue
+//                }
+//
+//                for (modifier in enclosedElement.modifiers) {
+//                    if (modifier == Modifier.PRIVATE) {
+//                        printer.error("You need support a public static INSTANCE field. [$typeElement]")
+//                        return
+//                    }
+//                }
+//            }
+//        }
+    }
+
     private fun assembleReplyField(
         basicChannelName: String,
         element: TypeElement,
         initFun: FunSpec.Builder,
-        genericsType: TypeMirror
+        genericsTypeName: TypeName
     ) {
         val enclosedElements = element.enclosedElements
         val resultPath = ClazzConfig.Channel.METHOD_REPLY_PACKAGE +
@@ -243,7 +332,7 @@ class ReceiverProcessor(
             ClazzConfig.Channel.METHOD_REPLY_PACKAGE,
             ClazzConfig.Channel.METHOD_REPLY_NAME
         ).parameterizedBy(
-            TypeChangeUtils.change(genericsType.asTypeName())
+            genericsTypeName
         )
 
         val resultElements = ArrayList<VariableElement>()
@@ -323,22 +412,15 @@ class ReceiverProcessor(
             initFun.addStatement("$spacing  %T.$methodName()", typeElement)
         } else {    // 构建参数
             initFun.addStatement("$spacing  %T.$methodName(", typeElement)
-            for (parameter in parameters) {
-                parameter ?: continue
+            val parameter = parameters[0]
+            val paramName = parameter.simpleName
+            parameter.getAnnotation(Nullable::class.java)
+                ?: error("Parameter must be nullable.[$methodName]")
 
-                val paramName = parameter.simpleName
-                val paramType = parameter.asType()
-                val nullableAnnotation = parameter.getAnnotation(Nullable::class.java)
+            initFun.addStatement(
+                "$spacing    $paramName = message",
+            )
 
-                val type = TypeChangeUtils.change(paramType.toString())
-
-                if (nullableAnnotation == null) {
-                    error("Parameter must be nullable.[$methodName]")
-                }
-                initFun.addStatement(
-                    "$spacing    $paramName = message",
-                )
-            }
             initFun.addStatement("$spacing  )")
         }
     }
@@ -353,16 +435,6 @@ class ReceiverProcessor(
             printer.error("$codecTypeMirror must be a class.")
             return null
         }
-        printer.note(
-            "[test] typeElement: $codecElement |" +
-                    " ${codecElement.kind} |" +
-                    " ${codecElement.superclass} |" +
-                    " ${codecElement.interfaces} |" +
-                    " ${codecElement.nestingKind} |" +
-                    " ${codecElement.enclosedElements} |" +
-                    " ${codecElement.annotationMirrors} |" +
-                    " ${codecElement.kind}"
-        )
 
         var extendTypeMirror: TypeMirror? = null
         for (interfaceTypeMirror in codecElement.interfaces) {
@@ -375,13 +447,7 @@ class ReceiverProcessor(
             if (interfaceTypeMirror !is DeclaredType) {
                 continue
             }
-            printer.note(
-                "[test] interfaceTypeMirror: $interfaceTypeMirror |" +
-                        " ${interfaceTypeMirror.annotationMirrors} |" +
-                        " ${interfaceTypeMirror.enclosingType} |" +
-                        " ${interfaceTypeMirror.typeArguments} |" +
-                        " ${interfaceTypeMirror.kind}"
-            )
+
             val typeArguments = interfaceTypeMirror.typeArguments
             if (typeArguments.size <= 0) {
                 continue

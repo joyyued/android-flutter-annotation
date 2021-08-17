@@ -18,6 +18,7 @@ import javax.lang.model.element.Element
 import javax.lang.model.element.TypeElement
 import javax.lang.model.util.Elements
 import javax.lang.model.util.Types
+import kotlin.contracts.contract
 
 /**
  * @author: Jiang Pengyong
@@ -97,11 +98,17 @@ class BasicChannelProcessor : AbstractProcessor(), Printer {
 
         // ============================ 生成接收者 ===============================
         receiver.forEach { element ->
+            if (element !is TypeElement) {
+                return@forEach
+            }
             receiverProcessor?.handle(roundEnv, element, channelReceiverMap)
         }
 
         // ============================ 生成发送者 ================================
         sender.forEach { element ->
+            if (element !is TypeElement) {
+                return@forEach
+            }
             senderProcessor?.handle(roundEnv, element, channelReceiverMap)
         }
 

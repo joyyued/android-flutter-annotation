@@ -5,11 +5,12 @@ import com.joyy.neza_compiler.Printer
 import java.lang.StringBuilder
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.VariableElement
+import javax.lang.model.type.TypeMirror
 
 object DebugUtils {
-    fun showMethodInfo(printer: Printer, element: ExecutableElement) {
+    fun showInfo(printer: Printer, element: ExecutableElement) {
         val stringBuilder = StringBuilder()
-        stringBuilder.appendLine(element)
+        stringBuilder.append("【 Executable Element 】").appendLine(element)
             .append("simpleName: ").appendLine(element.simpleName)
             .append("kind: ").appendLine(element.kind)
             .append("modifiers: ").appendLine(element.modifiers)
@@ -28,9 +29,9 @@ object DebugUtils {
         printer.note(stringBuilder.toString())
     }
 
-    fun showPropertyInfo(printer: Printer, element: VariableElement) {
+    fun showInfo(printer: Printer, element: VariableElement) {
         val stringBuilder = StringBuilder()
-        stringBuilder.appendLine(element)
+        stringBuilder.append("【 Variable Element 】").appendLine(element)
             .append("simpleName: ").appendLine(element.simpleName)
             .append("kind: ").appendLine(element.kind)
             .append("modifiers: ").appendLine(element.modifiers)
@@ -39,6 +40,15 @@ object DebugUtils {
             .append("enclosedElements: ").appendLine(element.enclosedElements)
             .append("enclosingElement: ").appendLine(element.enclosingElement)
             .append("asType: ").appendLine(element.asType())
+        printer.note(stringBuilder.toString())
+    }
+
+    fun showInfo(printer: Printer, typeMirror: TypeMirror?) {
+        typeMirror ?: return
+        val stringBuilder = StringBuilder()
+        stringBuilder.append("【 Type Mirror 】").appendLine(typeMirror)
+            .append("annotationMirrors: ").appendLine(typeMirror.annotationMirrors)
+            .append("kind: ").appendLine(typeMirror.kind)
         printer.note(stringBuilder.toString())
     }
 }
