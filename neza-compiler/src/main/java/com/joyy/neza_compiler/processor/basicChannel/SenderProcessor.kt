@@ -98,7 +98,7 @@ class SenderProcessor(
         val list = ArrayList<FunSpec>()
         val receiverChannelInfo = channelReceiverMap[channelName]
         if (receiverChannelInfo == null) {
-            printer.error("[Sender] Receiver is null.")
+            printer.error("[Basic Sender] Receiver is null.")
             return list
         }
 

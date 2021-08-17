@@ -35,7 +35,7 @@ class SenderProcessor(
         element: Element,
         channelReceiverMap: HashMap<String, ClassName>
     ) {
-        val clazzName = element.simpleName
+        val clazzName = element.simpleName.toString()
         val generateClazzName = "${clazzName}Impl"
         val channelAnnotation = element.getAnnotation(FlutterMethodChannel::class.java)
         val channelName = channelAnnotation.channelName
@@ -53,7 +53,7 @@ class SenderProcessor(
                     continue
                 }
                 functions.addAll(
-                    assembleFunction(method, channelName, channelReceiverMap)
+                    assembleFunction(clazzName, method, channelName, channelReceiverMap)
                 )
             }
         }
@@ -70,15 +70,18 @@ class SenderProcessor(
     }
 
     private fun assembleFunction(
+        clazzName: String,
         method: ExecutableElement,
         channelName: String,
         channelReceiverMap: HashMap<String, ClassName>
     ): ArrayList<FunSpec> {
         val list = ArrayList<FunSpec>()
-        val receiverClassName = channelReceiverMap[channelName]
+        var receiverClassName = channelReceiverMap[channelName]
         if (receiverClassName == null) {
-            printer.error("[Sender] Receiver is null.")
-            return list
+            receiverClassName = ClassName(
+                ClazzConfig.PACKAGE.NEZA_CHANNEL,
+                "${clazzName}Proxy"
+            )
         }
 
         val parameters = method.parameters

@@ -46,7 +46,8 @@ class ReceiverProcessor(
     fun handle(
         roundEnv: RoundEnvironment,
         element: TypeElement,
-        channelReceiverMap: HashMap<String, ClassName>
+        channelReceiverMap: HashMap<String, ClassName>,
+        isLackCreator: Boolean = false
     ) {
 
         val clazzName = element.simpleName
@@ -55,7 +56,10 @@ class ReceiverProcessor(
         val engineAnnotation = element.getAnnotation(FlutterEngine::class.java)
         val channelName = channelAnnotation.channelName
 
-        printer.note("receiver kind: ${element.kind}")
+//        printer.note("receiver kind: ${element.kind}")
+
+        val funList = ArrayList<FunSpec>()
+        val propertyList = ArrayList<PropertySpec>()
 
         // private val engineId = "NEZA_ENGINE_ID"
         val engineId = engineAnnotation?.engineId ?: EngineHelper.getEngineId(roundEnv)
@@ -63,12 +67,14 @@ class ReceiverProcessor(
             .addModifiers(KModifier.PRIVATE)
             .initializer("%S", engineId)
             .build()
+        propertyList.add(engineIdProperty)
 
         // private val name = "com.zinc.android_flutter_annotation/nezaMethodChannel"
         val nameProperty = PropertySpec.builder("name", String::class)
             .addModifiers(KModifier.PRIVATE)
             .initializer("%S", channelName)
             .build()
+        propertyList.add(nameProperty)
 
         // private var engine: FlutterEngine? = null
         val engineClassName = ClassName(
@@ -82,6 +88,7 @@ class ReceiverProcessor(
             .addModifiers(KModifier.PRIVATE)
             .initializer("null")
             .build()
+        propertyList.add(flutterEngineProperty)
 
         // private var channel: MethodChannel? = null
         val channelClassName = ClassName(
@@ -95,17 +102,21 @@ class ReceiverProcessor(
             .addModifiers(KModifier.PRIVATE)
             .initializer("null")
             .build()
+        propertyList.add(channelProperty)
 
         //  private val nezaMethodChannel:NezaMethodChannel = NezaMethodChannel()
         val methodChannelName = element.simpleName.toString().replaceFirstChar {
             it.lowercase(Locale.getDefault())
         }
-        val methodChannelProperty = PropertySpec.builder(
-            methodChannelName,
-            element.asType().asTypeName()
-        ).addModifiers(KModifier.PRIVATE)
-            .initializer("%T()", element)
-            .build()
+        if (!isLackCreator) {
+            val methodChannelProperty = PropertySpec.builder(
+                methodChannelName,
+                element.asType().asTypeName()
+            ).addModifiers(KModifier.PRIVATE)
+                .initializer("%T()", element)
+                .build()
+            propertyList.add(methodChannelProperty)
+        }
 
         val contextClassName = ClassName(
             ClazzConfig.Android.CONTEXT_PACKAGE,
@@ -127,25 +138,32 @@ class ReceiverProcessor(
             .addStatement("  name")
             .addStatement(")")
             .addStatement("channel?.setMethodCallHandler { call, result ->")
-        assembleResultField(methodChannelName, element, initFun)
+        if (!isLackCreator) {
+            assembleResultField(methodChannelName, element, initFun)
+        }
         initFun.addStatement("  val method = call.method")
             .addStatement("  val arguments = call.arguments")
             .addStatement("  when (method) {")
-        // 拼装方法
-        assembleMethod(methodChannelName, element, initFun)
+        if (!isLackCreator) {
+            // 拼装方法
+            assembleMethod(methodChannelName, element, initFun)
+        }
         initFun.addStatement("  }")
             .addStatement("}")
             .endControlFlow()
+        funList.add(initFun.build())
 
         val getChannelFun = FunSpec.builder("getChannel")
             .addModifiers(KModifier.OVERRIDE)
             .addStatement("return channel")
             .build()
+        funList.add(getChannelFun)
 
         val getChannelNameFun = FunSpec.builder("getChannelName")
             .addModifiers(KModifier.OVERRIDE)
             .addStatement("return name")
             .build()
+        funList.add(getChannelNameFun)
 
         val companion = TypeSpec.companionObjectBuilder()
             .addProperty(
@@ -184,14 +202,8 @@ class ReceiverProcessor(
                     .build()
             )
             .addType(companion)
-            .addProperty(engineIdProperty)
-            .addProperty(nameProperty)
-            .addProperty(flutterEngineProperty)
-            .addProperty(channelProperty)
-            .addProperty(methodChannelProperty)
-            .addFunction(initFun.build())
-            .addFunction(getChannelFun)
-            .addFunction(getChannelNameFun)
+            .addProperties(propertyList)
+            .addFunctions(funList)
             .build()
 
         FileSpec.get(ClazzConfig.PACKAGE.NEZA_CHANNEL, engineCreatorClazz)

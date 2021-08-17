@@ -101,16 +101,30 @@ class FlutterEngineProcessor : AbstractProcessor(), Printer {
             .build()
 
         val filer = filer
-
         if (filer == null) {
             error("Filer is null.Please try to run again.")
+            return true
+        }
+        val elementUtils = elementUtils
+        if (elementUtils == null) {
+            error("Element utils is null.Please try to run again.")
+            return true
+        }
+        val typeUtils = types
+        if (typeUtils == null) {
+            error("Type utils is null.Please try to run again.")
             return true
         }
 
         FileSpec.get(ClazzConfig.PACKAGE.NEZA_ENGINE, engineCreatorClazz)
             .writeTo(filer)
 
-        FlutterManagerProcessor(filer, this).process(roundEnv)
+        FlutterManagerProcessor(
+            elementUtils,
+            typeUtils,
+            filer,
+            this
+        ).process(roundEnv)
 
         return true
     }

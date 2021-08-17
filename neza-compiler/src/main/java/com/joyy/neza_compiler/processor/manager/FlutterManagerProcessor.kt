@@ -18,6 +18,8 @@ import java.util.Locale
 import javax.annotation.processing.Filer
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.TypeElement
+import javax.lang.model.util.Elements
+import javax.lang.model.util.Types
 
 /**
  * @author: Jiang Pengyong
@@ -25,11 +27,20 @@ import javax.lang.model.element.TypeElement
  * @email: 56002982@qq.com
  * @des: flutter manager 处理器
  */
-class FlutterManagerProcessor(private val filer: Filer, private val printer: Printer) {
+class FlutterManagerProcessor(
+    private val elementUtils: Elements,
+    private val typeUtils: Types,
+    private val filer: Filer,
+    private val printer: Printer
+) {
 
-    private val methodChannelList = ArrayList<String>()
+    private val methodReceiverClassNameList = ArrayList<String>()
+    private val methodReceiverChannelNameSet = HashSet<String>()
+    private val methodSenderClassNameList = ArrayList<String>()
+    private val methodSenderChannelNameSet = HashSet<String>()
     private val eventChannelList = ArrayList<String>()
-    private val basicChannelList = ArrayList<String>()
+    private val basicReceiverChannelList = ArrayList<String>()
+    private val basicSenderChannelList = ArrayList<String>()
 
     fun process(roundEnv: RoundEnvironment) {
         printer.note("Flutter Manager Processor running.")
@@ -93,8 +104,6 @@ class FlutterManagerProcessor(private val filer: Filer, private val printer: Pri
     private fun handleMethodChannel(roundEnv: RoundEnvironment): ArrayList<PropertySpec> {
         val methodChannel = roundEnv.getElementsAnnotatedWith(FlutterMethodChannel::class.java)
 
-        val channelSet: HashSet<String> = HashSet()
-
         for (element in methodChannel) {
             if (element !is TypeElement) {
                 continue
@@ -103,28 +112,51 @@ class FlutterManagerProcessor(private val filer: Filer, private val printer: Pri
             val clazzName = element.simpleName.toString()
             val annotation = element.getAnnotation(FlutterMethodChannel::class.java) ?: continue
             if (annotation.type == ChannelType.RECEIVER) {
-                methodChannelList.add(clazzName)
-                channelSet.add(annotation.channelName)
+                methodReceiverClassNameList.add(clazzName)
+                methodReceiverChannelNameSet.add(annotation.channelName)
+            } else {
+                methodSenderClassNameList.add(clazzName)
+                methodSenderChannelNameSet.add(annotation.channelName)
             }
         }
 
+        val needCreatorChannelName: HashSet<String> = HashSet()
+        for (channel in methodSenderChannelNameSet) {
+            if (methodReceiverChannelNameSet.contains(channel)) {
+                continue
+            }
+            needCreatorChannelName.add(channel)
+        }
+        val needCreatorChannelElement: HashSet<TypeElement> = HashSet()
         for (element in methodChannel) {
             if (element !is TypeElement) {
                 continue
             }
-
-            val clazzName = element.simpleName.toString()
             val annotation = element.getAnnotation(FlutterMethodChannel::class.java) ?: continue
-            if (annotation.type == ChannelType.SENDER
-                && !channelSet.contains(annotation.channelName)
-            ) {
-                methodChannelList.add(clazzName)
-                channelSet.add(annotation.channelName)
+
+            if (needCreatorChannelName.contains(annotation.channelName)) {
+                needCreatorChannelElement.add(element)
+                methodReceiverClassNameList.add(element.simpleName.toString())
             }
+        }
+        val methodProcessor = com.joyy.neza_compiler.processor.methodChannel.ReceiverProcessor(
+            elementUtils = elementUtils,
+            typeUtils = typeUtils,
+            filer = filer,
+            printer = printer
+        )
+        for (typeElement in needCreatorChannelElement) {
+            methodProcessor.handle(
+                roundEnv = roundEnv,
+                element = typeElement,
+                channelReceiverMap = HashMap(),
+                isLackCreator = true,
+            )
+            methodReceiverClassNameList.add(typeElement.simpleName.toString())
         }
 
         return assembleProperty(
-            methodChannelList,
+            methodSenderClassNameList,
             "%T",
             "============ Method Channel ============"
         )
@@ -161,28 +193,14 @@ class FlutterManagerProcessor(private val filer: Filer, private val printer: Pri
             val clazzName = element.simpleName.toString()
             val annotation = element.getAnnotation(FlutterBasicChannel::class.java) ?: continue
             if (annotation.type == ChannelType.RECEIVER) {
-                basicChannelList.add(clazzName)
-                channelSet.add(annotation.channelName)
-            }
-        }
-
-        for (element in basicChannel) {
-            if (element !is TypeElement) {
-                continue
-            }
-
-            val clazzName = element.simpleName.toString()
-            val annotation = element.getAnnotation(FlutterBasicChannel::class.java) ?: continue
-            if (annotation.type == ChannelType.SENDER
-                && !channelSet.contains(annotation.channelName)
-            ) {
-                basicChannelList.add(clazzName)
-                channelSet.add(annotation.channelName)
+                basicReceiverChannelList.add(clazzName)
+            } else {
+                basicSenderChannelList.add(clazzName)
             }
         }
 
         return assembleProperty(
-            basicChannelList,
+            basicSenderChannelList,
             "%T",
             "============ Basic Channel ============"
         )
@@ -233,7 +251,7 @@ class FlutterManagerProcessor(private val filer: Filer, private val printer: Pri
             )
         )
 
-        for (element in methodChannelList) {
+        for (element in methodReceiverClassNameList) {
             val name = "${element}Proxy"
             initFun.addStatement(
                 "%T.instance.init(context)",
@@ -255,7 +273,7 @@ class FlutterManagerProcessor(private val filer: Filer, private val printer: Pri
             )
         }
 
-        for (element in basicChannelList) {
+        for (element in basicReceiverChannelList) {
             val name = "${element}Proxy"
             initFun.addStatement(
                 "%T.instance.init(context)",
