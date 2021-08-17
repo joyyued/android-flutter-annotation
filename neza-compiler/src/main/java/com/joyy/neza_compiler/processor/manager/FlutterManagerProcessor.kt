@@ -38,9 +38,14 @@ class FlutterManagerProcessor(
     private val methodReceiverChannelNameSet = HashSet<String>()
     private val methodSenderClassNameList = ArrayList<String>()
     private val methodSenderChannelNameSet = HashSet<String>()
+
     private val eventChannelList = ArrayList<String>()
-    private val basicReceiverChannelList = ArrayList<String>()
-    private val basicSenderChannelList = ArrayList<String>()
+
+    private val basicReceiverClassNameList = ArrayList<String>()
+    private val basicReceiverChannelNameSet = HashSet<String>()
+    private val basicSenderClassNameList = ArrayList<String>()
+    private val basicSenderChannelNameSet = HashSet<String>()
+
 
     fun process(roundEnv: RoundEnvironment) {
         printer.note("Flutter Manager Processor running.")
@@ -152,7 +157,6 @@ class FlutterManagerProcessor(
                 channelReceiverMap = HashMap(),
                 isLackCreator = true,
             )
-            methodReceiverClassNameList.add(typeElement.simpleName.toString())
         }
 
         return assembleProperty(
@@ -183,8 +187,6 @@ class FlutterManagerProcessor(
     private fun handleBasicChannel(roundEnv: RoundEnvironment): ArrayList<PropertySpec> {
         val basicChannel = roundEnv.getElementsAnnotatedWith(FlutterBasicChannel::class.java)
 
-        val channelSet: HashSet<String> = HashSet()
-
         for (element in basicChannel) {
             if (element !is TypeElement) {
                 continue
@@ -193,14 +195,49 @@ class FlutterManagerProcessor(
             val clazzName = element.simpleName.toString()
             val annotation = element.getAnnotation(FlutterBasicChannel::class.java) ?: continue
             if (annotation.type == ChannelType.RECEIVER) {
-                basicReceiverChannelList.add(clazzName)
+                basicReceiverClassNameList.add(clazzName)
+                basicReceiverChannelNameSet.add(annotation.channelName)
             } else {
-                basicSenderChannelList.add(clazzName)
+                basicSenderClassNameList.add(clazzName)
+                basicSenderChannelNameSet.add(annotation.channelName)
             }
         }
 
+        val needCreatorChannelName: HashSet<String> = HashSet()
+        for (channel in basicSenderChannelNameSet) {
+            if (basicReceiverChannelNameSet.contains(channel)) {
+                continue
+            }
+            needCreatorChannelName.add(channel)
+        }
+        val needCreatorChannelElement: HashSet<TypeElement> = HashSet()
+        for (element in basicChannel) {
+            if (element !is TypeElement) {
+                continue
+            }
+            val annotation = element.getAnnotation(FlutterBasicChannel::class.java) ?: continue
+
+            if (needCreatorChannelName.contains(annotation.channelName)) {
+                needCreatorChannelElement.add(element)
+                basicReceiverClassNameList.add(element.simpleName.toString())
+            }
+        }
+        val basicProcessor = com.joyy.neza_compiler.processor.basicChannel.ReceiverProcessor(
+            typeUtils = typeUtils,
+            filer = filer,
+            printer = printer
+        )
+        for (typeElement in needCreatorChannelElement) {
+            basicProcessor.handle(
+                roundEnv = roundEnv,
+                element = typeElement,
+                channelReceiverMap = HashMap(),
+                isLackCreator = true,
+            )
+        }
+
         return assembleProperty(
-            basicSenderChannelList,
+            basicSenderClassNameList,
             "%T",
             "============ Basic Channel ============"
         )
@@ -273,7 +310,7 @@ class FlutterManagerProcessor(
             )
         }
 
-        for (element in basicReceiverChannelList) {
+        for (element in basicReceiverClassNameList) {
             val name = "${element}Proxy"
             initFun.addStatement(
                 "%T.instance.init(context)",

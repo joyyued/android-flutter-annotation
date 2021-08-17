@@ -66,6 +66,26 @@ class SenderProcessor(
             error("The sender of Method channel must be a interface.[$clazzName]")
         }
 
+        val codecTypeMirror = BasicProcessorUtils.getCodecTypeMirror(channelAnnotation)
+        if (codecTypeMirror == null) {
+            printer.error("Can not get codec.Check the codec is exist.")
+            return
+        }
+        val genericsType = BasicProcessorUtils.getGenericsType(codecTypeMirror, printer)
+        if (genericsType == null) {
+            printer.error("You must support a generic in codec.")
+            return
+        }
+        if(channelReceiverMap[channelName] == null){
+            channelReceiverMap[channelName] = ChannelInfo(
+                className = ClassName(
+                    ClazzConfig.PACKAGE.NEZA_CHANNEL,
+                    "${clazzName}Proxy"
+                ),
+                typeMirror = genericsType
+            )
+        }
+
         val enclosedElements = (element as TypeElement).enclosedElements
         val functions = ArrayList<FunSpec>()
         if (enclosedElements != null) {
@@ -74,7 +94,11 @@ class SenderProcessor(
                     continue
                 }
                 functions.addAll(
-                    assembleFunction(method, channelName, channelReceiverMap)
+                    assembleFunction(
+                        method,
+                        channelName,
+                        channelReceiverMap
+                    )
                 )
             }
         }
@@ -98,7 +122,7 @@ class SenderProcessor(
         val list = ArrayList<FunSpec>()
         val receiverChannelInfo = channelReceiverMap[channelName]
         if (receiverChannelInfo == null) {
-            printer.error("[Basic Sender] Receiver is null.")
+            printer.error("[Sender] Receiver is null.")
             return list
         }
 
@@ -109,9 +133,11 @@ class SenderProcessor(
                     receiverChannelInfo.typeMirror
                 )
             ) {
-                printer.error("The parameter type is not same to the basic message.[$method]|" +
-                        "${parameters[0].asType()} |" +
-                        "${receiverChannelInfo.typeMirror}")
+                printer.error(
+                    "The parameter type is not same to the basic message.[$method]|" +
+                            "${parameters[0].asType()} |" +
+                            "${receiverChannelInfo.typeMirror}"
+                )
                 return list
             }
             return assembleSingleParameterFun(

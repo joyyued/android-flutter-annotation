@@ -6,6 +6,7 @@ import com.joyy.neza_annotation.basic.FlutterBasicChannel
 import com.joyy.neza_annotation.basic.MessageHandler
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
+import com.joyy.neza_compiler.processor.basicChannel.BasicProcessorUtils.getGenericsType
 import com.joyy.neza_compiler.utils.DebugUtils
 import com.joyy.neza_compiler.utils.EngineHelper
 import com.joyy.neza_compiler.utils.TypeChangeUtils
@@ -49,7 +50,8 @@ class ReceiverProcessor(
     fun handle(
         roundEnv: RoundEnvironment,
         element: TypeElement,
-        channelReceiverMap: HashMap<String, ChannelInfo>
+        channelReceiverMap: HashMap<String, ChannelInfo>,
+        isLackCreator: Boolean = false
     ) {
         val clazzName = element.simpleName
         val generateClazzName = "${clazzName}Proxy"
@@ -57,20 +59,12 @@ class ReceiverProcessor(
         val engineAnnotation = element.getAnnotation(FlutterEngine::class.java)
         val channelName = channelAnnotation.channelName
 
-        var codecTypeMirror: TypeMirror? = null
-        try {
-            channelAnnotation.codecClass
-        } catch (e: MirroredTypeException) {
-            codecTypeMirror = e.typeMirror
-        }
+        val codecTypeMirror = BasicProcessorUtils.getCodecTypeMirror(channelAnnotation)
         if (codecTypeMirror == null) {
             printer.error("Can not get codec.Check the codec is exist.")
             return
         }
-
-        checkCodecClass(element, codecTypeMirror)
-
-        val genericsType = getGenericsType(codecTypeMirror)
+        val genericsType = BasicProcessorUtils.getGenericsType(codecTypeMirror, printer)
         if (genericsType == null) {
             printer.error("You must support a generic in codec.")
             return
@@ -84,18 +78,23 @@ class ReceiverProcessor(
 //        }
         val genericsTypeName = TypeChangeUtils.change(genericsType.asTypeName())
 
+        val propertyList = ArrayList<PropertySpec>()
+        val funList = ArrayList<FunSpec>()
+
         // private val engineId = "NEZA_ENGINE_ID"
         val engineId = engineAnnotation?.engineId ?: EngineHelper.getEngineId(roundEnv)
         val engineIdProperty = PropertySpec.builder("engineId", String::class)
             .addModifiers(KModifier.PRIVATE)
             .initializer("%S", engineId)
             .build()
+        propertyList.add(engineIdProperty)
 
         // private val name = "com.zinc.android_flutter_annotation/nezaBasicChannel"
         val nameProperty = PropertySpec.builder("name", String::class)
             .addModifiers(KModifier.PRIVATE)
             .initializer("%S", channelName)
             .build()
+        propertyList.add(nameProperty)
 
         // private var engine: FlutterEngine? = null
         val engineClassName = ClassName(
@@ -109,7 +108,7 @@ class ReceiverProcessor(
             .addModifiers(KModifier.PRIVATE)
             .initializer("null")
             .build()
-
+        propertyList.add(flutterEngineProperty)
 
         // private var channel: BasicMessageChannel? = null
         val channelClassName = ClassName(
@@ -125,17 +124,21 @@ class ReceiverProcessor(
             .addModifiers(KModifier.PRIVATE)
             .initializer("null")
             .build()
+        propertyList.add(channelProperty)
 
         // private val nezaStringBasicChannel: NezaStringBasicChannel = NezaStringBasicChannel()
         val basicChannelName = element.simpleName.toString().replaceFirstChar {
             it.uppercase(Locale.getDefault())
         }
-        val basicChannelProperty = PropertySpec.builder(
-            basicChannelName,
-            element.asType().asTypeName()
-        ).addModifiers(KModifier.PRIVATE)
-            .initializer("%T()", element)
-            .build()
+        if (!isLackCreator) {
+            val basicChannelProperty = PropertySpec.builder(
+                basicChannelName,
+                element.asType().asTypeName()
+            ).addModifiers(KModifier.PRIVATE)
+                .initializer("%T()", element)
+                .build()
+            propertyList.add(basicChannelProperty)
+        }
 
         val contextClassName = ClassName(
             ClazzConfig.Android.CONTEXT_PACKAGE,
@@ -159,28 +162,32 @@ class ReceiverProcessor(
             .addStatement(")")
             .addStatement("channel?.setMessageHandler { message, reply ->")
 
-        assembleReplyField(
-            basicChannelName,
-            element,
-            initFun,
-            genericsTypeName
-        )
-
-        // 拼装方法
-        assembleHandleMethod(element, initFun)
+        if (!isLackCreator) {
+            assembleReplyField(
+                basicChannelName,
+                element,
+                initFun,
+                genericsTypeName
+            )
+            // 拼装方法
+            assembleHandleMethod(element, initFun)
+        }
 
         initFun.addStatement("}")
             .endControlFlow()
+        funList.add(initFun.build())
 
         val getChannelFun = FunSpec.builder("getChannel")
             .addModifiers(KModifier.OVERRIDE)
             .addStatement("return channel")
             .build()
+        funList.add(getChannelFun)
 
         val getChannelNameFun = FunSpec.builder("getChannelName")
             .addModifiers(KModifier.OVERRIDE)
             .addStatement("return name")
             .build()
+        funList.add(getChannelNameFun)
 
         val companion = TypeSpec.companionObjectBuilder()
             .addProperty(
@@ -221,14 +228,8 @@ class ReceiverProcessor(
                     .build()
             )
             .addType(companion)
-            .addProperty(engineIdProperty)
-            .addProperty(nameProperty)
-            .addProperty(flutterEngineProperty)
-            .addProperty(channelProperty)
-            .addProperty(basicChannelProperty)
-            .addFunction(initFun.build())
-            .addFunction(getChannelFun)
-            .addFunction(getChannelNameFun)
+            .addProperties(propertyList)
+            .addFunctions(funList)
             .build()
 
         FileSpec.get(ClazzConfig.PACKAGE.NEZA_CHANNEL, receiverClazz)
@@ -423,38 +424,5 @@ class ReceiverProcessor(
 
             initFun.addStatement("$spacing  )")
         }
-    }
-
-    private fun getGenericsType(codecTypeMirror: TypeMirror): TypeMirror? {
-        if (codecTypeMirror !is DeclaredType) {
-            printer.error("$codecTypeMirror must be a class.")
-            return null
-        }
-        val codecElement = codecTypeMirror.asElement()
-        if (codecElement !is TypeElement) {
-            printer.error("$codecTypeMirror must be a class.")
-            return null
-        }
-
-        var extendTypeMirror: TypeMirror? = null
-        for (interfaceTypeMirror in codecElement.interfaces) {
-            if (!interfaceTypeMirror.toString().startsWith(
-                    "io.flutter.plugin.common.MessageCodec"
-                )
-            ) {
-                continue
-            }
-            if (interfaceTypeMirror !is DeclaredType) {
-                continue
-            }
-
-            val typeArguments = interfaceTypeMirror.typeArguments
-            if (typeArguments.size <= 0) {
-                continue
-            }
-            extendTypeMirror = typeArguments[0]
-        }
-
-        return extendTypeMirror
     }
 }
