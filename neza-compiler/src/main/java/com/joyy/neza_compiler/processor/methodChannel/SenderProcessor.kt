@@ -3,23 +3,30 @@ package com.joyy.neza_compiler.processor.methodChannel
 import com.joyy.neza_annotation.method.FlutterMethodChannel
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
+import com.joyy.neza_compiler.processor.common.ParamType
+import com.joyy.neza_compiler.processor.common.SenderProcessorBase
+import com.joyy.neza_compiler.utils.DebugUtils
 import com.joyy.neza_compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
+import com.squareup.kotlinpoet.ParameterizedTypeName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.asTypeName
 import org.jetbrains.annotations.Nullable
+import sun.security.ssl.Debug
+import java.lang.reflect.ParameterizedType
 import javax.annotation.processing.Filer
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
+import javax.lang.model.element.VariableElement
 import javax.lang.model.util.Elements
 import javax.lang.model.util.Types
 
@@ -27,8 +34,37 @@ class SenderProcessor(
     private val elementUtils: Elements,
     private val typeUtils: Types,
     private val filer: Filer,
-    private val printer: Printer
-) {
+    printer: Printer
+) : SenderProcessorBase(printer) {
+
+    private val resultClassName = ClassName(
+        ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
+        ClazzConfig.METHOD_RESULT_NAME
+    )
+    private val successClassName = ClassName(
+        ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
+        ClazzConfig.METHOD_RESULT_SUCCESS_NAME
+    )
+    private val errorClassName = ClassName(
+        ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
+        ClazzConfig.METHOD_RESULT_ERROR_NAME
+    )
+    private val typeClassName = ClassName(
+        ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
+        ClazzConfig.METHOD_RESULT_TYPE_NAME
+    )
+    private val callbackClassName = ClassName(
+        ClazzConfig.Flutter.METHOD_RESULT_PACKAGE,
+        ClazzConfig.Flutter.METHOD_RESULT_NAME
+    )
+    private val suspendCoroutineClassName = ClassName(
+        ClazzConfig.Coroutine.COROUTINE_PACKAGE,
+        ClazzConfig.Coroutine.COROUTINE_SUSPEND_COROUTINE_NAME,
+    )
+    private val resumeClassName = ClassName(
+        ClazzConfig.Coroutine.COROUTINE_PACKAGE,
+        ClazzConfig.Coroutine.COROUTINE_RESUME_NAME,
+    )
 
     fun handle(
         roundEnv: RoundEnvironment,
@@ -47,13 +83,20 @@ class SenderProcessor(
 
         val enclosedElements = (element as TypeElement).enclosedElements
         val functions = ArrayList<FunSpec>()
+        val mapAsyncFunctions = HashSet<String>()
         if (enclosedElements != null) {
             for (method in enclosedElements) {
                 if (method !is ExecutableElement) {
                     continue
                 }
                 functions.addAll(
-                    assembleFunction(clazzName, method, channelName, channelReceiverMap)
+                    assembleFunction(
+                        clazzName,
+                        method,
+                        channelName,
+                        channelReceiverMap,
+                        mapAsyncFunctions
+                    )
                 )
             }
         }
@@ -73,9 +116,16 @@ class SenderProcessor(
         clazzName: String,
         method: ExecutableElement,
         channelName: String,
-        channelReceiverMap: HashMap<String, ClassName>
+        channelReceiverMap: HashMap<String, ClassName>,
+        mapAsyncFunctions: HashSet<String>
     ): ArrayList<FunSpec> {
-        val list = ArrayList<FunSpec>()
+
+        val methodName = method.simpleName.toString()
+        val parameters = method.parameters
+
+        val asyncMethodName = "${methodName}Async"
+        val paramType = checkParam(parameters)
+
         var receiverClassName = channelReceiverMap[channelName]
         if (receiverClassName == null) {
             receiverClassName = ClassName(
@@ -84,23 +134,24 @@ class SenderProcessor(
             )
         }
 
-        val parameters = method.parameters
         val parameterList = ArrayList<ParameterSpec>()
-        if (parameters != null) {
-            for (parameter in parameters) {
-                var type = parameter.asType().asTypeName()
-                type = TypeChangeUtils.change(type)
-                val nullableAnnotation = parameter.getAnnotation(Nullable::class.java)
-                if (nullableAnnotation != null) {
-                    type = type.copy(nullable = true)
-                }
-                parameterList.add(
-                    ParameterSpec.builder(
-                        parameter.simpleName.toString(),
-                        type
-                    ).build()
-                )
+        for (parameter in parameters) {
+            var type = parameter.asType().asTypeName()
+
+            DebugUtils.showInfo(printer, parameter)
+            DebugUtils.showInfo(printer, type)
+
+            type = TypeChangeUtils.change(type)
+            val nullableAnnotation = parameter.getAnnotation(Nullable::class.java)
+            if (nullableAnnotation != null) {
+                type = type.copy(nullable = true)
             }
+            parameterList.add(
+                ParameterSpec.builder(
+                    parameter.simpleName.toString(),
+                    type
+                ).build()
+            )
         }
 
         val params = HashMap::class.asClassName().parameterizedBy(
@@ -108,6 +159,50 @@ class SenderProcessor(
             Any::class.asClassName().copy(nullable = true)
         )
 
+        val list = ArrayList<FunSpec>()
+        val syncMethod = createSyncMethod(
+            asyncMethodName = asyncMethodName,
+            orgMethodName = methodName,
+            paramType = paramType,
+            params = params,
+            methodParameters = parameters,
+            parameterList = parameterList
+        )
+        list.add(syncMethod.build())
+
+        val asyncMethod = createAsyncMethod(
+            receiverClassName = receiverClassName,
+            asyncMethodName = asyncMethodName,
+            orgMethodName = methodName,
+            paramType = paramType,
+            params = params,
+            methodParameters = parameters,
+            parameterList = parameterList
+        )
+        list.add(asyncMethod.build())
+
+        if (paramType == ParamType.MAP && !mapAsyncFunctions.contains(asyncMethodName)) {
+            val asyncMethodWithMap = createAsyncMethodWithMap(
+                receiverClassName = receiverClassName,
+                asyncMethodName = asyncMethodName,
+                orgMethodName = methodName,
+                params = params,
+            )
+            mapAsyncFunctions.add(asyncMethodName)
+            list.add(asyncMethodWithMap.build())
+        }
+
+        return list
+    }
+
+    private fun createSyncMethod(
+        asyncMethodName: String,
+        orgMethodName: String,
+        paramType: ParamType,
+        params: ParameterizedTypeName,
+        methodParameters: List<VariableElement>,
+        parameterList: List<ParameterSpec>,
+    ): FunSpec.Builder {
         val scopeClassName = ClassName(
             ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
             ClazzConfig.Coroutine.COROUTINE_SCOPE_NAME,
@@ -120,59 +215,61 @@ class SenderProcessor(
             ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
             ClazzConfig.Coroutine.COROUTINE_LAUNCH_NAME,
         )
-        val suspendCoroutineClassName = ClassName(
-            ClazzConfig.Coroutine.COROUTINE_PACKAGE,
-            ClazzConfig.Coroutine.COROUTINE_SUSPEND_COROUTINE_NAME,
-        )
-        val resumeClassName = ClassName(
-            ClazzConfig.Coroutine.COROUTINE_PACKAGE,
-            ClazzConfig.Coroutine.COROUTINE_RESUME_NAME,
-        )
 
-        val methodName = method.simpleName.toString()
-        val syncFun = FunSpec.builder(methodName)
+        val syncFun = FunSpec.builder(orgMethodName)
             .addModifiers(KModifier.OVERRIDE)
             .addParameters(parameterList)
-            .addStatement("val params = %T()", params)
-        if (parameters != null) {
-            for (parameter in parameters) {
+
+        if (paramType == ParamType.MAP) {
+            syncFun.addStatement("val params = %T()", params)
+            for (parameter in methodParameters) {
                 val parameterName = parameter.simpleName.toString()
                 syncFun.addStatement("params[%S] = $parameterName", parameterName)
             }
         }
-        syncFun.beginControlFlow(
-            "%T(%T.Main).%T",
-            scopeClassName,
-            dispatchersClassName,
-            launchClassName
-        ).addStatement("$methodName(params)")
-            .endControlFlow()
-        list.add(syncFun.build())
 
-        val resultClassName = ClassName(
-            ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
-            ClazzConfig.METHOD_RESULT_NAME
-        )
-        val successClassName = ClassName(
-            ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
-            ClazzConfig.METHOD_RESULT_SUCCESS_NAME
-        )
-        val errorClassName = ClassName(
-            ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
-            ClazzConfig.METHOD_RESULT_ERROR_NAME
-        )
-        val typeClassName = ClassName(
-            ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
-            ClazzConfig.METHOD_RESULT_TYPE_NAME
-        )
-        val callbackClassName = ClassName(
-            ClazzConfig.Flutter.METHOD_RESULT_PACKAGE,
-            ClazzConfig.Flutter.METHOD_RESULT_NAME
-        )
+        syncFun
+            .beginControlFlow(
+                "%T(%T.Main).%T",
+                scopeClassName,
+                dispatchersClassName,
+                launchClassName
+            )
 
-        val asyncFun = FunSpec.builder(methodName)
+        when (paramType) {
+            ParamType.MAP -> {
+                syncFun
+                    .addStatement("$asyncMethodName(params)")
+                    .endControlFlow()
+            }
+            ParamType.ORIGIN -> {
+                syncFun.addStatement("$asyncMethodName(")
+
+                for (parameter in methodParameters) {
+                    syncFun.addStatement(" ${parameter.simpleName} = ${parameter.simpleName}")
+                }
+
+                syncFun.addStatement(")")
+                    .endControlFlow()
+            }
+        }
+        return syncFun
+    }
+
+    private fun createAsyncMethodWithMap(
+        receiverClassName: ClassName,
+        asyncMethodName: String,
+        orgMethodName: String,
+        params: ParameterizedTypeName,
+    ): FunSpec.Builder {
+        val asyncFun = FunSpec.builder(asyncMethodName)
             .addModifiers(KModifier.SUSPEND)
-            .addParameter("params", params)
+            .addParameter(
+                ParameterSpec
+                    .builder("params", params)
+                    .defaultValue("HashMap()")
+                    .build()
+            )
             .returns(resultClassName)
             .beginControlFlow(
                 "val result = %T<%T>",
@@ -184,8 +281,81 @@ class SenderProcessor(
                 callbackClassName
             )
 
+        createCallback(asyncFun)
+
+        asyncFun.endControlFlow()
+            .addStatement("%T.instance", receiverClassName)
+            .addStatement("  .getChannel()")
+            .addStatement("  ?.invokeMethod(%S, params, callback)", orgMethodName)
+            .endControlFlow()
+            .addStatement("return result")
+
+        return asyncFun
+    }
+
+    private fun createAsyncMethod(
+        receiverClassName: ClassName,
+        asyncMethodName: String,
+        orgMethodName: String,
+        paramType: ParamType,
+        params: ParameterizedTypeName,
+        methodParameters: List<VariableElement>,
+        parameterList: List<ParameterSpec>,
+    ): FunSpec.Builder {
+
+        val asyncFun = FunSpec.builder(asyncMethodName)
+            .addModifiers(KModifier.SUSPEND)
+            .addParameters(parameterList)
+            .returns(resultClassName)
+
+        if (paramType == ParamType.MAP) {
+            asyncFun.addStatement("val params = %T()", params)
+            for (parameter in methodParameters) {
+                val parameterName = parameter.simpleName.toString()
+                asyncFun.addStatement("params[%S] = $parameterName", parameterName)
+            }
+            asyncFun.addStatement("return $asyncMethodName(params)")
+            return asyncFun
+        }
+
+        asyncFun
+            .beginControlFlow(
+                "val result = %T<%T>",
+                suspendCoroutineClassName,
+                resultClassName
+            )
+            .beginControlFlow(
+                "val callback = object : %T ",
+                callbackClassName
+            )
+
+        createCallback(asyncFun)
+
+        asyncFun.endControlFlow()
+            .addStatement("%T.instance", receiverClassName)
+            .addStatement("  .getChannel()")
+
+        when (paramType) {
+            ParamType.MAP -> {
+                asyncFun.addStatement("  ?.invokeMethod(%S, params, callback)", orgMethodName)
+            }
+            ParamType.ORIGIN -> {
+                val variableElement = methodParameters[0]
+                asyncFun.addStatement(
+                    "  ?.invokeMethod(%S, ${variableElement.simpleName}, callback)",
+                    orgMethodName
+                )
+            }
+        }
+        asyncFun.endControlFlow()
+            .addStatement("return result")
+
+        return asyncFun
+    }
+
+    private fun createCallback(function: FunSpec.Builder) {
         // callback -> success
-        asyncFun.beginControlFlow("override fun success(result: Any?)")
+        function.beginControlFlow("override fun success(result: Any?)")
             .addStatement("it.%T(", resumeClassName)
             .addStatement("  %T(", resultClassName)
             .addStatement("    resultType = %T.SUCCESS,", typeClassName)
@@ -195,7 +365,7 @@ class SenderProcessor(
             .endControlFlow()
 
         // callback -> error
-        asyncFun.beginControlFlow("override fun error(errorCode: String?, errorMessage: String?, errorDetails: Any?) ")
+        function.beginControlFlow("override fun error(errorCode: String?, errorMessage: String?, errorDetails: Any?) ")
             .addStatement("it.%T(", resumeClassName)
             .addStatement("  %T(", resultClassName)
             .addStatement("    resultType = %T.ERROR,", typeClassName)
@@ -209,23 +379,12 @@ class SenderProcessor(
             .endControlFlow()
 
         // callback -> notImplemented
-        asyncFun.beginControlFlow("override fun notImplemented() ")
+        function.beginControlFlow("override fun notImplemented() ")
             .addStatement("it.%T(", resumeClassName)
             .addStatement("  %T(", resultClassName)
             .addStatement("    resultType = %T.NOT_IMPLEMENTED,", typeClassName)
             .addStatement("  )")
             .addStatement(")")
             .endControlFlow()
-
-        asyncFun.endControlFlow()
-            .addStatement("%T.instance", receiverClassName)
-            .addStatement("  .getChannel()")
-            .addStatement("  ?.invokeMethod(%S, params, callback)", methodName)
-            .endControlFlow()
-            .addStatement("return result")
-
-        list.add(asyncFun.build())
-
-        return list
     }
 }

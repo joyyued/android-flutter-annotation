@@ -1,4 +1,4 @@
-package com.joyy.neza_annotation
+package com.joyy.neza_annotation.common
 
 /**
  * @author: Jiang Pengyong

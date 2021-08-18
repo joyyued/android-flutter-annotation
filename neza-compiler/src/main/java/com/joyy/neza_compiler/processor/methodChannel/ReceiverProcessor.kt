@@ -1,13 +1,12 @@
 package com.joyy.neza_compiler.processor.methodChannel
 
-import com.joyy.neza_annotation.Callback
+import com.joyy.neza_annotation.common.Callback
 import com.joyy.neza_annotation.FlutterEngine
 import com.joyy.neza_annotation.method.FlutterMethodChannel
 import com.joyy.neza_annotation.method.Method
 import com.joyy.neza_annotation.method.ParseData
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
-import com.joyy.neza_compiler.utils.DebugUtils
 import com.joyy.neza_compiler.utils.EngineHelper
 import com.joyy.neza_compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
@@ -244,7 +243,6 @@ class ReceiverProcessor(
                 return
             }
             resultElements.add(item)
-//            DebugUtils.showPropertyInfo(printer, item)
         }
 
         for (resultElement in resultElements) {

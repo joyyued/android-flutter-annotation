@@ -1,64 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
     tools:context=".MainActivity">
 
     <Button
         android:id="@+id/btn_goto_flutter_page"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="开启 flutter 页"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:text="开启 flutter 页" />
 
     <Button
-        android:id="@+id/btn_say_hello_to_flutter"
+        android:id="@+id/btn_method_none"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="say hello to flutter"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_goto_flutter_page" />
+        android:text="say hello to flutter" />
 
     <Button
-        android:id="@+id/btn_say_hello_to_flutter_with_callback"
+        android:id="@+id/btn_method_none_async"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="say hello to flutter with callback"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_say_hello_to_flutter" />
+        android:text="say hello to flutter [ async ]" />
+
+    <Button
+        android:id="@+id/btn_method_single"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="say hello to flutter multi" />
+
+    <Button
+        android:id="@+id/btn_method_single_async"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="say hello to flutter multi [ async]" />
+
+    <Button
+        android:id="@+id/btn_method_multi"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="say hello to flutter multi" />
+
+    <Button
+        android:id="@+id/btn_method_multi_async"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="say hello to flutter multi [ async]" />
 
     <Button
         android:id="@+id/btn_send_image_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="发送 image 信息"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_say_hello_to_flutter_with_callback" />
+        android:text="发送 image 信息" />
 
     <Button
         android:id="@+id/btn_send_json_to_flutter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="发送 json 信息"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_send_image_info" />
+        android:text="发送 json 信息" />
 
     <Button
         android:id="@+id/btn_send_map_to_flutter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="发送 map 信息"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_send_json_to_flutter" />
+        android:text="发送 map 信息" />
 
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

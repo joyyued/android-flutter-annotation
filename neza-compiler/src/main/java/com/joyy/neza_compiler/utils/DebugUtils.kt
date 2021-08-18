@@ -2,6 +2,7 @@ package com.joyy.neza_compiler.utils
 
 import com.joyy.neza_annotation.method.ParseData
 import com.joyy.neza_compiler.Printer
+import com.squareup.kotlinpoet.TypeName
 import java.lang.StringBuilder
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.VariableElement
@@ -49,6 +50,15 @@ object DebugUtils {
         stringBuilder.append("【 Type Mirror 】").appendLine(typeMirror)
             .append("annotationMirrors: ").appendLine(typeMirror.annotationMirrors)
             .append("kind: ").appendLine(typeMirror.kind)
+        printer.note(stringBuilder.toString())
+    }
+
+    fun showInfo(printer: Printer, typeName: TypeName) {
+        val stringBuilder = StringBuilder()
+        stringBuilder.append("【 Type Name 】").appendLine(typeName)
+            .append("annotations: ").appendLine(typeName.annotations)
+            .append("isAnnotated: ").appendLine(typeName.isAnnotated)
+            .append("isNullable: ").appendLine(typeName.isNullable)
         printer.note(stringBuilder.toString())
     }
 }

@@ -19,6 +19,8 @@ import kotlinx.coroutines.launch
  * @des:
  */
 class MainActivity : AppCompatActivity() {
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -27,20 +29,61 @@ class MainActivity : AppCompatActivity() {
             openFlutterPage()
         }
 
-        findViewById<Button>(R.id.btn_say_hello_to_flutter).setOnClickListener {
-            Flutter.Channels.nezaMethodChannel.sayHelloToFlutter()
+        // =========================== Method ===========================
+        findViewById<Button>(R.id.btn_method_none).setOnClickListener {
+            Flutter.Channels
+                .nezaMethodChannel
+                .sayHelloToFlutter()
         }
 
-        findViewById<Button>(R.id.btn_say_hello_to_flutter_with_callback).setOnClickListener {
+        findViewById<Button>(R.id.btn_method_none_async).setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val params = HashMap<String, Any?>()
-                val result = Flutter.Channels.nezaMethodChannel
-                    .sayHelloToFlutterWithCallback(params)
-                Log.i("Neza", "method channel callback: $result")
+                val result = Flutter.Channels
+                    .nezaMethodChannel
+                    .sayHelloToFlutterAsync()
+                show("none param : $result")
             }
-
         }
 
+        findViewById<Button>(R.id.btn_method_single).setOnClickListener {
+            Flutter.Channels
+                .nezaMethodChannel
+                .sayHelloToFlutter("Jiang PengYong [ single param ]")
+        }
+
+        findViewById<Button>(R.id.btn_method_single_async).setOnClickListener {
+            CoroutineScope(Dispatchers.Main).launch {
+                val result = Flutter.Channels
+                    .nezaMethodChannel
+                    .sayHelloToFlutterAsync("Jiang PengYong [ single param ]")
+                show("single param : $result")
+            }
+        }
+
+        findViewById<Button>(R.id.btn_method_multi).setOnClickListener {
+            Flutter.Channels
+                .nezaMethodChannel
+                .sayHelloToFlutter(
+                    name = "Jiang PengYong [ multi param ]",
+                    age = 28,
+                    height = 170,
+                )
+        }
+
+        findViewById<Button>(R.id.btn_method_multi_async).setOnClickListener {
+            CoroutineScope(Dispatchers.Main).launch {
+                val result = Flutter.Channels
+                    .nezaMethodChannel
+                    .sayHelloToFlutterAsync(
+                        name = "Jiang PengYong [ multi param ]",
+                        age = 28,
+                        height = 170,
+                    )
+                show("single param : $result")
+            }
+        }
+
+        // =========================== Event ===========================
         findViewById<Button>(R.id.btn_send_image_info).setOnClickListener {
             val byteArray = AssetsUtils.getAssetsFile(resources, "sample.png")
             Flutter.Channels.nezaEventChannel.sendImageInfo(byteArray)
@@ -69,5 +112,9 @@ class MainActivity : AppCompatActivity() {
                 .withCachedEngine(Config.ENGINE_ID)
                 ?.build(this)
         )
+    }
+
+    private fun show(msg: String) {
+        Log.e("Neza Project", "[MainActivity] $msg")
     }
 }

@@ -1,12 +1,11 @@
 package com.joyy.neza_compiler.processor.basicChannel
 
-import com.joyy.neza_annotation.Callback
+import com.joyy.neza_annotation.common.Callback
 import com.joyy.neza_annotation.FlutterEngine
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
 import com.joyy.neza_annotation.basic.MessageHandler
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
-import com.joyy.neza_compiler.processor.basicChannel.BasicProcessorUtils.getGenericsType
 import com.joyy.neza_compiler.utils.DebugUtils
 import com.joyy.neza_compiler.utils.EngineHelper
 import com.joyy.neza_compiler.utils.TypeChangeUtils
@@ -24,14 +23,12 @@ import org.jetbrains.annotations.Nullable
 import java.util.Locale
 import javax.annotation.processing.Filer
 import javax.annotation.processing.RoundEnvironment
-import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.Modifier
 import javax.lang.model.element.TypeElement
 import javax.lang.model.element.VariableElement
 import javax.lang.model.type.DeclaredType
-import javax.lang.model.type.MirroredTypeException
 import javax.lang.model.type.TypeMirror
 import javax.lang.model.util.Types
 

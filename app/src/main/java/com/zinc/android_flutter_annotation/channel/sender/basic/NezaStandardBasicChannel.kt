@@ -18,5 +18,6 @@ import io.flutter.plugin.common.StringCodec
     type = ChannelType.SENDER
 )
 interface NezaStandardBasicChannel {
-    fun sendToFlutter(sender: Any)
+
+    fun sendToFlutter(age: Any)
 }
