@@ -79,7 +79,7 @@ class MainActivity : AppCompatActivity() {
                         age = 28,
                         height = 170,
                     )
-                show("single param : $result")
+                show("multi param : $result")
             }
         }
 

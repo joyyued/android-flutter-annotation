@@ -57,6 +57,7 @@ class NezaMethodChannel {
     switch (method) {
       case "sayHelloToFlutter":
         print("=========== [Native to Flutter] sayHelloToFlutter ===========");
+        print(arguments);
         break;
       case "sayHelloToFlutterWithCallback":
         print(
