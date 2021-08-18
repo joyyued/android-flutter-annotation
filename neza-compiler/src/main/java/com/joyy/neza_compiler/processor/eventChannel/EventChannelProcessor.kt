@@ -5,6 +5,8 @@ import com.joyy.neza_annotation.FlutterEngine
 import com.joyy.neza_annotation.event.FlutterEventChannel
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
+import com.joyy.neza_compiler.processor.common.ParamType
+import com.joyy.neza_compiler.processor.common.ProcessorHelper
 import com.joyy.neza_compiler.utils.EngineHelper
 import com.joyy.neza_compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
@@ -102,6 +104,7 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
 
         val engineAnnotation = element.getAnnotation(FlutterEngine::class.java)
         val engineId = engineAnnotation?.engineId ?: EngineHelper.getEngineId(roundEnv)
+
         val engineIdProperty = PropertySpec.builder("engineId", String::class)
             .addModifiers(KModifier.PRIVATE)
             .initializer("%S", engineId)
@@ -236,12 +239,10 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
             funList.addAll(assembleFun(method))
         }
 
-
         val eventChannelClassName = ClassName(
             ClazzConfig.Channel.CHANNEL_PACKAGE,
             ClazzConfig.Channel.EVENT_CHANNEL_NAME
         )
-
         val engineCreatorClazz = TypeSpec.classBuilder(generateClazzName)
             .addSuperinterface(element.asType().asTypeName())
             .addSuperinterface(eventChannelClassName)
@@ -270,16 +271,22 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
         val list = ArrayList<FunSpec>()
 
         val methodName = method.simpleName.toString()
+        val methodParameters = method.parameters
+        val paramType = ProcessorHelper.checkParam(this, methodParameters)
 
-        when {
-            method.parameters.size <= 0 -> list.add(createNoneParamFun(methodName))
-            method.parameters.size == 1 -> list.add(
+        when (paramType) {
+            ParamType.ORIGIN -> list.add(
                 createSingleParamFun(
                     methodName,
                     method.parameters[0]
                 )
             )
-            else -> list.addAll(createMultiParamsFun(methodName, method.parameters))
+            ParamType.MAP -> list.addAll(
+                createMultiParamsFun(
+                    methodName,
+                    methodParameters
+                )
+            )
         }
 
         if (!existMethods.contains(methodName)) {
@@ -318,13 +325,6 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
         existMethods.add(methodName)
 
         return list
-    }
-
-    private fun createNoneParamFun(methodName: String): FunSpec {
-        return FunSpec.builder(methodName)
-            .addModifiers(KModifier.OVERRIDE)
-            .addStatement("eventSink?.success(Any())")
-            .build()
     }
 
     private fun createSingleParamFun(
