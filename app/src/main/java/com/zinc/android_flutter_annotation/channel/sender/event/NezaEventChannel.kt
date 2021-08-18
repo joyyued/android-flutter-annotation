@@ -16,6 +16,10 @@ import com.zinc.android_flutter_annotation.config.Config
 interface NezaEventChannel {
     fun sendImageInfo()
 
+//    fun sendImageInfo(
+//        @Param byteArray: ByteArray
+//    )
+
     fun sendImageInfo(
         @ParamMap byteArray: ByteArray
     )

@@ -5,6 +5,8 @@ import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.joyy.neza.manager.Flutter
+import com.joyy.neza_annotation.model.EventChannelSenderEOSType
+import com.joyy.neza_annotation.model.EventChannelSenderErrorType
 import com.zinc.android_flutter_annotation.config.Config
 import com.zinc.android_flutter_annotation.utils.AssetsUtils
 import io.flutter.embedding.android.FlutterActivity
@@ -84,15 +86,41 @@ class MainActivity : AppCompatActivity() {
         }
 
         // =========================== Event ===========================
-        findViewById<Button>(R.id.btn_send_image_info).setOnClickListener {
+        findViewById<Button>(R.id.event_send_image).setOnClickListener {
             val byteArray = AssetsUtils.getAssetsFile(resources, "sample.png")
-            Flutter.Channels.nezaEventChannel.sendImageInfo(byteArray)
-            Flutter.Channels.nezaEventChannel.sendImageInfo(
-                errorCode = "",
-                errorDetails = "",
-                errorMessage = ""
-            )
+            Flutter.Channels
+                .nezaEventChannel
+                .sendImageInfo(
+                    byteArray = byteArray
+                )
         }
+
+        findViewById<Button>(R.id.event_send_info).setOnClickListener {
+            val byteArray = AssetsUtils.getAssetsFile(resources, "sample.png")
+            Flutter.Channels
+                .nezaEventChannel
+                .sendImageInfo(
+                    id = 5,
+                    byteArray = byteArray
+                )
+        }
+
+        findViewById<Button>(R.id.event_send_error).setOnClickListener {
+            Flutter.Channels
+                .nezaEventChannel
+                .sendImageInfo(
+                    errorCode = "404",
+                    errorMessage = "Error Message",
+                    errorDetails = "Error Details"
+                )
+        }
+
+        findViewById<Button>(R.id.event_send_end_of_stream).setOnClickListener {
+            Flutter.Channels
+                .nezaEventChannel
+                .sendImageInfo(type = EventChannelSenderEOSType.EOS)
+        }
+        // =========================== Event ===========================
 
         findViewById<Button>(R.id.btn_send_json_to_flutter).setOnClickListener {
             Flutter.Channels.nezaStringBasicChannel.sendJsonToFlutter("{\"name\":\"江澎涌\", \"age\":28}")

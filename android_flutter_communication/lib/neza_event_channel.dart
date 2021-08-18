@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:ui' as ui;
 import 'dart:async';
 import 'dart:typed_data';
@@ -32,9 +33,15 @@ class NezaEventChannel {
         // 图片 byte
         // final image = await loadImageFromList(receiveData);
 
+        var map = receiveData as Map;
+        if (map.containsKey('id')) {
+          var id = map['id'];
+          print('id: $id');
+        }
+
         final _imageCallback = imageCallback;
         if (_imageCallback != null) {
-          _imageCallback(receiveData);
+          _imageCallback(map["byteArray"]);
         }
       },
     );

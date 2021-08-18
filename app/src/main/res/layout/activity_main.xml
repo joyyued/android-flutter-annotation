@@ -50,10 +50,28 @@
         android:text="say hello to flutter multi [ async]" />
 
     <Button
-        android:id="@+id/btn_send_image_info"
+        android:id="@+id/event_send_image"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="发送 image 信息" />
+
+    <Button
+        android:id="@+id/event_send_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送 image 信息 [multi]" />
+
+    <Button
+        android:id="@+id/event_send_error"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送 image 信息 [error]" />
+
+    <Button
+        android:id="@+id/event_send_end_of_stream"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送 image 信息 [ eos ]" />
 
     <Button
         android:id="@+id/btn_send_json_to_flutter"
