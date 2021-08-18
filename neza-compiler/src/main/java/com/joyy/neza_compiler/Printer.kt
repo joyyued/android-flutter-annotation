@@ -20,5 +20,6 @@ interface Printer {
             Diagnostic.Kind.ERROR,
             "[${ClazzConfig.PROJECT_NAME}-${FlutterEngineProcessor.TAG}] $msg"
         )
+        throw Exception(msg)
     }
 }

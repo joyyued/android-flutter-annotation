@@ -4,7 +4,7 @@ import com.joyy.neza_annotation.method.FlutterMethodChannel
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
 import com.joyy.neza_compiler.processor.common.ParamType
-import com.joyy.neza_compiler.processor.common.SenderProcessorBase
+import com.joyy.neza_compiler.processor.common.ProcessorHelper
 import com.joyy.neza_compiler.utils.DebugUtils
 import com.joyy.neza_compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
@@ -34,8 +34,8 @@ class SenderProcessor(
     private val elementUtils: Elements,
     private val typeUtils: Types,
     private val filer: Filer,
-    printer: Printer
-) : SenderProcessorBase(printer) {
+    private val printer: Printer
+) {
 
     private val resultClassName = ClassName(
         ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
@@ -124,7 +124,7 @@ class SenderProcessor(
         val parameters = method.parameters
 
         val asyncMethodName = "${methodName}Async"
-        val paramType = checkParam(parameters)
+        val paramType = ProcessorHelper.checkParam(printer, parameters)
 
         var receiverClassName = channelReceiverMap[channelName]
         if (receiverClassName == null) {

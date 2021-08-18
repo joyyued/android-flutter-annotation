@@ -12,11 +12,12 @@ import javax.lang.model.element.VariableElement
  * @email: 56002982@qq.com
  * @des: Sender
  */
-open class SenderProcessorBase(
-    protected val printer: Printer,
-) {
+object ProcessorHelper {
 
-    fun checkParam(parameterList: List<VariableElement>): ParamType {
+    fun checkParam(
+        printer: Printer,
+        parameterList: List<VariableElement>
+    ): ParamType {
         if (parameterList.isEmpty()) {
             return ParamType.MAP
         }
@@ -27,14 +28,14 @@ open class SenderProcessorBase(
             val paramAnnotation = variableElement.getAnnotation(Param::class.java)
             val paramMapAnnotation = variableElement.getAnnotation(ParamMap::class.java)
             if (paramAnnotation != null && paramMapAnnotation != null) {
-                printer.note(
+                printer.error(
                     "Don't use @Param and @ParamMap annotation at the same time on " +
-                            "${variableElement.simpleName} param."
+                            "[${variableElement.simpleName}] param."
                 )
             } else if (paramAnnotation == null && paramMapAnnotation == null) {
-                printer.note(
+                printer.error(
                     "Must use one of @Param or @ParamMap annotation  on " +
-                            "${variableElement.simpleName} param."
+                            "[${variableElement.simpleName}] param."
                 )
             } else if (paramAnnotation != null) {
                 return ParamType.ORIGIN
@@ -47,14 +48,14 @@ open class SenderProcessorBase(
             val paramAnnotation = variableElement.getAnnotation(Param::class.java)
             val paramMapAnnotation = variableElement.getAnnotation(ParamMap::class.java)
             if (paramAnnotation != null) {
-                printer.note(
-                    "Don't use the @Param annotation on ${variableElement.simpleName} param, " +
+                printer.error(
+                    "Don't use the @Param annotation on [${variableElement.simpleName}] param, " +
                             "when the function has more than one param."
                 )
             }
             if (paramMapAnnotation == null) {
-                printer.note(
-                    "Must use the @ParamMap annotation on ${variableElement.simpleName} param, " +
+                printer.error(
+                    "Must use the @ParamMap annotation on [${variableElement.simpleName}] param, " +
                             "when the function has more than one param."
                 )
             }
