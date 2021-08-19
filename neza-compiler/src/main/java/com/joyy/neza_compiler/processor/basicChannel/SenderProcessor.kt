@@ -166,7 +166,9 @@ class SenderProcessor(
                 ) {
                     printer.error(
                         "Can't transform the HashMap type to $receiverTypeName in " +
-                                "${method.simpleName} function."
+                                "${method.simpleName} function. " +
+                                "You can try use one parameter which is the type is " +
+                                "$receiverTypeName, and add a @Param annotation for it."
                     )
                     return list
                 }

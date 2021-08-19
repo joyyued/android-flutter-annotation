@@ -13,11 +13,11 @@ import io.flutter.plugin.common.StringCodec
  * @email: 56002982@qq.com
  * @des:
  */
-//@FlutterBasicChannel(
-//    codecClass = JSONMessageCodec::class,
-//    channelName = Config.BINARY_JSON_CHANNEL,
-//    type = ChannelType.SENDER
-//)
+@FlutterBasicChannel(
+    codecClass = JSONMessageCodec::class,
+    channelName = Config.BINARY_JSON_CHANNEL,
+    type = ChannelType.SENDER
+)
 interface NezaJsonBasicChannel {
 
 }

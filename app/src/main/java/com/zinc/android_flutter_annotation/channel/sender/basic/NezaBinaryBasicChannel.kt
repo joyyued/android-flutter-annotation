@@ -1,6 +1,7 @@
 package com.zinc.android_flutter_annotation.channel.sender.basic
 
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
+import com.joyy.neza_annotation.common.Param
 import com.joyy.neza_annotation.model.ChannelType
 import com.zinc.android_flutter_annotation.config.Config
 import io.flutter.plugin.common.BinaryCodec
@@ -15,11 +16,11 @@ import java.nio.ByteBuffer
  * @email: 56002982@qq.com
  * @des:
  */
-//@FlutterBasicChannel(
-//    codecClass = BinaryCodec::class,
-//    channelName = Config.BINARY_BASIC_CHANNEL,
-//    type = ChannelType.SENDER
-//)
+@FlutterBasicChannel(
+    codecClass = BinaryCodec::class,
+    channelName = Config.BINARY_BASIC_CHANNEL,
+    type = ChannelType.SENDER
+)
 interface NezaBinaryBasicChannel {
-    fun sendBinary(b: ByteBuffer)
+    fun sendBinary(@Param b: ByteBuffer)
 }

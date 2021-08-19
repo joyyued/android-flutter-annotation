@@ -31,6 +31,7 @@ interface NezaStandardBasicChannel {
         @ParamMap name: String,
         @ParamMap age: Int,
         @ParamMap height: Int,
+        @ParamMap byteArray: ByteArray
     )
 
     fun sendToFlutterMap(@ParamMap age: Int)

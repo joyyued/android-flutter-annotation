@@ -1,6 +1,8 @@
 package com.zinc.android_flutter_annotation.channel.sender.basic
 
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
+import com.joyy.neza_annotation.common.Param
+import com.joyy.neza_annotation.common.ParamMap
 import com.joyy.neza_annotation.model.ChannelType
 import com.zinc.android_flutter_annotation.codec.StringCodec
 import com.zinc.android_flutter_annotation.config.Config
@@ -11,11 +13,11 @@ import com.zinc.android_flutter_annotation.config.Config
  * @email: 56002982@qq.com
  * @des:
  */
-//@FlutterBasicChannel(
-//    codecClass = StringCodec::class,
-//    channelName = Config.STRING_BASIC_CHANNEL,
-//    type = ChannelType.SENDER
-//)
+@FlutterBasicChannel(
+    codecClass = StringCodec::class,
+    channelName = Config.STRING_BASIC_CHANNEL,
+    type = ChannelType.SENDER
+)
 interface NezaStringBasicChannel {
-    fun sendJsonToFlutter(json: String)
+    fun sendJsonToFlutter(@Param json: String)
 }
