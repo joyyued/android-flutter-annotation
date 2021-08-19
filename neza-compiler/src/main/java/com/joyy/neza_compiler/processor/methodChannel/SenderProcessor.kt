@@ -138,6 +138,7 @@ class SenderProcessor(
         for (parameter in parameters) {
             var type = parameter.asType().asTypeName()
 
+            printer.note("===== $method =====")
             DebugUtils.showInfo(printer, parameter)
             DebugUtils.showInfo(printer, type)
 

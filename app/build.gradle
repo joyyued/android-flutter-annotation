@@ -48,4 +48,6 @@ dependencies {
     implementation project(":neza-annotation")
     implementation project(":neza-api")
     kapt project(":neza-compiler")
+
+    implementation 'com.google.code.gson:gson:2.8.7'
 }

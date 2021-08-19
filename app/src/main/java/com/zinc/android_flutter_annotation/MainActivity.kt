@@ -123,14 +123,14 @@ class MainActivity : AppCompatActivity() {
         // =========================== Event ===========================
 
         findViewById<Button>(R.id.btn_send_json_to_flutter).setOnClickListener {
-            Flutter.Channels.nezaStringBasicChannel.sendJsonToFlutter("{\"name\":\"江澎涌\", \"age\":28}")
+//            Flutter.Channels.nezaStringBasicChannel.sendJsonToFlutter("{\"name\":\"江澎涌\", \"age\":28}")
         }
 
         findViewById<Button>(R.id.btn_send_map_to_flutter).setOnClickListener {
             val map = HashMap<String, Any>()
             map["name"] = "Jiang Peng Yong"
             map["age"] = 28
-            Flutter.Channels.nezaStandardBasicChannel.sendToFlutter(map)
+//            Flutter.Channels.nezaStandardBasicChannel.sendToFlutter(map)
         }
     }
 

@@ -1,4 +1,4 @@
-package com.zinc.android_flutter_annotation.channel
+package com.zinc.android_flutter_annotation.codec
 
 import io.flutter.plugin.common.MessageCodec
 import java.nio.ByteBuffer

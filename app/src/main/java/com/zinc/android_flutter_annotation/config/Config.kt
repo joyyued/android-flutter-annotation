@@ -17,4 +17,11 @@ object Config {
     const val STRING_BASIC_CHANNEL = "com.zinc.android_flutter_annotation/nezaStringBasicChannel"
 
     const val STANDER_BASIC_CHANNEL = "com.zinc.android_flutter_annotation/nezaStandardBasicChannel"
+
+    const val BINARY_BASIC_CHANNEL = "com.zinc.android_flutter_annotation/nezaBinaryBasicChannel"
+
+    const val BINARY_JSON_CHANNEL = "com.zinc.android_flutter_annotation/nezaBinaryJsonChannel"
+
+    const val BINARY_CUSTOMER_CHANNEL = "com.zinc" +
+            ".android_flutter_annotation/nezaCustomerJsonChannel"
 }

@@ -110,7 +110,7 @@ class ReceiverProcessor(
         // private var channel: BasicMessageChannel? = null
         val channelClassName = ClassName(
             ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
-            ClazzConfig.Flutter.Basic_CHANNEL_NAME,
+            ClazzConfig.Flutter.BASIC_CHANNEL_NAME,
         ).parameterizedBy(
             genericsTypeName
         )

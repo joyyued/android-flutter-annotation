@@ -5,7 +5,7 @@ import com.joyy.neza_annotation.common.Callback
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
 import com.joyy.neza_annotation.basic.MessageHandler
 import com.joyy.neza_annotation.model.ChannelType
-import com.zinc.android_flutter_annotation.channel.StringCodec
+import com.zinc.android_flutter_annotation.codec.StringCodec
 import com.zinc.android_flutter_annotation.config.Config
 import io.flutter.plugin.common.BasicMessageChannel
 

@@ -47,14 +47,14 @@ object ClazzConfig {
         const val METHOD_CHANNEL_PACKAGE = "io.flutter.plugin.common"
         const val METHOD_CHANNEL_NAME = "MethodChannel"
         const val EVENT_CHANNEL_NAME = "EventChannel"
-        const val Basic_CHANNEL_NAME = "BasicMessageChannel"
+        const val BASIC_CHANNEL_NAME = "BasicMessageChannel"
 
         const val SINK_NAME = "$EVENT_CHANNEL_NAME.EventSink"
 
         const val METHOD_RESULT_PACKAGE = "$METHOD_CHANNEL_PACKAGE.$METHOD_CHANNEL_NAME"
         const val METHOD_RESULT_NAME = "Result"
 
-        const val BASIC_REPLY_PACKAGE = "$METHOD_CHANNEL_PACKAGE.$Basic_CHANNEL_NAME"
+        const val BASIC_REPLY_PACKAGE = "$METHOD_CHANNEL_PACKAGE.$BASIC_CHANNEL_NAME"
         const val BASIC_REPLY_NAME = "Reply"
     }
 

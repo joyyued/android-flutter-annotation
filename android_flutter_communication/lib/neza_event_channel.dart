@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:ui' as ui;
 import 'dart:async';
 import 'dart:typed_data';
