@@ -20,19 +20,23 @@ import io.flutter.plugin.common.StringCodec
     type = ChannelType.SENDER
 )
 interface NezaStandardBasicChannel {
-    fun sendToFlutter(@Param age: Int)
+//    fun sendToFlutter(@Param age: Int)
+//
+//    fun sendToFlutter(
+//        @ParamMap name: String,
+//        @ParamMap age: Int,
+//    )
+//
+//    fun sendToFlutter(
+//        @ParamMap name: String,
+//        @ParamMap age: Int,
+//        @ParamMap height: Int,
+//        @ParamMap byteArray: ByteArray
+//    )
 
-    fun sendToFlutter(
-        @ParamMap name: String,
-        @ParamMap age: Int,
-    )
+//    fun sendToFlutter(
+//        @Param map: HashMap<String, String>
+//    )
 
-    fun sendToFlutter(
-        @ParamMap name: String,
-        @ParamMap age: Int,
-        @ParamMap height: Int,
-        @ParamMap byteArray: ByteArray
-    )
-
-    fun sendToFlutterMap(@ParamMap age: Int)
+//    fun sendToFlutterMap(@ParamMap age: Int)
 }

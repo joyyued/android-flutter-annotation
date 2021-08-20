@@ -84,7 +84,10 @@ object ClazzConfig {
         const val COROUTINE_SCOPE_NAME = "CoroutineScope"
         const val COROUTINE_DISPATCHERS_NAME = "Dispatchers"
         const val COROUTINE_LAUNCH_NAME = "launch"
+        const val COROUTINE_ASYNC_NAME = "async"
         const val COROUTINE_RESUME_NAME = "resume"
         const val COROUTINE_SUSPEND_COROUTINE_NAME = "suspendCoroutine"
+
+        const val DEFERRED_NAME = "Deferred"
     }
 }

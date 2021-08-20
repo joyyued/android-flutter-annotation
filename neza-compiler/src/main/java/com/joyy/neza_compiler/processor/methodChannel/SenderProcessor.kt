@@ -5,12 +5,10 @@ import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
 import com.joyy.neza_compiler.processor.common.ParamType
 import com.joyy.neza_compiler.processor.common.ProcessorHelper
-import com.joyy.neza_compiler.utils.DebugUtils
 import com.joyy.neza_compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
-import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
@@ -18,8 +16,6 @@ import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.asTypeName
 import org.jetbrains.annotations.Nullable
-import sun.security.ssl.Debug
-import java.lang.reflect.ParameterizedType
 import javax.annotation.processing.Filer
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
@@ -27,6 +23,7 @@ import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
 import javax.lang.model.element.VariableElement
+import javax.lang.model.type.DeclaredType
 import javax.lang.model.util.Elements
 import javax.lang.model.util.Types
 
@@ -65,6 +62,12 @@ class SenderProcessor(
         ClazzConfig.Coroutine.COROUTINE_PACKAGE,
         ClazzConfig.Coroutine.COROUTINE_RESUME_NAME,
     )
+    private val deferredClassName = ClassName(
+        ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
+        ClazzConfig.Coroutine.DEFERRED_NAME
+    ).parameterizedBy(
+        resultClassName
+    )
 
     fun handle(
         roundEnv: RoundEnvironment,
@@ -83,7 +86,6 @@ class SenderProcessor(
 
         val enclosedElements = (element as TypeElement).enclosedElements
         val functions = ArrayList<FunSpec>()
-        val mapAsyncFunctions = HashSet<String>()
         if (enclosedElements != null) {
             for (method in enclosedElements) {
                 if (method !is ExecutableElement) {
@@ -94,15 +96,13 @@ class SenderProcessor(
                         clazzName,
                         method,
                         channelName,
-                        channelReceiverMap,
-                        mapAsyncFunctions
+                        channelReceiverMap
                     )
                 )
             }
         }
 
         val engineCreatorClazzBuilder = TypeSpec.objectBuilder(generateClazzName)
-            .addSuperinterface(element.asType().asTypeName())
 
         functions.forEach {
             engineCreatorClazzBuilder.addFunction(it)
@@ -116,8 +116,7 @@ class SenderProcessor(
         clazzName: String,
         method: ExecutableElement,
         channelName: String,
-        channelReceiverMap: HashMap<String, ClassName>,
-        mapAsyncFunctions: HashSet<String>
+        channelReceiverMap: HashMap<String, ClassName>
     ): ArrayList<FunSpec> {
 
         val methodName = method.simpleName.toString()
@@ -136,17 +135,32 @@ class SenderProcessor(
 
         val parameterList = ArrayList<ParameterSpec>()
         for (parameter in parameters) {
-            var type = parameter.asType().asTypeName()
+            val typeName = parameter.asType()
+            var type = typeName.asTypeName()
 
-            printer.note("===== $method =====")
-            DebugUtils.showInfo(printer, parameter)
-            DebugUtils.showInfo(printer, type)
+            if (typeName is DeclaredType) {
+                val resultType = TypeChangeUtils.change(
+                    typeName.asElement().asType().asTypeName()
+                )
+                if (resultType is ClassName) {
+                    val genericsType = ProcessorHelper.getGenericsType(printer, typeName)
+                    type = if (genericsType.isNotEmpty()) {
+                        resultType.parameterizedBy(
+                            genericsType
+                        )
+                    } else {
+                        resultType
+                    }
+                }
+            } else {
+                type = TypeChangeUtils.change(type)
+            }
 
-            type = TypeChangeUtils.change(type)
             val nullableAnnotation = parameter.getAnnotation(Nullable::class.java)
             if (nullableAnnotation != null) {
                 type = type.copy(nullable = true)
             }
+
             parameterList.add(
                 ParameterSpec.builder(
                     parameter.simpleName.toString(),
@@ -161,197 +175,17 @@ class SenderProcessor(
         )
 
         val list = ArrayList<FunSpec>()
-        val syncMethod = createSyncMethod(
-            asyncMethodName = asyncMethodName,
-            orgMethodName = methodName,
-            paramType = paramType,
-            params = params,
-            methodParameters = parameters,
-            parameterList = parameterList
-        )
-        list.add(syncMethod.build())
-
-        val asyncMethod = createAsyncMethod(
+        val function = createMethod(
             receiverClassName = receiverClassName,
-            asyncMethodName = asyncMethodName,
             orgMethodName = methodName,
             paramType = paramType,
             params = params,
             methodParameters = parameters,
             parameterList = parameterList
         )
-        list.add(asyncMethod.build())
-
-        if (paramType == ParamType.MAP && !mapAsyncFunctions.contains(asyncMethodName)) {
-            val asyncMethodWithMap = createAsyncMethodWithMap(
-                receiverClassName = receiverClassName,
-                asyncMethodName = asyncMethodName,
-                orgMethodName = methodName,
-                params = params,
-            )
-            mapAsyncFunctions.add(asyncMethodName)
-            list.add(asyncMethodWithMap.build())
-        }
+        list.add(function.build())
 
         return list
-    }
-
-    private fun createSyncMethod(
-        asyncMethodName: String,
-        orgMethodName: String,
-        paramType: ParamType,
-        params: ParameterizedTypeName,
-        methodParameters: List<VariableElement>,
-        parameterList: List<ParameterSpec>,
-    ): FunSpec.Builder {
-        val scopeClassName = ClassName(
-            ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
-            ClazzConfig.Coroutine.COROUTINE_SCOPE_NAME,
-        )
-        val dispatchersClassName = ClassName(
-            ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
-            ClazzConfig.Coroutine.COROUTINE_DISPATCHERS_NAME,
-        )
-        val launchClassName = ClassName(
-            ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
-            ClazzConfig.Coroutine.COROUTINE_LAUNCH_NAME,
-        )
-
-        val syncFun = FunSpec.builder(orgMethodName)
-            .addModifiers(KModifier.OVERRIDE)
-            .addParameters(parameterList)
-
-        if (paramType == ParamType.MAP) {
-            syncFun.addStatement("val params = %T()", params)
-            for (parameter in methodParameters) {
-                val parameterName = parameter.simpleName.toString()
-                syncFun.addStatement("params[%S] = $parameterName", parameterName)
-            }
-        }
-
-        syncFun
-            .beginControlFlow(
-                "%T(%T.Main).%T",
-                scopeClassName,
-                dispatchersClassName,
-                launchClassName
-            )
-
-        when (paramType) {
-            ParamType.MAP -> {
-                syncFun
-                    .addStatement("$asyncMethodName(params)")
-                    .endControlFlow()
-            }
-            ParamType.ORIGIN -> {
-                syncFun.addStatement("$asyncMethodName(")
-
-                for (parameter in methodParameters) {
-                    syncFun.addStatement(" ${parameter.simpleName} = ${parameter.simpleName}")
-                }
-
-                syncFun.addStatement(")")
-                    .endControlFlow()
-            }
-        }
-        return syncFun
-    }
-
-    private fun createAsyncMethodWithMap(
-        receiverClassName: ClassName,
-        asyncMethodName: String,
-        orgMethodName: String,
-        params: ParameterizedTypeName,
-    ): FunSpec.Builder {
-        val asyncFun = FunSpec.builder(asyncMethodName)
-            .addModifiers(KModifier.SUSPEND)
-            .addParameter(
-                ParameterSpec
-                    .builder("params", params)
-                    .defaultValue("HashMap()")
-                    .build()
-            )
-            .returns(resultClassName)
-            .beginControlFlow(
-                "val result = %T<%T>",
-                suspendCoroutineClassName,
-                resultClassName
-            )
-            .beginControlFlow(
-                "val callback = object : %T ",
-                callbackClassName
-            )
-
-        createCallback(asyncFun)
-
-        asyncFun.endControlFlow()
-            .addStatement("%T.instance", receiverClassName)
-            .addStatement("  .getChannel()")
-            .addStatement("  ?.invokeMethod(%S, params, callback)", orgMethodName)
-            .endControlFlow()
-            .addStatement("return result")
-
-        return asyncFun
-    }
-
-    private fun createAsyncMethod(
-        receiverClassName: ClassName,
-        asyncMethodName: String,
-        orgMethodName: String,
-        paramType: ParamType,
-        params: ParameterizedTypeName,
-        methodParameters: List<VariableElement>,
-        parameterList: List<ParameterSpec>,
-    ): FunSpec.Builder {
-
-        val asyncFun = FunSpec.builder(asyncMethodName)
-            .addModifiers(KModifier.SUSPEND)
-            .addParameters(parameterList)
-            .returns(resultClassName)
-
-        if (paramType == ParamType.MAP) {
-            asyncFun.addStatement("val params = %T()", params)
-            for (parameter in methodParameters) {
-                val parameterName = parameter.simpleName.toString()
-                asyncFun.addStatement("params[%S] = $parameterName", parameterName)
-            }
-            asyncFun.addStatement("return $asyncMethodName(params)")
-            return asyncFun
-        }
-
-        asyncFun
-            .beginControlFlow(
-                "val result = %T<%T>",
-                suspendCoroutineClassName,
-                resultClassName
-            )
-            .beginControlFlow(
-                "val callback = object : %T ",
-                callbackClassName
-            )
-
-        createCallback(asyncFun)
-
-        asyncFun.endControlFlow()
-            .addStatement("%T.instance", receiverClassName)
-            .addStatement("  .getChannel()")
-
-        when (paramType) {
-            ParamType.MAP -> {
-                asyncFun.addStatement("  ?.invokeMethod(%S, params, callback)", orgMethodName)
-            }
-            ParamType.ORIGIN -> {
-                val variableElement = methodParameters[0]
-                asyncFun.addStatement(
-                    "  ?.invokeMethod(%S, ${variableElement.simpleName}, callback)",
-                    orgMethodName
-                )
-            }
-        }
-        asyncFun.endControlFlow()
-            .addStatement("return result")
-
-        return asyncFun
     }
 
     private fun createCallback(function: FunSpec.Builder) {
@@ -387,5 +221,83 @@ class SenderProcessor(
             .addStatement("  )")
             .addStatement(")")
             .endControlFlow()
+    }
+
+    private fun createMethod(
+        receiverClassName: ClassName,
+        orgMethodName: String,
+        paramType: ParamType,
+        params: ParameterizedTypeName,
+        methodParameters: List<VariableElement>,
+        parameterList: List<ParameterSpec>,
+    ): FunSpec.Builder {
+        val scopeClassName = ClassName(
+            ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
+            ClazzConfig.Coroutine.COROUTINE_SCOPE_NAME,
+        )
+        val dispatchersClassName = ClassName(
+            ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
+            ClazzConfig.Coroutine.COROUTINE_DISPATCHERS_NAME,
+        )
+        val launchClassName = ClassName(
+            ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
+            ClazzConfig.Coroutine.COROUTINE_LAUNCH_NAME,
+        )
+        val asyncClassName = ClassName(
+            ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
+            ClazzConfig.Coroutine.COROUTINE_ASYNC_NAME,
+        )
+
+        val function = FunSpec.builder(orgMethodName)
+            .returns(deferredClassName)
+            .addParameters(parameterList)
+            .beginControlFlow(
+                "val result = %T(%T.Main).%T",
+                scopeClassName,
+                dispatchersClassName,
+                asyncClassName
+            )
+
+        if (paramType == ParamType.MAP) {
+            function.addStatement("val params = %T()", params)
+            for (parameter in methodParameters) {
+                val parameterName = parameter.simpleName.toString()
+                function.addStatement("params[%S] = $parameterName", parameterName)
+            }
+        }
+
+        function
+            .beginControlFlow(
+                "%T<%T>",
+                suspendCoroutineClassName,
+                resultClassName
+            )
+            .beginControlFlow(
+                "val callback = object : %T ",
+                callbackClassName
+            )
+
+        createCallback(function)
+
+        function.endControlFlow()
+            .addStatement("%T.instance", receiverClassName)
+            .addStatement("  .getChannel()")
+        when (paramType) {
+            ParamType.MAP -> {
+                function.addStatement("  ?.invokeMethod(%S, params, callback)", orgMethodName)
+            }
+            ParamType.ORIGIN -> {
+                val variableElement = methodParameters[0]
+                function.addStatement(
+                    "  ?.invokeMethod(%S, ${variableElement.simpleName}, callback)",
+                    orgMethodName
+                )
+            }
+        }
+        function.endControlFlow()
+            .endControlFlow()
+            .addStatement("return result")
+
+        return function
     }
 }

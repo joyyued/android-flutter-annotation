@@ -3,8 +3,17 @@ package com.joyy.neza_compiler.processor.common
 import com.joyy.neza_annotation.common.Param
 import com.joyy.neza_annotation.common.ParamMap
 import com.joyy.neza_compiler.Printer
-import com.sun.org.apache.xpath.internal.operations.Bool
+import com.joyy.neza_compiler.utils.DebugUtils
+import com.joyy.neza_compiler.utils.TypeChangeUtils
+import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.asTypeName
+import org.jetbrains.annotations.Nullable
+import sun.reflect.annotation.TypeAnnotation
 import javax.lang.model.element.VariableElement
+import javax.lang.model.type.DeclaredType
+import javax.lang.model.type.TypeMirror
 
 /**
  * @author: Jiang Pengyong
@@ -61,6 +70,53 @@ object ProcessorHelper {
             }
         }
         return ParamType.MAP
+    }
+
+//    fun changeType(variableElement: VariableElement): TypeName {
+//        val genericsType = getGenericsType(variableElement)
+//        variableElement.
+//    }
+
+//    fun changeGenericsToKotlin(variableElement: VariableElement){
+//        val typeName = variableElement.asType()
+//        var type = typeName.asTypeName()
+//
+//        if (typeName is DeclaredType) {
+//            val resultType = TypeChangeUtils.change(
+//                typeName.asElement().asType().asTypeName()
+//            )
+//            if (resultType is ClassName) {
+//                val genericsType = getGenericsType(typeName)
+//                type = if(genericsType.isNotEmpty()){
+//                    resultType.parameterizedBy(
+//                        genericsType
+//                    )
+//                }else{
+//                    resultType
+//                }
+//            }
+//        } else {
+//            type = TypeChangeUtils.change(type)
+//        }
+//    }
+
+    fun getGenericsType(printer: Printer, typeMirror: TypeMirror): ArrayList<TypeName> {
+        return if (typeMirror is DeclaredType) {
+            val result = ArrayList<TypeName>()
+            val typeArguments = typeMirror.typeArguments
+            typeArguments.forEach { typeMirror ->
+                printer.note(
+                    "${ typeMirror.getAnnotationsByType(Nullable::class.java)}"
+                )
+
+                typeMirror.getAnnotation(Nullable::class.java)
+                typeMirror.getAnnotationMirrors()
+                result.add(TypeChangeUtils.change(typeMirror.asTypeName()))
+            }
+            result
+        } else {
+            ArrayList()
+        }
     }
 }
 

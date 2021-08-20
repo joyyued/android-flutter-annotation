@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity() {
             CoroutineScope(Dispatchers.Main).launch {
                 val result = Flutter.Channels
                     .nezaMethodChannel
-                    .sayHelloToFlutterAsync()
+                    .sayHelloToFlutter().await()
                 show("none param : $result")
             }
         }
@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity() {
             CoroutineScope(Dispatchers.Main).launch {
                 val result = Flutter.Channels
                     .nezaMethodChannel
-                    .sayHelloToFlutterAsync("Jiang PengYong [ single param ]")
+                    .sayHelloToFlutter("Jiang PengYong [ single param ]").await()
                 show("single param : $result")
             }
         }
@@ -76,11 +76,11 @@ class MainActivity : AppCompatActivity() {
             CoroutineScope(Dispatchers.Main).launch {
                 val result = Flutter.Channels
                     .nezaMethodChannel
-                    .sayHelloToFlutterAsync(
+                    .sayHelloToFlutter(
                         name = "Jiang PengYong [ multi param ]",
                         age = 28,
                         height = 170,
-                    )
+                    ).await()
                 show("multi param : $result")
             }
         }
