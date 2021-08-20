@@ -1,9 +1,9 @@
 package com.joyy.neza_compiler.processor.basicChannel
 
-import com.joyy.neza_annotation.common.Callback
 import com.joyy.neza_annotation.FlutterEngine
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
-import com.joyy.neza_annotation.basic.MessageHandler
+import com.joyy.neza_annotation.common.Callback
+import com.joyy.neza_annotation.method.HandleMessage
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
 import com.joyy.neza_compiler.utils.DebugUtils
@@ -375,7 +375,7 @@ class ReceiverProcessor(
             if (enclosedElement !is ExecutableElement) {
                 continue
             }
-            if (enclosedElement.getAnnotation(MessageHandler::class.java) == null) {
+            if (enclosedElement.getAnnotation(HandleMessage::class.java) == null) {
                 continue
             }
             handleMethod = enclosedElement

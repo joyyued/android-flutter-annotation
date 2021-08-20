@@ -3,7 +3,7 @@ package com.joyy.neza_compiler.processor.methodChannel
 import com.joyy.neza_annotation.common.Callback
 import com.joyy.neza_annotation.FlutterEngine
 import com.joyy.neza_annotation.method.FlutterMethodChannel
-import com.joyy.neza_annotation.method.Method
+import com.joyy.neza_annotation.method.HandleMessage
 import com.joyy.neza_annotation.method.ParseData
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
@@ -345,11 +345,10 @@ class ReceiverProcessor(
                         " ${method.typeParameters}"
             )
 
-            val methodAnnotation = method.getAnnotation(Method::class.java)
-            val targetName = methodAnnotation?.value ?: methodName
+            method.getAnnotation(HandleMessage::class.java) ?: continue
 
             // "sayHelloToNative" -> {
-            val block = initFun.addStatement("$spacing%S -> {", targetName)
+            val block = initFun.addStatement("$spacing%S -> {", methodName)
             if (parameters.isEmpty()) {   // 没有参数
                 block.addStatement("$spacing  $methodChannelName.$methodName()")
             } else {    // 构建参数

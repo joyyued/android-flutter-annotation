@@ -4,7 +4,7 @@ import android.util.Log
 import com.joyy.neza_annotation.common.Callback
 import com.joyy.neza_annotation.model.ChannelType
 import com.joyy.neza_annotation.method.FlutterMethodChannel
-import com.joyy.neza_annotation.method.Method
+import com.joyy.neza_annotation.method.HandleMessage
 import com.joyy.neza_annotation.method.ParseData
 import com.zinc.android_flutter_annotation.config.Config
 import io.flutter.plugin.common.MethodChannel
@@ -36,11 +36,12 @@ class NezaMethodChannel {
         result?.success("receiver success[name: $name, $age]")
     }
 
+    @HandleMessage
     fun sayHelloToNativeWithRaw(map: Any) {
         result?.error("100", "receiver error[$map]", name)
     }
 
-    @Method("methodNewName")
+    @HandleMessage
     fun methodTest(){
         Log.e("NezaMethodChannel", "[Flutter -> Native] methodTest ")
     }

@@ -3,7 +3,7 @@ package com.zinc.android_flutter_annotation.channel.receiver.basic
 import android.util.Log
 import com.joyy.neza_annotation.common.Callback
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
-import com.joyy.neza_annotation.basic.MessageHandler
+import com.joyy.neza_annotation.method.HandleMessage
 import com.joyy.neza_annotation.model.ChannelType
 import com.zinc.android_flutter_annotation.config.Config
 import io.flutter.plugin.common.BasicMessageChannel
@@ -25,7 +25,7 @@ class NezaStandardBasicChannel {
     @Callback
     var reply: BasicMessageChannel.Reply<Any>? = null
 
-    @MessageHandler
+    @HandleMessage
     fun receiverFromFlutter(receiver: Any?) {
         val map = receiver as? HashMap<*, *> ?: return
         val name = map["name"]
