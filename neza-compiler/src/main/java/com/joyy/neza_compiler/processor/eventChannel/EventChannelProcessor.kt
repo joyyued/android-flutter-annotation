@@ -282,7 +282,7 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
 
         val methodName = method.simpleName.toString()
         val methodParameters = method.parameters
-        val paramType = ProcessorHelper.checkParam(this, method)
+        val paramType = ProcessorHelper.checkParam(this, method, methodParameters)
 
         when (paramType) {
             ParamType.ORIGIN -> list.add(

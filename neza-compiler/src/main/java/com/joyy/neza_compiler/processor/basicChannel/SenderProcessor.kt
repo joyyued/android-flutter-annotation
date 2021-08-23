@@ -139,7 +139,7 @@ class SenderProcessor(
         }
 
         val parameters = method.parameters
-        val paramType = ProcessorHelper.checkParam(printer, method)
+        val paramType = ProcessorHelper.checkParam(printer, method, parameters)
 
         checkParam(
             method = method,
@@ -173,9 +173,7 @@ class SenderProcessor(
                     && !typeUtils.isSameType(parameters[0].asType(), typeMirror)
                 ) {
                     printer.error(
-                        "The parameter type is not same to the basic message.[$method]|" +
-                                "${parameters[0].asType()} |" +
-                                "${receiverChannelInfo.typeMirror}"
+                        "The parameter type is not same to the basic message. [ $method ]"
                     )
                 }
             }
@@ -189,9 +187,7 @@ class SenderProcessor(
                 ) {
                     printer.error(
                         "Can't transform the HashMap type to $receiverTypeName in " +
-                                "${method.simpleName} function. " +
-                                "You can try use one parameter which is the type is " +
-                                "$receiverTypeName, and add a @Param annotation for it."
+                                "${method.simpleName} function. "
                     )
                 }
             }

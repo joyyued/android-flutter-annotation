@@ -16,11 +16,12 @@ import java.nio.ByteBuffer
  * @email: 56002982@qq.com
  * @des:
  */
-//@FlutterBasicChannel(
-//    codecClass = BinaryCodec::class,
-//    channelName = Config.BINARY_BASIC_CHANNEL,
-//    type = ChannelType.SENDER
-//)
+@FlutterBasicChannel(
+    codecClass = BinaryCodec::class,
+    channelName = Config.BINARY_BASIC_CHANNEL,
+    type = ChannelType.SENDER
+)
 interface NezaBinaryBasicChannel {
+    @Param
     fun sendBinary(b: ByteBuffer)
 }

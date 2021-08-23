@@ -122,7 +122,7 @@ class SenderProcessor(
         val parameters = method.parameters
 
         // 获取参数类型
-        val paramType = ProcessorHelper.checkParam(printer, method)
+        val paramType = ProcessorHelper.checkParam(printer, method, parameters)
 
         // Proxy 类名
         var receiverClassName = channelReceiverMap[channelName]

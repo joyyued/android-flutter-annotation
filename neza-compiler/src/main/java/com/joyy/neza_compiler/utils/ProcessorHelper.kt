@@ -21,6 +21,7 @@ object ProcessorHelper {
     fun checkParam(
         printer: Printer,
         method: ExecutableElement,
+        parameterList: List<VariableElement>
     ): ParamType {
         val paramAnnotation = method.getAnnotation(Param::class.java)
         val paramMapAnnotation = method.getAnnotation(ParamMap::class.java)
@@ -38,7 +39,13 @@ object ProcessorHelper {
             return ParamType.MAP
         }
 
-        return ParamType.MAP
+        // 两者都为空，则空参数、多参数默认为 map
+        // 但参数默认为 origin
+        return if (parameterList.size == 1) {
+            ParamType.ORIGIN
+        } else {
+            ParamType.MAP
+        }
     }
 
     fun getGenericsType(printer: Printer, typeMirror: TypeMirror): ArrayList<TypeName> {

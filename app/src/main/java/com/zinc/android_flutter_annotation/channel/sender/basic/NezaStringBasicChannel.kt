@@ -13,11 +13,11 @@ import com.zinc.android_flutter_annotation.config.Config
  * @email: 56002982@qq.com
  * @des:
  */
-//@FlutterBasicChannel(
-//    codecClass = StringCodec::class,
-//    channelName = Config.STRING_BASIC_CHANNEL,
-//    type = ChannelType.SENDER
-//)
+@FlutterBasicChannel(
+    codecClass = StringCodec::class,
+    channelName = Config.STRING_BASIC_CHANNEL,
+    type = ChannelType.SENDER
+)
 interface NezaStringBasicChannel {
     @Param
     fun sendJsonToFlutter(json: String)
