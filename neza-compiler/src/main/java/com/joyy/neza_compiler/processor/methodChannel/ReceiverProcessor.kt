@@ -337,14 +337,6 @@ class ReceiverProcessor(
                 )
             }
 
-            printer.note(
-                "[${ClazzConfig.PROJECT_NAME}] method: $methodName |" +
-                        " ${method.asType()} |" +
-                        " ${method.kind} |" +
-                        " ${method.parameters} |" +
-                        " ${method.typeParameters}"
-            )
-
             method.getAnnotation(HandleMessage::class.java) ?: continue
 
             // "sayHelloToNative" -> {

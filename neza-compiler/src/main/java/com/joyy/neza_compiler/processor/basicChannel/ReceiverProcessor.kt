@@ -266,7 +266,6 @@ class ReceiverProcessor(
                 continue
             }
 
-            printer.note("===== $typeElement =====")
             DebugUtils.showInfo(printer, enclosedElement)
 
             if (enclosedElement.simpleName.toString() != "INSTANCE") {
@@ -344,11 +343,6 @@ class ReceiverProcessor(
             }
 
             val type = item.asType().toString()
-            printer.note(
-                "type: $type |" +
-                        "result: $resultPath |" +
-                        "className: $className"
-            )
             if (type == className.toString()) {
                 printer.error(
                     "The parameter must be a $resultPath type if you use @Callback." +

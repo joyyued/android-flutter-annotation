@@ -3,8 +3,8 @@ package com.joyy.neza_compiler.processor.basicChannel
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
-import com.joyy.neza_compiler.processor.common.ParamType
-import com.joyy.neza_compiler.processor.common.ProcessorHelper
+import com.joyy.neza_compiler.utils.ParamType
+import com.joyy.neza_compiler.utils.ProcessorHelper
 import com.joyy.neza_compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
@@ -132,7 +132,7 @@ class SenderProcessor(
         }
 
         val parameters = method.parameters
-        val paramType = ProcessorHelper.checkParam(printer, parameters)
+        val paramType = ProcessorHelper.checkParam(printer, method, parameters)
 
         when (paramType) {
             ParamType.ORIGIN -> {

@@ -15,6 +15,13 @@ interface Printer {
         )
     }
 
+    fun warning(msg: String) {
+        getMessager()?.printMessage(
+            Diagnostic.Kind.WARNING,
+            "[${ClazzConfig.PROJECT_NAME}-${FlutterEngineProcessor.TAG}] $msg"
+        )
+    }
+
     fun error(msg: String) {
         getMessager()?.printMessage(
             Diagnostic.Kind.ERROR,

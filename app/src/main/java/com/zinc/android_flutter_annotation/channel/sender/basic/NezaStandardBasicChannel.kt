@@ -14,11 +14,11 @@ import io.flutter.plugin.common.StringCodec
  * @email: 56002982@qq.com
  * @des:
  */
-@FlutterBasicChannel(
-    codecClass = StandardMessageCodec::class,
-    channelName = Config.STANDER_BASIC_CHANNEL,
-    type = ChannelType.SENDER
-)
+//@FlutterBasicChannel(
+//    codecClass = StandardMessageCodec::class,
+//    channelName = Config.STANDER_BASIC_CHANNEL,
+//    type = ChannelType.SENDER
+//)
 interface NezaStandardBasicChannel {
 //    fun sendToFlutter(@Param age: Int)
 //

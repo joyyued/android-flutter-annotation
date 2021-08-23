@@ -3,8 +3,8 @@ package com.joyy.neza_compiler.processor.methodChannel
 import com.joyy.neza_annotation.method.FlutterMethodChannel
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
-import com.joyy.neza_compiler.processor.common.ParamType
-import com.joyy.neza_compiler.processor.common.ProcessorHelper
+import com.joyy.neza_compiler.utils.ParamType
+import com.joyy.neza_compiler.utils.ProcessorHelper
 import com.joyy.neza_compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
@@ -122,9 +122,10 @@ class SenderProcessor(
         val methodName = method.simpleName.toString()
         val parameters = method.parameters
 
-        val asyncMethodName = "${methodName}Async"
-        val paramType = ProcessorHelper.checkParam(printer, parameters)
+        // 获取参数类型
+        val paramType = ProcessorHelper.checkParam(printer, method, parameters)
 
+        // Proxy 类名
         var receiverClassName = channelReceiverMap[channelName]
         if (receiverClassName == null) {
             receiverClassName = ClassName(
@@ -133,6 +134,7 @@ class SenderProcessor(
             )
         }
 
+        // 组装参数类型
         val parameterList = ArrayList<ParameterSpec>()
         for (parameter in parameters) {
             val typeName = parameter.asType()
@@ -169,17 +171,12 @@ class SenderProcessor(
             )
         }
 
-        val params = HashMap::class.asClassName().parameterizedBy(
-            String::class.asTypeName(),
-            Any::class.asClassName().copy(nullable = true)
-        )
-
+        // 创建方法
         val list = ArrayList<FunSpec>()
         val function = createMethod(
             receiverClassName = receiverClassName,
             orgMethodName = methodName,
             paramType = paramType,
-            params = params,
             methodParameters = parameters,
             parameterList = parameterList
         )
@@ -188,6 +185,10 @@ class SenderProcessor(
         return list
     }
 
+    /**
+     * 创建回调
+     * @param function 需要添加回调的方法
+     */
     private fun createCallback(function: FunSpec.Builder) {
         // callback -> success
         function.beginControlFlow("override fun success(result: Any?)")
@@ -223,26 +224,27 @@ class SenderProcessor(
             .endControlFlow()
     }
 
+    /**
+     * 创建方法
+     */
     private fun createMethod(
         receiverClassName: ClassName,
         orgMethodName: String,
         paramType: ParamType,
-        params: ParameterizedTypeName,
         methodParameters: List<VariableElement>,
         parameterList: List<ParameterSpec>,
     ): FunSpec.Builder {
+        // scope
         val scopeClassName = ClassName(
             ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
             ClazzConfig.Coroutine.COROUTINE_SCOPE_NAME,
         )
+        // Dispatchers
         val dispatchersClassName = ClassName(
             ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
             ClazzConfig.Coroutine.COROUTINE_DISPATCHERS_NAME,
         )
-        val launchClassName = ClassName(
-            ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
-            ClazzConfig.Coroutine.COROUTINE_LAUNCH_NAME,
-        )
+        // async
         val asyncClassName = ClassName(
             ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
             ClazzConfig.Coroutine.COROUTINE_ASYNC_NAME,
@@ -257,6 +259,12 @@ class SenderProcessor(
                 dispatchersClassName,
                 asyncClassName
             )
+
+        // 创建 HashMap 类型 HashMap<String, Any?>
+        val params = HashMap::class.asClassName().parameterizedBy(
+            String::class.asTypeName(),
+            Any::class.asClassName().copy(nullable = true)
+        )
 
         if (paramType == ParamType.MAP) {
             function.addStatement("val params = %T()", params)
@@ -287,9 +295,22 @@ class SenderProcessor(
                 function.addStatement("  ?.invokeMethod(%S, params, callback)", orgMethodName)
             }
             ParamType.ORIGIN -> {
-                val variableElement = methodParameters[0]
+                val size = methodParameters.size
+                val paramName = if (size <= 0) {
+                    ""
+                } else if (size == 1) {
+                    methodParameters[0].simpleName
+                } else {
+                    printer.warning(
+                        "You use @Param annotation on multi parameters function." +
+                                "This caused only the first parameter will be used." +
+                                "[$orgMethodName] "
+                    )
+                    methodParameters[0].simpleName
+                }
+
                 function.addStatement(
-                    "  ?.invokeMethod(%S, ${variableElement.simpleName}, callback)",
+                    "  ?.invokeMethod(%S, $paramName, callback)",
                     orgMethodName
                 )
             }

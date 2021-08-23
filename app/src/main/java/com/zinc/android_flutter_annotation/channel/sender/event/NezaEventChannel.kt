@@ -20,18 +20,21 @@ interface NezaEventChannel {
 //        @Param byteArray: ByteArray
 //    )
 
+    @ParamMap
     fun sendImageInfo(
-        @ParamMap byteArray: ByteArray
+        byteArray: ByteArray
     )
 
+    @ParamMap
     fun sendImageInfo(
-        @ParamMap id: Int,
-        @ParamMap byteArray: ByteArray
+        id: Int,
+        byteArray: ByteArray
     )
 
+    @ParamMap
     fun sendImageInfo(
-        @ParamMap id: Int,
-        @ParamMap date: Long,
-        @ParamMap byteArray: ByteArray
+        id: Int,
+        date: Long,
+        byteArray: ByteArray
     )
 }

@@ -14,29 +14,34 @@ import kotlinx.coroutines.Deferred
 )
 interface NezaMethodChannel {
 
+    @Param
     fun sayHelloToFlutter(): Deferred<MethodChannelResult>
 
-    fun sayHelloToFlutter(
-        @Param hashMap: HashMap<String, String>
-    )
-
+//    @ParamMap
 //    fun sayHelloToFlutter(
-//        @Param hashMap: HashMap<String, Any?>
+//        hashMap: HashMap<String, String>
 //    )
 
-
+    @Param
     fun sayHelloToFlutter(
-        @Param name: String
+        hashMap: HashMap<String, Any?>
     )
 
+    @ParamMap
     fun sayHelloToFlutter(
-        @ParamMap name: String,
-        @ParamMap age: Int,
-        @ParamMap height: Int?
+        name: String
     )
 
+    @Param
     fun sayHelloToFlutter(
-        @ParamMap name: String,
-        @ParamMap weight: Int,
+        name: String,
+        age: Int,
+        height: Int?
+    )
+
+    @ParamMap
+    fun sayHelloToFlutter(
+        name: String,
+        weight: Int,
     )
 }

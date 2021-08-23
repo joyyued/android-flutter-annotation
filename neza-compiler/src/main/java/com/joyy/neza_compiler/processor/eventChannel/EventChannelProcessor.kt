@@ -5,8 +5,8 @@ import com.joyy.neza_annotation.FlutterEngine
 import com.joyy.neza_annotation.event.FlutterEventChannel
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
-import com.joyy.neza_compiler.processor.common.ParamType
-import com.joyy.neza_compiler.processor.common.ProcessorHelper
+import com.joyy.neza_compiler.utils.ParamType
+import com.joyy.neza_compiler.utils.ProcessorHelper
 import com.joyy.neza_compiler.utils.EngineHelper
 import com.joyy.neza_compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
@@ -272,7 +272,7 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
 
         val methodName = method.simpleName.toString()
         val methodParameters = method.parameters
-        val paramType = ProcessorHelper.checkParam(this, methodParameters)
+        val paramType = ProcessorHelper.checkParam(this, method, methodParameters)
 
         when (paramType) {
             ParamType.ORIGIN -> list.add(
