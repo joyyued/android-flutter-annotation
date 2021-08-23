@@ -14,29 +14,40 @@ import io.flutter.plugin.common.StringCodec
  * @email: 56002982@qq.com
  * @des:
  */
-//@FlutterBasicChannel(
-//    codecClass = StandardMessageCodec::class,
-//    channelName = Config.STANDER_BASIC_CHANNEL,
-//    type = ChannelType.SENDER
-//)
+@FlutterBasicChannel(
+    codecClass = StandardMessageCodec::class,
+    channelName = Config.STANDER_BASIC_CHANNEL,
+    type = ChannelType.SENDER
+)
 interface NezaStandardBasicChannel {
-//    fun sendToFlutter(@Param age: Int)
-//
-//    fun sendToFlutter(
-//        @ParamMap name: String,
-//        @ParamMap age: Int,
-//    )
-//
-//    fun sendToFlutter(
-//        @ParamMap name: String,
-//        @ParamMap age: Int,
-//        @ParamMap height: Int,
-//        @ParamMap byteArray: ByteArray
-//    )
+    @Param
+    fun sendToFlutter()
 
-//    fun sendToFlutter(
-//        @Param map: HashMap<String, String>
-//    )
+    @ParamMap
+    fun sendToFlutterMap()
 
-//    fun sendToFlutterMap(@ParamMap age: Int)
+    @Param
+    fun sendToFlutter(age: Int)
+
+    @ParamMap
+    fun sendToFlutterMap(age: Int)
+
+    @Param
+    fun sendToFlutter(
+        map: HashMap<String, String>
+    )
+
+    @Param
+    fun sendToFlutter(
+        name: String,
+        age: Int,
+    )
+
+    @ParamMap
+    fun sendToFlutter(
+        name: String,
+        age: Int,
+        height: Int,
+        byteArray: ByteArray
+    )
 }

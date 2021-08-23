@@ -105,13 +105,12 @@ class BasicChannelProcessor : AbstractProcessor(), Printer {
         }
 
         // ============================ 生成发送者 ================================
-        val asyncMethodNameSet = HashSet<String>()
         sender.forEach { element ->
             if (element !is TypeElement) {
                 return@forEach
             }
 
-            senderProcessor?.handle(roundEnv, element, channelReceiverMap, asyncMethodNameSet)
+            senderProcessor?.handle(roundEnv, element, channelReceiverMap)
         }
 
         return true

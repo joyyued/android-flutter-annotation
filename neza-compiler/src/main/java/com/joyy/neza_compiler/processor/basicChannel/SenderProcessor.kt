@@ -9,7 +9,6 @@ import com.joyy.neza_compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
-import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeSpec
@@ -40,9 +39,9 @@ class SenderProcessor(
         ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
         ClazzConfig.Coroutine.COROUTINE_DISPATCHERS_NAME,
     )
-    private val launchClassName = ClassName(
+    private val asyncClassName = ClassName(
         ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
-        ClazzConfig.Coroutine.COROUTINE_LAUNCH_NAME,
+        ClazzConfig.Coroutine.COROUTINE_ASYNC_NAME,
     )
     private val suspendCoroutineClassName = ClassName(
         ClazzConfig.Coroutine.COROUTINE_PACKAGE,
@@ -52,21 +51,25 @@ class SenderProcessor(
         ClazzConfig.Coroutine.COROUTINE_PACKAGE,
         ClazzConfig.Coroutine.COROUTINE_RESUME_NAME,
     )
+    private val deferredClassName = ClassName(
+        ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
+        ClazzConfig.Coroutine.DEFERRED_NAME
+    )
 
     fun handle(
         roundEnv: RoundEnvironment,
         element: Element,
-        channelReceiverMap: HashMap<String, ChannelInfo>,
-        asyncMethodNameSet: HashSet<String>
+        channelReceiverMap: HashMap<String, ChannelInfo>
     ) {
         val clazzName = element.simpleName
         val generateClazzName = "${clazzName}Impl"
         val channelAnnotation = element.getAnnotation(FlutterBasicChannel::class.java)
         val channelName = channelAnnotation.channelName
-        val kind = element.kind
 
+        val kind = element.kind
         if (kind != ElementKind.INTERFACE) {
-            error("The sender of Method channel must be a interface.[$clazzName]")
+            printer.error("The sender of Method channel must be a interface.[$clazzName]")
+            return
         }
 
         val codecTypeMirror = BasicProcessorUtils.getCodecTypeMirror(channelAnnotation)
@@ -74,11 +77,14 @@ class SenderProcessor(
             printer.error("Can not get codec.Check the codec is exist.")
             return
         }
+
         val genericsType = BasicProcessorUtils.getGenericsType(codecTypeMirror, printer)
         if (genericsType == null) {
             printer.error("You must support a generic in codec.")
             return
         }
+
+        // 生成接收类名
         if (channelReceiverMap[channelName] == null) {
             channelReceiverMap[channelName] = ChannelInfo(
                 className = ClassName(
@@ -100,15 +106,13 @@ class SenderProcessor(
                     assembleFunction(
                         method,
                         channelName,
-                        channelReceiverMap,
-                        asyncMethodNameSet
+                        channelReceiverMap
                     )
                 )
             }
         }
 
         val engineCreatorClazzBuilder = TypeSpec.objectBuilder(generateClazzName)
-            .addSuperinterface(element.asType().asTypeName())
 
         functions.forEach {
             engineCreatorClazzBuilder.addFunction(it)
@@ -121,19 +125,44 @@ class SenderProcessor(
     private fun assembleFunction(
         method: ExecutableElement,
         channelName: String,
-        channelReceiverMap: HashMap<String, ChannelInfo>,
-        asyncMethodNameSet: HashSet<String>
+        channelReceiverMap: HashMap<String, ChannelInfo>
     ): ArrayList<FunSpec> {
         val list = ArrayList<FunSpec>()
         val receiverChannelInfo = channelReceiverMap[channelName]
         if (receiverChannelInfo == null) {
-            printer.error("[Sender] Receiver is null.")
+            printer.error(
+                "Receiver is null. " +
+                        "You may try again or check your basic message channel code is valid." +
+                        "[ $method ]"
+            )
             return list
         }
 
         val parameters = method.parameters
         val paramType = ProcessorHelper.checkParam(printer, method)
 
+        checkParam(
+            method = method,
+            paramType = paramType,
+            parameters = parameters,
+            receiverChannelInfo = receiverChannelInfo
+        )
+
+        return assembleFunction(
+            method,
+            paramType,
+            parameters,
+            receiverChannelInfo.className,
+            receiverChannelInfo.typeMirror
+        )
+    }
+
+    private fun checkParam(
+        method: ExecutableElement,
+        paramType: ParamType,
+        parameters: List<VariableElement>,
+        receiverChannelInfo: ChannelInfo
+    ) {
         when (paramType) {
             ParamType.ORIGIN -> {
                 val typeMirror = receiverChannelInfo.typeMirror
@@ -148,13 +177,7 @@ class SenderProcessor(
                                 "${parameters[0].asType()} |" +
                                 "${receiverChannelInfo.typeMirror}"
                     )
-                    return list
                 }
-                return assembleSingleParameterFun(
-                    method,
-                    parameters[0],
-                    receiverChannelInfo,
-                )
             }
             ParamType.MAP -> {
                 val receiverTypeName = receiverChannelInfo.typeMirror.asTypeName()
@@ -170,92 +193,40 @@ class SenderProcessor(
                                 "You can try use one parameter which is the type is " +
                                 "$receiverTypeName, and add a @Param annotation for it."
                     )
-                    return list
                 }
-                return assembleMultiOrNoneParameterFun(
-                    method,
-                    parameters,
-                    receiverChannelInfo.className,
-                    receiverChannelInfo.typeMirror,
-                    asyncMethodNameSet
-                )
             }
         }
     }
 
-    private fun assembleSingleParameterFun(
+    private fun assembleFunction(
         method: ExecutableElement,
-        parameter: VariableElement,
-        receiverChannelInfo: ChannelInfo,
-    ): ArrayList<FunSpec> {
-        val list = ArrayList<FunSpec>()
-        val methodName = method.simpleName.toString()
-        val parameterName = parameter.simpleName.toString()
-        val parameterType = TypeChangeUtils.change(parameter.asType().asTypeName())
-        val receiverType = TypeChangeUtils.change(receiverChannelInfo.typeMirror.asTypeName())
-        val syncFun = FunSpec.builder(methodName)
-            .addModifiers(KModifier.OVERRIDE)
-            .addParameter(parameterName, parameterType)
-            .beginControlFlow(
-                "%T(%T.Main).%T",
-                scopeClassName,
-                dispatchersClassName,
-                launchClassName
-            )
-            .addStatement("${methodName}Async($parameterName)")
-            .endControlFlow()
-            .build()
-        list.add(syncFun)
-
-        val asyncFun = FunSpec.builder("${methodName}Async")
-            .addModifiers(KModifier.SUSPEND)
-            .addParameter(parameterName, parameterType)
-            .returns(receiverType.copy(nullable = true))
-            .beginControlFlow(
-                "return %T",
-                suspendCoroutineClassName
-            )
-            .addStatement(
-                "val callback = %T.Reply<%T> { reply ->",
-                ClassName(
-                    ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
-                    ClazzConfig.Flutter.BASIC_CHANNEL_NAME,
-                ),
-                receiverType
-            )
-            .addStatement("  it.%T(reply)", resumeClassName)
-            .addStatement("}")
-            .addStatement("%T.instance", receiverChannelInfo.className)
-            .addStatement("  .getChannel()")
-            .addStatement("  ?.send($parameterName, callback)")
-            .endControlFlow()
-            .build()
-        list.add(asyncFun)
-
-        return list
-    }
-
-    private fun assembleMultiOrNoneParameterFun(
-        method: ExecutableElement,
+        paramType: ParamType,
         parameters: List<VariableElement>,
         receiverClassName: ClassName,
-        type: TypeMirror,
-        asyncMethodNameSet: HashSet<String>
+        type: TypeMirror
     ): ArrayList<FunSpec> {
         val list = ArrayList<FunSpec>()
 
         val type = TypeChangeUtils.change(type.asTypeName()).copy(nullable = true)
         val methodName = method.simpleName.toString()
-        val asyncMethodName = "${methodName}Async"
 
         val hashMapClassName = HashMap::class.asClassName().parameterizedBy(
             String::class.asTypeName(),
             Any::class.asClassName().copy(nullable = true)
         )
 
-        val syncFun = FunSpec.builder(methodName)
-            .addModifiers(KModifier.OVERRIDE)
-            .addStatement("val params = %T()", hashMapClassName)
+        val function = FunSpec.builder(methodName)
+            .returns(deferredClassName.parameterizedBy(type))
+            .beginControlFlow(
+                "val result = %T(%T.Main).%T",
+                scopeClassName,
+                dispatchersClassName,
+                asyncClassName
+            )
+
+        if (paramType == ParamType.MAP) {
+            function.addStatement("val params = %T()", hashMapClassName)
+        }
 
         val parameterList = ArrayList<ParameterSpec>()
         for (parameter in parameters) {
@@ -274,46 +245,69 @@ class SenderProcessor(
                     parameterType
                 ).build()
             )
-            syncFun.addStatement("params[%S] = $parameterName", parameterName)
-        }
-        syncFun.addParameters(parameterList)
-            .beginControlFlow(
-                "%T(%T.Main).%T",
-                scopeClassName,
-                dispatchersClassName,
-                launchClassName
-            )
-            .addStatement("${methodName}Async(params)")
-            .endControlFlow()
-        list.add(syncFun.build())
 
-        if (!asyncMethodNameSet.contains(asyncMethodName)) {
-            val asyncFun = FunSpec.builder(asyncMethodName)
-                .addModifiers(KModifier.SUSPEND)
-                .addParameter("params", hashMapClassName)
-                .returns(type)
-                .beginControlFlow(
-                    "return %T",
-                    suspendCoroutineClassName
-                )
-                .addStatement(
-                    "val callback = %T.Reply<%T> { reply ->",
-                    ClassName(
-                        ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
-                        ClazzConfig.Flutter.BASIC_CHANNEL_NAME,
-                    ),
-                    type
-                )
-                .addStatement("  it.%T(reply)", resumeClassName)
-                .addStatement("}")
-                .addStatement("%T.instance", receiverClassName)
-                .addStatement("  .getChannel()")
-                .addStatement("  ?.send(params, callback)")
-                .endControlFlow()
-                .build()
-            list.add(asyncFun)
-            asyncMethodNameSet.add(asyncMethodName)
+            if (paramType == ParamType.MAP) {
+                function.addStatement("params[%S] = $parameterName", parameterName)
+            }
         }
+
+        function.addParameters(parameterList)
+
+        var log = ""
+        val paramName = when (paramType) {
+            ParamType.ORIGIN -> {
+                if (parameters.isEmpty()) {
+                    "Any()"
+                } else if (parameters.size == 1) {
+                    parameters[0].simpleName
+                } else {
+                    log = "You use @Param annotation on multi parameters function." +
+                            "This caused only the first parameter will be used."
+                    printer.warning("$log [ $methodName ] ")
+                    parameters[0].simpleName
+                }
+            }
+            ParamType.MAP -> {
+                "params"
+            }
+        }
+
+        function
+            .beginControlFlow(
+                "%T<%T>",
+                suspendCoroutineClassName,
+                type
+            )
+            .addStatement(
+                "val callback = %T.Reply<%T> { reply ->",
+                ClassName(
+                    ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
+                    ClazzConfig.Flutter.BASIC_CHANNEL_NAME,
+                ),
+                type
+            )
+            .addStatement("  it.%T(reply)", resumeClassName)
+            .addStatement("}")
+
+        if (log.isNotEmpty()) {
+            function.addStatement(
+                "%T.e(%S, %S)",
+                ClassName(
+                    ClazzConfig.Android.ANDROID_UTIL_PACKAGE,
+                    ClazzConfig.Android.ANDROID_LOG_NAME
+                ),
+                ClazzConfig.PROJECT_NAME,
+                log
+            )
+        }
+
+        function.addStatement("%T.instance", receiverClassName)
+            .addStatement("  .getChannel()")
+            .addStatement("  ?.send($paramName, callback)")
+            .endControlFlow()
+            .endControlFlow()
+            .addStatement("return result")
+        list.add(function.build())
 
         return list
     }
