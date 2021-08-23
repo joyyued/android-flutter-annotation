@@ -28,11 +28,12 @@ class NezaCustomerBasicChannel {
     _channel = BasicMessageChannel(
       NEZA_CUSTOMER_BASIC_CHANNEL,
       HashMapCodec(),
-    )..setMessageHandler(methodCallHandler);
+    );
+    _channel?.setMessageHandler(methodCallHandler);
   }
 
   sendToNative() {
-    var map = HashMap<String, String>();
+    var map = HashMap<String, dynamic>();
     map["name"] = "Jiang PengYong";
     map["weight"] = "60kg";
     _channel?.send(map);
@@ -46,21 +47,20 @@ class NezaCustomerBasicChannel {
 
 const Utf8Codec utf8 = Utf8Codec();
 
-class HashMapCodec implements MessageCodec<HashMap<String, String>?> {
+class HashMapCodec implements MessageCodec<Map<String, dynamic>?> {
   const HashMapCodec();
 
   @override
-  HashMap<String, String>? decodeMessage(ByteData? message) {
+  Map<String, dynamic>? decodeMessage(ByteData? message) {
     if (message == null) return null;
     String content = utf8.decoder.convert(message.buffer
         .asUint8List(message.offsetInBytes, message.lengthInBytes));
-
-    HashMap<String, String> map = jsonDecode(content);
+    Map<String, dynamic> map = jsonDecode(content);
     return map;
   }
 
   @override
-  ByteData? encodeMessage(HashMap<String, String>? map) {
+  ByteData? encodeMessage(Map<String, dynamic>? map) {
     if (map == null) return null;
     final Uint8List encoded = utf8.encoder.convert(jsonEncode(map));
     return encoded.buffer.asByteData();

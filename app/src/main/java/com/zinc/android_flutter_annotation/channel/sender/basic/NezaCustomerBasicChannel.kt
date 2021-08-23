@@ -15,6 +15,7 @@ import io.flutter.plugin.common.StringCodec
  * @des:
  */
 @FlutterBasicChannel(
+//    codecClass = StandardMessageCodec::class,
     codecClass = HashMapMessageCodec::class,
     channelName = Config.BINARY_CUSTOMER_CHANNEL,
     type = ChannelType.SENDER
