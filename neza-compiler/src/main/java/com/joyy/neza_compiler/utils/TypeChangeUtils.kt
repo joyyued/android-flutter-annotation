@@ -1,8 +1,14 @@
 package com.joyy.neza_compiler.utils
 
+import com.joyy.neza_compiler.Printer
+import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
+import com.sun.xml.internal.fastinfoset.util.StringArray
+import javax.lang.model.type.DeclaredType
+import javax.lang.model.type.TypeKind
+import javax.lang.model.type.TypeMirror
 
 /**
  * @author: Jiang Pengyong
@@ -27,8 +33,25 @@ object TypeChangeUtils {
         }
     }
 
-    fun change(type: TypeName): TypeName {
-        return when (type.toString()) {
+    private val ARRAY_SKIP_LIST = arrayListOf(
+        Int::class.asTypeName() to ByteArray::class.asTypeName(),
+        Short::class.asTypeName() to ShortArray::class.asTypeName(),
+        Long::class.asTypeName() to LongArray::class.asTypeName(),
+        Double::class.asTypeName() to DoubleArray::class.asTypeName(),
+        Float::class.asTypeName() to FloatArray::class.asTypeName(),
+        String::class.asTypeName() to StringArray::class.asTypeName(),
+        Boolean::class.asTypeName() to BooleanArray::class.asTypeName(),
+        Byte::class.asTypeName() to ByteArray::class.asTypeName(),
+    )
+    private val TYPE_MAP = mapOf(
+        java.util.HashMap::class.java.asTypeName().toString() to HashMap::class.asTypeName(),
+        java.util.ArrayList::class.java.asTypeName().toString() to ArrayList::class.asTypeName(),
+        Array::class.java.asTypeName().toString() to Array::class.asTypeName()
+    )
+
+    private fun changeSelf(typeName: TypeName): TypeName {
+        val type = typeName.toString()
+        return when (type) {
             java.lang.Integer::class.java.asTypeName().toString() -> Int::class.asTypeName()
             java.lang.Short::class.java.asTypeName().toString() -> Short::class.asTypeName()
             java.lang.Long::class.java.asTypeName().toString() -> Long::class.asTypeName()
@@ -38,14 +61,55 @@ object TypeChangeUtils {
             java.lang.Boolean::class.java.asTypeName().toString() -> Boolean::class.asTypeName()
             java.lang.Byte::class.java.asTypeName().toString() -> Byte::class.asTypeName()
             java.lang.Object::class.java.asTypeName().toString() -> Any::class.asTypeName()
-            java.util.HashMap::class.java.asTypeName().toString() -> HashMap::class.asTypeName()
-            "java.util.HashMap<K, V>" -> HashMap::class.asTypeName()
-            "kotlin.Array<kotlin.Byte>" -> ByteArray::class.asTypeName()
-            Array<Byte>::class.java.asTypeName().toString() -> Array::class.asTypeName()
-                .parameterizedBy(
-                    Byte::class.asTypeName()
-                )
-            else -> type
+            else -> {
+                for ((key, item) in ARRAY_SKIP_LIST) {
+                    val checkType = Array::class.asTypeName().parameterizedBy(
+                        key
+                    )
+                    if (type.startsWith(checkType.toString())) {
+                        return item
+                    }
+                }
+                for ((key, item) in TYPE_MAP) {
+                    if (type.startsWith(key)) {
+                        return item
+                    }
+                }
+                return typeName
+            }
         }
+    }
+
+    fun change(printer: Printer, typeMirror: TypeMirror): TypeName {
+        var result: TypeName
+        printer.note(
+            "【 change 】: ${typeMirror.asTypeName()} | " +
+                    "${
+                        Array::class.parameterizedBy(
+                            Byte::class
+                        )
+                    }| " +
+                    "${
+                        Array::class.asTypeName().parameterizedBy(
+                            Byte::class.asTypeName()
+                        )
+                    }"
+        )
+        if (typeMirror is DeclaredType) {
+            val typeArguments = typeMirror.typeArguments
+            val arrayList = ArrayList<TypeName>()
+            for (typeArgument in typeArguments) {
+                arrayList.add(change(printer, typeArgument))
+            }
+            result = changeSelf(typeMirror.asTypeName())
+            if (result is ClassName) {
+                if (arrayList.isNotEmpty()) {
+                    result = result.parameterizedBy(arrayList)
+                }
+            }
+        } else {
+            result = changeSelf(typeMirror.asTypeName())
+        }
+        return result
     }
 }

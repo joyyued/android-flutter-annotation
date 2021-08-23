@@ -55,17 +55,17 @@ object DebugUtils {
             .append("kind: ").appendLine(typeMirror.kind)
 
         when (typeMirror.kind) {
-            TypeKind.BOOLEAN -> TODO()
-            TypeKind.BYTE -> TODO()
-            TypeKind.SHORT -> TODO()
-            TypeKind.INT -> TODO()
-            TypeKind.LONG -> TODO()
-            TypeKind.CHAR -> TODO()
-            TypeKind.FLOAT -> TODO()
-            TypeKind.DOUBLE -> TODO()
-            TypeKind.VOID -> TODO()
-            TypeKind.NONE -> TODO()
-            TypeKind.NULL -> TODO()
+//            TypeKind.BOOLEAN -> TODO()
+//            TypeKind.BYTE -> TODO()
+//            TypeKind.SHORT -> TODO()
+//            TypeKind.INT -> TODO()
+//            TypeKind.LONG -> TODO()
+//            TypeKind.CHAR -> TODO()
+//            TypeKind.FLOAT -> TODO()
+//            TypeKind.DOUBLE -> TODO()
+//            TypeKind.VOID -> TODO()
+//            TypeKind.NONE -> TODO()
+//            TypeKind.NULL -> TODO()
             TypeKind.ARRAY -> {
                 if(typeMirror is ArrayType){
                     stringBuilder.append("componentType: ").appendLine(typeMirror.componentType)
@@ -80,14 +80,14 @@ object DebugUtils {
                         .append("annotationMirrors: ").appendLine(typeMirror.annotationMirrors)
                 }
             }
-            TypeKind.ERROR -> TODO()
-            TypeKind.TYPEVAR -> TODO()
-            TypeKind.WILDCARD -> TODO()
-            TypeKind.PACKAGE -> TODO()
-            TypeKind.EXECUTABLE -> TODO()
-            TypeKind.OTHER -> TODO()
-            TypeKind.UNION -> TODO()
-            TypeKind.INTERSECTION -> TODO()
+//            TypeKind.ERROR -> TODO()
+//            TypeKind.TYPEVAR -> TODO()
+//            TypeKind.WILDCARD -> TODO()
+//            TypeKind.PACKAGE -> TODO()
+//            TypeKind.EXECUTABLE -> TODO()
+//            TypeKind.OTHER -> TODO()
+//            TypeKind.UNION -> TODO()
+//            TypeKind.INTERSECTION -> TODO()
         }
 
         printer.note(stringBuilder.toString())

@@ -173,7 +173,9 @@ class SenderProcessor(
                     && !typeUtils.isSameType(parameters[0].asType(), typeMirror)
                 ) {
                     printer.error(
-                        "The parameter type is not same to the basic message. [ $method ]"
+                        "The parameter type is not same to the basic message. [ $method ] |" +
+                                "${parameters[0].asType()} |" +
+                                "${receiverChannelInfo.typeMirror}"
                     )
                 }
             }
@@ -185,7 +187,7 @@ class SenderProcessor(
                     && receiverTypeName != HashMap::class.asTypeName()
                     && receiverTypeName != Map::class.asTypeName()
                 ) {
-                    printer.error(
+                    printer.warning(
                         "Can't transform the HashMap type to $receiverTypeName in " +
                                 "${method.simpleName} function. "
                     )
@@ -203,7 +205,7 @@ class SenderProcessor(
     ): ArrayList<FunSpec> {
         val list = ArrayList<FunSpec>()
 
-        val type = TypeChangeUtils.change(type.asTypeName()).copy(nullable = true)
+        val type = TypeChangeUtils.change(printer, type).copy(nullable = true)
         val methodName = method.simpleName.toString()
 
         val hashMapClassName = HashMap::class.asClassName().parameterizedBy(
@@ -228,8 +230,7 @@ class SenderProcessor(
         for (parameter in parameters) {
             val parameterName = parameter.simpleName.toString()
 
-            var parameterType = parameter.asType().asTypeName()
-            parameterType = TypeChangeUtils.change(parameterType)
+            var parameterType = TypeChangeUtils.change(printer, parameter.asType())
 
             val nullableAnnotation = parameter.getAnnotation(Nullable::class.java)
             if (nullableAnnotation != null) {

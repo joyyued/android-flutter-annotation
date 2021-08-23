@@ -67,13 +67,9 @@ class ReceiverProcessor(
             return
         }
         DebugUtils.showInfo(printer, genericsType)
-//        val isGenericsNullable = genericsType.getAnnotation(Nullable::class.java) != null
-//        val genericsTypeName = if (isGenericsNullable) {
-//            TypeChangeUtils.change(genericsType.asTypeName()).copy(nullable = true)
-//        } else {
-//            TypeChangeUtils.change(genericsType.asTypeName())
-//        }
-        val genericsTypeName = TypeChangeUtils.change(genericsType.asTypeName())
+
+        checkCodecClass(codecTypeMirror = codecTypeMirror)
+        val genericsTypeName = TypeChangeUtils.change(printer, genericsType)
 
         val propertyList = ArrayList<PropertySpec>()
         val funList = ArrayList<FunSpec>()
@@ -215,7 +211,7 @@ class ReceiverProcessor(
             ClazzConfig.Channel.CHANNEL_PACKAGE,
             ClazzConfig.Channel.BASIC_CHANNEL_NAME,
         ).parameterizedBy(
-            TypeChangeUtils.change(genericsType.asTypeName())
+            TypeChangeUtils.change(printer, genericsType)
         )
         val receiverClazz = TypeSpec.classBuilder(generateClazzName)
             .addSuperinterface(methodChannelInterface)
@@ -242,7 +238,6 @@ class ReceiverProcessor(
     }
 
     private fun checkCodecClass(
-        typeElement: TypeElement,
         codecTypeMirror: TypeMirror
     ) {
         if (codecTypeMirror !is DeclaredType) {
@@ -257,7 +252,6 @@ class ReceiverProcessor(
 
         val enclosedElements = codecElement.enclosedElements
         var isFindInstance = false
-//        var isFindInstancePrivate = false
         for (enclosedElement in enclosedElements) {
             if (enclosedElement.kind != ElementKind.FIELD) {
                 continue
@@ -277,9 +271,6 @@ class ReceiverProcessor(
                 if (modifier == Modifier.STATIC) {
                     isFindStatic = true
                 }
-//                else if (modifier == Modifier.PRIVATE) {
-//                    isFindInstancePrivate = true
-//                }
             }
 
             if (isFindStatic) {
@@ -288,30 +279,10 @@ class ReceiverProcessor(
             }
         }
 
-//        printer.note("===== $typeElement ===== | $isFindInstance | $isFindInstancePrivate")
-
         if (!isFindInstance) {
-            printer.error("You need support a static INSTANCE field. [$typeElement]")
+            printer.error("You need support a static INSTANCE field. [$codecElement]")
             return
         }
-
-//        if (isFindInstancePrivate) {
-//            for (enclosedElement in enclosedElements) {
-//                if (enclosedElement !is ExecutableElement) {
-//                    continue
-//                }
-//                if (enclosedElement.simpleName.toString() != "getINSTANCE") {
-//                    continue
-//                }
-//
-//                for (modifier in enclosedElement.modifiers) {
-//                    if (modifier == Modifier.PRIVATE) {
-//                        printer.error("You need support a public static INSTANCE field. [$typeElement]")
-//                        return
-//                    }
-//                }
-//            }
-//        }
     }
 
     private fun assembleReplyField(

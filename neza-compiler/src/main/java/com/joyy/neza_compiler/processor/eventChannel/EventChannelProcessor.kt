@@ -251,7 +251,6 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
             ClazzConfig.Channel.EVENT_CHANNEL_NAME
         )
         val engineCreatorClazz = TypeSpec.classBuilder(generateClazzName)
-            .addSuperinterface(element.asType().asTypeName())
             .addSuperinterface(eventChannelClassName)
             .primaryConstructor(
                 FunSpec.constructorBuilder()
@@ -344,8 +343,7 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
 
         val parameterList = ArrayList<ParameterSpec>()
         for (param in params) {
-            var type = param.asType().asTypeName()
-            type = TypeChangeUtils.change(type)
+            var type = TypeChangeUtils.change(this, param.asType())
             val nullableAnnotation = param.getAnnotation(Nullable::class.java)
             if (nullableAnnotation != null) {
                 type = type.copy(nullable = true)
@@ -375,7 +373,6 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
         }
 
         val function = FunSpec.builder(methodName)
-            .addModifiers(KModifier.OVERRIDE)
             .addParameters(parameterList)
 
         if (log.isNotEmpty()) {
@@ -400,13 +397,11 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
     ): ArrayList<FunSpec> {
         val list = ArrayList<FunSpec>()
         val orgFun = FunSpec.builder(methodName)
-            .addModifiers(KModifier.OVERRIDE)
             .addStatement("val params = HashMap<String, Any?>()")
 
         val parameterList = ArrayList<ParameterSpec>()
         for (param in params) {
-            var type = param.asType().asTypeName()
-            type = TypeChangeUtils.change(type)
+            var type = TypeChangeUtils.change(this, param.asType())
             val nullableAnnotation = param.getAnnotation(Nullable::class.java)
             if (nullableAnnotation != null) {
                 type = type.copy(nullable = true)

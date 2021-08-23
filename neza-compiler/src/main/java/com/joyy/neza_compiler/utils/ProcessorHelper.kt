@@ -53,12 +53,7 @@ object ProcessorHelper {
             val result = ArrayList<TypeName>()
             val typeArguments = typeMirror.typeArguments
             typeArguments.forEach { typeMirror ->
-//                printer.note(
-//                    "${typeMirror.getAnnotationsByType(Nullable::class.java)}"
-//                )
-//                typeMirror.getAnnotation(Nullable::class.java)
-//                typeMirror.annotationMirrors
-                result.add(TypeChangeUtils.change(typeMirror.asTypeName()))
+                result.add(TypeChangeUtils.change(printer, typeMirror))
             }
             result
         } else {
