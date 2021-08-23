@@ -132,7 +132,7 @@ class SenderProcessor(
         }
 
         val parameters = method.parameters
-        val paramType = ProcessorHelper.checkParam(printer, method, parameters)
+        val paramType = ProcessorHelper.checkParam(printer, method)
 
         when (paramType) {
             ParamType.ORIGIN -> {

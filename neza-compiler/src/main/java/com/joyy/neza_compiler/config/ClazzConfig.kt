@@ -61,6 +61,9 @@ object ClazzConfig {
     object Android {
         const val CONTEXT_PACKAGE = "android.content"
         const val CONTEXT_NAME = "Context"
+
+        const val ANDROID_UTIL_PACKAGE = "android.util"
+        const val ANDROID_LOG_NAME = "Log"
     }
 
     object PACKAGE {

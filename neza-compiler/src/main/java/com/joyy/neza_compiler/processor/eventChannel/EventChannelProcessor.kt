@@ -55,7 +55,6 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
     private var locale: Locale? = null
 
     private var existMethods: HashSet<String> = HashSet()
-    private var existMapMethods: HashSet<String> = HashSet()
 
     @Synchronized
     override fun init(processingEnv: ProcessingEnvironment) {
@@ -100,18 +99,21 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
             return
         }
 
+        // 生成 XxxImpl 类名
         val generateClazzName = "${element.simpleName}Impl"
 
         val engineAnnotation = element.getAnnotation(FlutterEngine::class.java)
-        val engineId = engineAnnotation?.engineId ?: EngineHelper.getEngineId(roundEnv)
+        val eventChannelAnnotation = element.getAnnotation(FlutterEventChannel::class.java)
+            ?: return
 
+        // engineId 属性
+        val engineId = engineAnnotation?.engineId ?: EngineHelper.getEngineId(roundEnv)
         val engineIdProperty = PropertySpec.builder("engineId", String::class)
             .addModifiers(KModifier.PRIVATE)
             .initializer("%S", engineId)
             .build()
 
-        val eventChannelAnnotation = element.getAnnotation(FlutterEventChannel::class.java)
-            ?: return
+        // channelName 属性
         val channelName = eventChannelAnnotation.channelName
         val nameProperty = PropertySpec.builder("name", String::class)
             .addModifiers(KModifier.PRIVATE)
@@ -157,6 +159,7 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
             .initializer("null")
             .build()
 
+        // companion block
         val companion = TypeSpec.companionObjectBuilder()
             .addProperty(
                 PropertySpec
@@ -181,6 +184,7 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
             )
             .build()
 
+        // init function
         val contextClassName = ClassName(
             ClazzConfig.Android.CONTEXT_PACKAGE,
             ClazzConfig.Android.CONTEXT_NAME,
@@ -215,16 +219,19 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
             .endControlFlow()
             .build()
 
+        // getChannel function
         val getChannelFun = FunSpec.builder("getChannel")
             .addModifiers(KModifier.OVERRIDE)
             .addStatement("return channel")
             .build()
 
+        // getChannelName function
         val getChannelNameFun = FunSpec.builder("getChannelName")
             .addModifiers(KModifier.OVERRIDE)
             .addStatement("return name")
             .build()
 
+        // getEventSink function
         val getEventSinkFun = FunSpec.builder("getEventSink")
             .addModifiers(KModifier.OVERRIDE)
             .addStatement("return eventSink")
@@ -267,18 +274,21 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
             .writeTo(filer)
     }
 
+    /**
+     * 组装方法
+     */
     private fun assembleFun(method: ExecutableElement): ArrayList<FunSpec> {
         val list = ArrayList<FunSpec>()
 
         val methodName = method.simpleName.toString()
         val methodParameters = method.parameters
-        val paramType = ProcessorHelper.checkParam(this, method, methodParameters)
+        val paramType = ProcessorHelper.checkParam(this, method)
 
         when (paramType) {
             ParamType.ORIGIN -> list.add(
                 createSingleParamFun(
                     methodName,
-                    method.parameters[0]
+                    methodParameters
                 )
             )
             ParamType.MAP -> list.addAll(
@@ -329,21 +339,59 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
 
     private fun createSingleParamFun(
         methodName: String,
-        param: VariableElement
+        params: List<VariableElement>
     ): FunSpec {
-        var type = param.asType().asTypeName()
-        type = TypeChangeUtils.change(type)
 
-        return FunSpec.builder(methodName)
-            .addModifiers(KModifier.OVERRIDE)
-            .addParameter(
+        val parameterList = ArrayList<ParameterSpec>()
+        for (param in params) {
+            var type = param.asType().asTypeName()
+            type = TypeChangeUtils.change(type)
+            val nullableAnnotation = param.getAnnotation(Nullable::class.java)
+            if (nullableAnnotation != null) {
+                type = type.copy(nullable = true)
+            }
+            parameterList.add(
                 ParameterSpec.builder(
                     param.simpleName.toString(),
                     type
                 ).build()
             )
-            .addStatement("eventSink?.success(${param.simpleName.toString()})")
-            .build()
+        }
+
+        var log = ""
+        val paramName = when {
+            params.isEmpty() -> {
+                "\"\""
+            }
+            params.size == 1 -> {
+                params[0].simpleName
+            }
+            else -> {
+                log = "You use @Param annotation on multi parameters function." +
+                        "This caused only the first parameter will be used."
+                warning("$log [ $methodName ] ")
+                params[0].simpleName
+            }
+        }
+
+        val function = FunSpec.builder(methodName)
+            .addModifiers(KModifier.OVERRIDE)
+            .addParameters(parameterList)
+
+        if (log.isNotEmpty()) {
+            function.addStatement(
+                "%T.e(%S, %S)",
+                ClassName(
+                    ClazzConfig.Android.ANDROID_UTIL_PACKAGE,
+                    ClazzConfig.Android.ANDROID_LOG_NAME
+                ),
+                ClazzConfig.PROJECT_NAME,
+                log
+            )
+        }
+
+        function.addStatement("eventSink?.success($paramName)")
+        return function.build()
     }
 
     private fun createMultiParamsFun(
@@ -374,24 +422,9 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
 
         list.add(
             orgFun.addParameters(parameterList)
-                .addStatement("$methodName(params)")
-                .build()
-        )
-
-        if (!existMapMethods.contains(methodName)) {
-            val paramFun = FunSpec.builder(methodName)
-                .addParameter(
-                    "params", HashMap::class.asClassName().parameterizedBy(
-                        String::class.asTypeName(),
-                        Any::class.asClassName().copy(nullable = true)
-                    )
-                )
                 .addStatement("eventSink?.success(params)")
                 .build()
-            list.add(paramFun)
-        }
-
-        existMapMethods.add(methodName)
+        )
 
         return list
     }

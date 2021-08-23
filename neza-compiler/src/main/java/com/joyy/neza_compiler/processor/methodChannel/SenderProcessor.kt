@@ -10,7 +10,6 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.ParameterSpec
-import com.squareup.kotlinpoet.ParameterizedTypeName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
@@ -123,7 +122,7 @@ class SenderProcessor(
         val parameters = method.parameters
 
         // 获取参数类型
-        val paramType = ProcessorHelper.checkParam(printer, method, parameters)
+        val paramType = ProcessorHelper.checkParam(printer, method)
 
         // Proxy 类名
         var receiverClassName = channelReceiverMap[channelName]
@@ -286,36 +285,49 @@ class SenderProcessor(
             )
 
         createCallback(function)
-
         function.endControlFlow()
-            .addStatement("%T.instance", receiverClassName)
-            .addStatement("  .getChannel()")
-        when (paramType) {
+
+        var log = ""
+        val statement = when (paramType) {
             ParamType.MAP -> {
-                function.addStatement("  ?.invokeMethod(%S, params, callback)", orgMethodName)
+                "  ?.invokeMethod(%S, params, callback)"
             }
             ParamType.ORIGIN -> {
                 val size = methodParameters.size
-                val paramName = if (size <= 0) {
-                    ""
-                } else if (size == 1) {
-                    methodParameters[0].simpleName
-                } else {
-                    printer.warning(
-                        "You use @Param annotation on multi parameters function." +
-                                "This caused only the first parameter will be used." +
-                                "[$orgMethodName] "
-                    )
-                    methodParameters[0].simpleName
+                val paramName = when {
+                    size <= 0 -> {
+                        "\"\""
+                    }
+                    size == 1 -> {
+                        methodParameters[0].simpleName
+                    }
+                    else -> {
+                        log = "You use @Param annotation on multi parameters function." +
+                                "This caused only the first parameter will be used."
+                        printer.warning("$log [ $orgMethodName ] ")
+                        methodParameters[0].simpleName
+                    }
                 }
 
-                function.addStatement(
-                    "  ?.invokeMethod(%S, $paramName, callback)",
-                    orgMethodName
-                )
+                "  ?.invokeMethod(%S, $paramName, callback)"
             }
         }
-        function.endControlFlow()
+
+        if (log.isNotEmpty()) {
+            function.addStatement(
+                "%T.e(%S, %S)",
+                ClassName(
+                    ClazzConfig.Android.ANDROID_UTIL_PACKAGE,
+                    ClazzConfig.Android.ANDROID_LOG_NAME
+                ),
+                ClazzConfig.PROJECT_NAME,
+                log
+            )
+        }
+        function.addStatement("%T.instance", receiverClassName)
+            .addStatement("  .getChannel()")
+            .addStatement(statement, orgMethodName)
+            .endControlFlow()
             .endControlFlow()
             .addStatement("return result")
 

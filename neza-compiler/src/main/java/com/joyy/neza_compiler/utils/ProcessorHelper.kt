@@ -21,12 +21,7 @@ object ProcessorHelper {
     fun checkParam(
         printer: Printer,
         method: ExecutableElement,
-        parameterList: List<VariableElement>
     ): ParamType {
-        if (parameterList.isEmpty()) {
-            return ParamType.MAP
-        }
-
         val paramAnnotation = method.getAnnotation(Param::class.java)
         val paramMapAnnotation = method.getAnnotation(ParamMap::class.java)
 
