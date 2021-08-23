@@ -85,5 +85,10 @@
         android:layout_height="wrap_content"
         android:text="发送 map 信息" />
 
+    <Button
+        android:id="@+id/btn_send_map_to_flutter_customer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="发送 map 信息 [ Customer Codec ]" />
 
 </LinearLayout>

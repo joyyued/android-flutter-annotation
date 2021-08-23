@@ -1,13 +1,14 @@
 package com.zinc.android_flutter_annotation.channel.receiver.basic
 
 import android.util.Log
-import com.joyy.neza_annotation.common.Callback
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
+import com.joyy.neza_annotation.common.Callback
 import com.joyy.neza_annotation.method.HandleMessage
 import com.joyy.neza_annotation.model.ChannelType
+import com.zinc.android_flutter_annotation.codec.HashMapMessageCodec
+import com.zinc.android_flutter_annotation.codec.StringCodec
 import com.zinc.android_flutter_annotation.config.Config
 import io.flutter.plugin.common.BasicMessageChannel
-import io.flutter.plugin.common.StandardMessageCodec
 
 /**
  * @author: Jiang Pengyong
@@ -16,20 +17,17 @@ import io.flutter.plugin.common.StandardMessageCodec
  * @des:
  */
 @FlutterBasicChannel(
-    codecClass = StandardMessageCodec::class,
-    channelName = Config.STANDER_BASIC_CHANNEL,
+    codecClass = HashMapMessageCodec::class,
+    channelName = Config.BINARY_CUSTOMER_CHANNEL,
     type = ChannelType.RECEIVER
 )
-class NezaStandardBasicChannel {
+class NezaCustomerBasicChannel {
 
     @Callback
-    var reply: BasicMessageChannel.Reply<Any>? = null
+    var reply: BasicMessageChannel.Reply<HashMap<String, String>>? = null
 
     @HandleMessage
-    fun receiverFromFlutter(receiver: Any?) {
-        val map = receiver as? HashMap<*, *> ?: return
-        val name = map["name"]
-        val weight = map["weight"]
-        Log.e("NezaBasicChannel", "[Flutter -> Native] Receiver from standard codec: $name $weight")
+    fun receiverJsonFromFlutter(map: HashMap<String, String>?) {
+        Log.e("NezaBasicChannel", "[Flutter -> Native] Receiver from customer codec: $map")
     }
 }

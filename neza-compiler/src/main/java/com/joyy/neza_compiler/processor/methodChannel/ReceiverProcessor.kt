@@ -55,8 +55,6 @@ class ReceiverProcessor(
         val engineAnnotation = element.getAnnotation(FlutterEngine::class.java)
         val channelName = channelAnnotation.channelName
 
-//        printer.note("receiver kind: ${element.kind}")
-
         val funList = ArrayList<FunSpec>()
         val propertyList = ArrayList<PropertySpec>()
 
@@ -263,7 +261,6 @@ class ReceiverProcessor(
                 continue
             }
             fieldElements.add(item)
-//            DebugUtils.showPropertyInfo(printer, item)
         }
 
         val methodList = ArrayList<ExecutableElement>()
@@ -303,7 +300,6 @@ class ReceiverProcessor(
             }
 
             methodList.add(item)
-//            DebugUtils.showMethodInfo(printer, item)
         }
 
         assembleMethod(

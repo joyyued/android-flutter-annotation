@@ -3,12 +3,8 @@ package com.joyy.neza_compiler.utils
 import com.joyy.neza_annotation.common.Param
 import com.joyy.neza_annotation.common.ParamMap
 import com.joyy.neza_compiler.Printer
-import com.squareup.kotlinpoet.TypeName
-import com.squareup.kotlinpoet.asTypeName
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.VariableElement
-import javax.lang.model.type.DeclaredType
-import javax.lang.model.type.TypeMirror
 
 /**
  * @author: Jiang Pengyong
@@ -45,19 +41,6 @@ object ProcessorHelper {
             ParamType.ORIGIN
         } else {
             ParamType.MAP
-        }
-    }
-
-    fun getGenericsType(printer: Printer, typeMirror: TypeMirror): ArrayList<TypeName> {
-        return if (typeMirror is DeclaredType) {
-            val result = ArrayList<TypeName>()
-            val typeArguments = typeMirror.typeArguments
-            typeArguments.forEach { typeMirror ->
-                result.add(TypeChangeUtils.change(printer, typeMirror))
-            }
-            result
-        } else {
-            ArrayList()
         }
     }
 }

@@ -82,19 +82,6 @@ object TypeChangeUtils {
 
     fun change(printer: Printer, typeMirror: TypeMirror): TypeName {
         var result: TypeName
-        printer.note(
-            "【 change 】: ${typeMirror.asTypeName()} | " +
-                    "${
-                        Array::class.parameterizedBy(
-                            Byte::class
-                        )
-                    }| " +
-                    "${
-                        Array::class.asTypeName().parameterizedBy(
-                            Byte::class.asTypeName()
-                        )
-                    }"
-        )
         if (typeMirror is DeclaredType) {
             val typeArguments = typeMirror.typeArguments
             val arrayList = ArrayList<TypeName>()

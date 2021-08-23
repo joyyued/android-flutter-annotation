@@ -5,9 +5,9 @@ import com.joyy.neza_annotation.FlutterEngine
 import com.joyy.neza_annotation.event.FlutterEventChannel
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
+import com.joyy.neza_compiler.utils.EngineHelper
 import com.joyy.neza_compiler.utils.ParamType
 import com.joyy.neza_compiler.utils.ProcessorHelper
-import com.joyy.neza_compiler.utils.EngineHelper
 import com.joyy.neza_compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
@@ -15,10 +15,8 @@ import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
-import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
-import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.asTypeName
 import org.jetbrains.annotations.Nullable
 import java.util.LinkedHashSet

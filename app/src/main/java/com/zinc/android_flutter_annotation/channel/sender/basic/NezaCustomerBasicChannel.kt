@@ -20,5 +20,5 @@ import io.flutter.plugin.common.StringCodec
     type = ChannelType.SENDER
 )
 interface NezaCustomerBasicChannel {
-
+    fun sendMapToFlutter(map: HashMap<String, String>)
 }

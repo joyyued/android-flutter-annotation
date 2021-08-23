@@ -6,7 +6,6 @@ import com.joyy.neza_annotation.common.Callback
 import com.joyy.neza_annotation.method.HandleMessage
 import com.joyy.neza_compiler.Printer
 import com.joyy.neza_compiler.config.ClazzConfig
-import com.joyy.neza_compiler.utils.DebugUtils
 import com.joyy.neza_compiler.utils.EngineHelper
 import com.joyy.neza_compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
@@ -66,7 +65,6 @@ class ReceiverProcessor(
             printer.error("You must support a generic in codec.")
             return
         }
-        DebugUtils.showInfo(printer, genericsType)
 
         checkCodecClass(codecTypeMirror = codecTypeMirror)
         val genericsTypeName = TypeChangeUtils.change(printer, genericsType)
@@ -260,8 +258,6 @@ class ReceiverProcessor(
                 continue
             }
 
-            DebugUtils.showInfo(printer, enclosedElement)
-
             if (enclosedElement.simpleName.toString() != "INSTANCE") {
                 continue
             }
@@ -322,7 +318,6 @@ class ReceiverProcessor(
                 return
             }
             resultElements.add(item)
-//            DebugUtils.showPropertyInfo(printer, item)
         }
 
         for (resultElement in resultElements) {

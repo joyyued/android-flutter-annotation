@@ -4,7 +4,6 @@ import com.google.auto.service.AutoService
 import com.joyy.neza_annotation.basic.FlutterBasicChannel
 import com.joyy.neza_annotation.model.ChannelType
 import com.joyy.neza_compiler.Printer
-import com.squareup.kotlinpoet.ClassName
 import java.util.LinkedHashSet
 import java.util.Locale
 import javax.annotation.processing.AbstractProcessor
@@ -18,7 +17,6 @@ import javax.lang.model.element.Element
 import javax.lang.model.element.TypeElement
 import javax.lang.model.util.Elements
 import javax.lang.model.util.Types
-import kotlin.contracts.contract
 
 /**
  * @author: Jiang Pengyong

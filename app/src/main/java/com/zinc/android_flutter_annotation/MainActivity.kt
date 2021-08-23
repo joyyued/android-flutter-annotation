@@ -120,17 +120,29 @@ class MainActivity : AppCompatActivity() {
                 .nezaEventChannel
                 .sendImageInfo(type = EventChannelSenderEOSType.EOS)
         }
-        // =========================== Event ===========================
+        // =========================== Basic ===========================
 
         findViewById<Button>(R.id.btn_send_json_to_flutter).setOnClickListener {
-//            Flutter.Channels.nezaStringBasicChannel.sendJsonToFlutter("{\"name\":\"江澎涌\", \"age\":28}")
+            CoroutineScope(Dispatchers.Main).launch {
+                Flutter.Channels
+                    .nezaStringBasicChannel
+                    .sendJsonToFlutter("{\"name\":\"江澎涌\", \"age\":28}")
+                    .await()
+            }
         }
 
         findViewById<Button>(R.id.btn_send_map_to_flutter).setOnClickListener {
-            val map = HashMap<String, Any>()
+            val map = HashMap<String, String>()
             map["name"] = "Jiang Peng Yong"
-            map["age"] = 28
-//            Flutter.Channels.nezaStandardBasicChannel.sendToFlutter(map)
+            map["age"] = "28"
+            Flutter.Channels.nezaStandardBasicChannel.sendToFlutter(map)
+        }
+
+        findViewById<Button>(R.id.btn_send_map_to_flutter_customer).setOnClickListener {
+            val map = HashMap<String, String>()
+            map["name"] = "Jiang Peng Yong"
+            map["age"] = "28"
+            Flutter.Channels.nezaCustomerBasicChannel.sendMapToFlutter(map)
         }
     }
 

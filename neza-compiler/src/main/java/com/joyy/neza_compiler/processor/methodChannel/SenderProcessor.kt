@@ -22,7 +22,6 @@ import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
 import javax.lang.model.element.VariableElement
-import javax.lang.model.type.DeclaredType
 import javax.lang.model.util.Elements
 import javax.lang.model.util.Types
 
@@ -138,24 +137,6 @@ class SenderProcessor(
         for (parameter in parameters) {
             val typeName = parameter.asType()
             var type = TypeChangeUtils.change(printer, typeName)
-
-//            if (typeName is DeclaredType) {
-//                val resultType = TypeChangeUtils.change(
-//                    typeName.asElement().asType()
-//                )
-//                if (resultType is ClassName) {
-//                    val genericsType = ProcessorHelper.getGenericsType(printer, typeName)
-//                    type = if (genericsType.isNotEmpty()) {
-//                        resultType.parameterizedBy(
-//                            genericsType
-//                        )
-//                    } else {
-//                        resultType
-//                    }
-//                }
-//            } else {
-//                type = TypeChangeUtils.change(type)
-//            }
 
             val nullableAnnotation = parameter.getAnnotation(Nullable::class.java)
             if (nullableAnnotation != null) {

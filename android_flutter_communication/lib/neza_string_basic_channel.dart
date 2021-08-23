@@ -33,7 +33,7 @@ class NezaStringBasicChannel {
 
   Future<dynamic> methodCallHandler(dynamic message) async {
     if (message is String) {
-      print("=========== [Native to Flutter] $message ===========");
+      print("=========== [Native to Flutter] String: $message ===========");
     }
   }
 }

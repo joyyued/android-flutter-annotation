@@ -14,12 +14,31 @@ import com.zinc.android_flutter_annotation.config.Config
 //@FlutterEngine(engineId = "江澎涌")
 @FlutterEventChannel(channelName = Config.EVENT_CHANNEL)
 interface NezaEventChannel {
+
+    /**
+     * 会组合成 HashMap
+     */
+    fun sendUserInfo(
+        name: String,
+        age: Int
+    )
+
     @Param
     fun sendImageInfo()
 
     @Param
     fun sendImageInfo(
         width: Int
+    )
+
+    /**
+     * 只使用第一个参数
+     */
+    @Param
+    fun sendUserInfo(
+        name: String,
+        age: Int,
+        height: Int,
     )
 
     @ParamMap
@@ -38,17 +57,5 @@ interface NezaEventChannel {
         id: Int,
         date: Long,
         byteArray: ByteArray
-    )
-
-    fun sendUserInfo(
-        name: String,
-        age: Int
-    )
-
-    @Param
-    fun sendUserInfo(
-        name: String,
-        age: Int,
-        height: Int,
     )
 }

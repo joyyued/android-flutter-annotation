@@ -27,6 +27,6 @@ class NezaStringBasicChannel {
 
     @HandleMessage
     fun receiverJsonFromFlutter(json: String?) {
-        Log.e("NezaBasicChannel", "[Flutter -> Native] $json")
+        Log.e("NezaBasicChannel", "[Flutter -> Native] Receiver from string codec: $json")
     }
 }

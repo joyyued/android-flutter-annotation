@@ -22,6 +22,6 @@ object Config {
 
     const val BINARY_JSON_CHANNEL = "com.zinc.android_flutter_annotation/nezaBinaryJsonChannel"
 
-    const val BINARY_CUSTOMER_CHANNEL = "com.zinc" +
-            ".android_flutter_annotation/nezaCustomerJsonChannel"
+    const val BINARY_CUSTOMER_CHANNEL =
+        "com.zinc.android_flutter_annotation/nezaCustomerBasicChannel"
 }

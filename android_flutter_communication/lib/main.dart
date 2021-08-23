@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:android_flutter_communication/neza_customer_basic_channel.dart';
 import 'package:android_flutter_communication/neza_standard_basic_channel.dart';
 import 'package:android_flutter_communication/neza_string_basic_channel.dart';
 import 'package:android_flutter_communication/neza_event_channel.dart';
@@ -12,6 +13,7 @@ void main() {
   NezaEventChannel.instance.init();
   NezaStringBasicChannel.instance.init();
   NezaStandardBasicChannel.instance.init();
+  NezaCustomerBasicChannel.instance.init();
 }
 
 class MyApp extends StatelessWidget {
@@ -114,6 +116,14 @@ class _MyHomePageState extends State<MyHomePage> {
           NezaStandardBasicChannel.instance.sendToNative();
         },
         child: Text('Send map to native'),
+      ),
+    );
+    result.add(
+      TextButton(
+        onPressed: () {
+          NezaCustomerBasicChannel.instance.sendToNative();
+        },
+        child: Text('Send map to native [ Customer codec ] '),
       ),
     );
     return result;

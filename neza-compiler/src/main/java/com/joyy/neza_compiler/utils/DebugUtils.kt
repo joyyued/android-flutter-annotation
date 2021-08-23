@@ -1,9 +1,7 @@
 package com.joyy.neza_compiler.utils
 
-import com.joyy.neza_annotation.method.ParseData
 import com.joyy.neza_compiler.Printer
 import com.squareup.kotlinpoet.TypeName
-import java.lang.StringBuilder
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.VariableElement
 import javax.lang.model.type.ArrayType
@@ -55,17 +53,6 @@ object DebugUtils {
             .append("kind: ").appendLine(typeMirror.kind)
 
         when (typeMirror.kind) {
-//            TypeKind.BOOLEAN -> TODO()
-//            TypeKind.BYTE -> TODO()
-//            TypeKind.SHORT -> TODO()
-//            TypeKind.INT -> TODO()
-//            TypeKind.LONG -> TODO()
-//            TypeKind.CHAR -> TODO()
-//            TypeKind.FLOAT -> TODO()
-//            TypeKind.DOUBLE -> TODO()
-//            TypeKind.VOID -> TODO()
-//            TypeKind.NONE -> TODO()
-//            TypeKind.NULL -> TODO()
             TypeKind.ARRAY -> {
                 if(typeMirror is ArrayType){
                     stringBuilder.append("componentType: ").appendLine(typeMirror.componentType)
@@ -80,14 +67,6 @@ object DebugUtils {
                         .append("annotationMirrors: ").appendLine(typeMirror.annotationMirrors)
                 }
             }
-//            TypeKind.ERROR -> TODO()
-//            TypeKind.TYPEVAR -> TODO()
-//            TypeKind.WILDCARD -> TODO()
-//            TypeKind.PACKAGE -> TODO()
-//            TypeKind.EXECUTABLE -> TODO()
-//            TypeKind.OTHER -> TODO()
-//            TypeKind.UNION -> TODO()
-//            TypeKind.INTERSECTION -> TODO()
         }
 
         printer.note(stringBuilder.toString())

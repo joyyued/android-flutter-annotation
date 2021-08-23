@@ -27,11 +27,13 @@ class NezaMethodChannel {
     @Callback
     var result: MethodChannel.Result? = null
 
+    @HandleMessage
     fun sayHelloToNative() {
         Log.e("NezaMethodChannel", "[Flutter -> Native]sayHelloToNative")
     }
 
     @ParseData
+    @HandleMessage
     fun sayHelloToNativeWithParam(name: String?, age: Int?) {
         result?.success("receiver success[name: $name, $age]")
     }
