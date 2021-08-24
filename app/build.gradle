@@ -42,7 +42,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:${coroutines_android_version}"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:${coroutines_android_version}"
 
-    implementation project(":flutter")
+//    implementation project(":flutter")
     implementation project(':annotation')
     kapt project(':compiler')
 
