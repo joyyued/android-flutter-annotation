@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 apply plugin: 'com.github.dcendents.android-maven'
-group = 'com.joyy.ued.flutter-annotation'
+group = 'com.github.joyyued'
 
 android {
     compileSdkVersion project.compile_sdk_version as int

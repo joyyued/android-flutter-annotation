@@ -5,7 +5,7 @@ plugins {
 }
 
 apply plugin: 'com.github.dcendents.android-maven'
-group = 'com.joyy.ued.flutter-annotation'
+group = 'com.github.joyyued'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
