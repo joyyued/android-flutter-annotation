@@ -1,0 +1,41 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'com.github.dcendents.android-maven'
+group = 'com.github.joyyued'
+
+android {
+    compileSdkVersion project.compile_sdk_version as int
+    buildToolsVersion project.build_tools_version
+
+    defaultConfig {
+        minSdkVersion project.min_sdk_version as int
+        targetSdkVersion project.target_sdk_version as int
+        versionCode project.version_code as int
+        versionName project.version
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:${project.kotlin_version}"
+    implementation "androidx.core:core-ktx:${project.activity_ktx_version}"
+    implementation "androidx.appcompat:appcompat:${project.appcompat_version}"
+    implementation "androidx.constraintlayout:constraintlayout:${project.constraintlayout_version}"
+    implementation "com.google.android.material:material:${project.material_design_version}"
+
+    implementation project(":flutter")
+    implementation project(':annotation')
+}

@@ -43,9 +43,9 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:${coroutines_android_version}"
 
     implementation project(":flutter")
-    implementation project(":neza-annotation")
-    implementation project(":neza-api")
-    kapt project(":neza-compiler")
+    implementation project(':annotation')
+    implementation project(':api')
+    kapt project(':compiler')
 
     implementation 'com.google.code.gson:gson:2.8.7'
 }

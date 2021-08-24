@@ -12,10 +12,10 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/android_flutter_communication" />
             <option value="$PROJECT_DIR$/android_flutter_communication/.android/Flutter" />
+            <option value="$PROJECT_DIR$/annotation" />
+            <option value="$PROJECT_DIR$/api" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/neza-annotation" />
-            <option value="$PROJECT_DIR$/neza-api" />
-            <option value="$PROJECT_DIR$/neza-compiler" />
+            <option value="$PROJECT_DIR$/compiler" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

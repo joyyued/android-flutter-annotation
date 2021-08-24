@@ -3,8 +3,8 @@ package com.zinc.android_flutter_annotation
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import com.joyy.neza.manager.Flutter
-import com.joyy.neza_annotation.FlutterEngine
+import com.joyy.annotation.FlutterEngine
+import com.joyy.flutter_annotation.manager.Flutter
 import com.zinc.android_flutter_annotation.config.Config
 
 @FlutterEngine(engineId = Config.ENGINE_ID)

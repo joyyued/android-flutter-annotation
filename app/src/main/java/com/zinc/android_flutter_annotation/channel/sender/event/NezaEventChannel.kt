@@ -1,8 +1,8 @@
 package com.zinc.android_flutter_annotation.channel.sender.event
 
-import com.joyy.neza_annotation.common.Param
-import com.joyy.neza_annotation.common.ParamMap
-import com.joyy.neza_annotation.event.FlutterEventChannel
+import com.joyy.annotation.common.Param
+import com.joyy.annotation.common.ParamMap
+import com.joyy.annotation.event.FlutterEventChannel
 import com.zinc.android_flutter_annotation.config.Config
 
 /**

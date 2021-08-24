@@ -4,8 +4,8 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import com.joyy.neza.manager.Flutter
-import com.joyy.neza_annotation.model.EventChannelSenderEOSType
+import com.joyy.annotation.model.EventChannelSenderEOSType
+import com.joyy.flutter_annotation.manager.Flutter
 import com.zinc.android_flutter_annotation.config.Config
 import com.zinc.android_flutter_annotation.utils.AssetsUtils
 import io.flutter.embedding.android.FlutterActivity

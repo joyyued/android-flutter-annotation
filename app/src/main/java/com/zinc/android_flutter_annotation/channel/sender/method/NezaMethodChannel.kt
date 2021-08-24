@@ -1,9 +1,9 @@
 package com.zinc.android_flutter_annotation.channel.sender.method
 
-import com.joyy.neza_annotation.common.Param
-import com.joyy.neza_annotation.common.ParamMap
-import com.joyy.neza_annotation.method.FlutterMethodChannel
-import com.joyy.neza_annotation.model.ChannelType
+import com.joyy.annotation.common.Param
+import com.joyy.annotation.common.ParamMap
+import com.joyy.annotation.method.FlutterMethodChannel
+import com.joyy.annotation.model.ChannelType
 import com.zinc.android_flutter_annotation.config.Config
 
 @FlutterMethodChannel(

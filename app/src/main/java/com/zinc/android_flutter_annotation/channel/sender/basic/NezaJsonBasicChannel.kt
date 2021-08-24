@@ -1,7 +1,7 @@
 package com.zinc.android_flutter_annotation.channel.sender.basic
 
-import com.joyy.neza_annotation.basic.FlutterBasicChannel
-import com.joyy.neza_annotation.model.ChannelType
+import com.joyy.annotation.basic.FlutterBasicChannel
+import com.joyy.annotation.model.ChannelType
 import com.zinc.android_flutter_annotation.config.Config
 import io.flutter.plugin.common.JSONMessageCodec
 
