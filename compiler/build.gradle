@@ -2,10 +2,10 @@ plugins {
     id 'java-library'
     id 'kotlin'
     id 'kotlin-kapt'
-    id 'com.github.dcendents.android-maven'
+//    id 'com.github.dcendents.android-maven'
 }
 
-group = 'com.github.joyyued'
+//group = 'com.github.joyyued'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
