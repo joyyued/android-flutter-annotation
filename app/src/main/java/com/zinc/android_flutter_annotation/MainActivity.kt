@@ -151,6 +151,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun show(msg: String) {
-        Log.e("Neza", "[MainActivity] $msg")
+        Log.i("Neza", "[MainActivity] $msg")
     }
 }
