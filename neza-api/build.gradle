@@ -1,6 +1,9 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
+apply plugin: 'com.github.dcendents.android-maven'
+group = 'com.joyy.ued.flutter-annotation'
+
 android {
     compileSdkVersion project.compile_sdk_version as int
     buildToolsVersion project.build_tools_version
