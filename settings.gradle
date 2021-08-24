@@ -2,12 +2,12 @@ rootProject.name = "android_flutter_annotation"
 include ':app'
 
 // flutter
-//setBinding(new Binding([gradle: this]))
-//evaluate(new File(
-//        settingsDir,
-//        '/android_flutter_communication/.android/include_flutter.groovy'
-//))
-//include ':android_flutter_communication'
+setBinding(new Binding([gradle: this]))
+evaluate(new File(
+        settingsDir,
+        '/android_flutter_communication/.android/include_flutter.groovy'
+))
+include ':android_flutter_communication'
 
 include ':annotation'
 include ':compiler'
