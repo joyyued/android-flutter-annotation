@@ -13,7 +13,7 @@ import io.flutter.plugin.common.StandardMessageCodec
  * @author: Jiang Pengyong
  * @date: 2021/8/10 3:44 下午
  * @email: 56002982@qq.com
- * @des:
+ * @des: standard channel
  */
 @FlutterBasicChannel(
     codecClass = StandardMessageCodec::class,
@@ -30,6 +30,9 @@ class NezaStandardBasicChannel {
         val map = receiver as? HashMap<*, *> ?: return
         val name = map["name"]
         val weight = map["weight"]
-        Log.e("NezaBasicChannel", "[Flutter -> Native] Receiver from standard codec: $name $weight")
+        Log.e(
+            "Neza", "[Basic standard channel receiver]" +
+                    " receiverFromFlutter(name: $name, weight: $weight)"
+        )
     }
 }

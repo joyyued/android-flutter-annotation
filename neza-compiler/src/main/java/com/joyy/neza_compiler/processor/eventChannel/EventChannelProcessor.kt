@@ -121,7 +121,7 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
         // private var engine: FlutterEngine? = null
         val engineClassName = ClassName(
             ClazzConfig.Flutter.ENGINE_PACKAGE,
-            ClazzConfig.Flutter.ENGINE_NAME,
+            ClazzConfig.Flutter.ENGINE_NAME
         )
         val flutterEngineProperty = PropertySpec.builder(
             "engine",
@@ -134,7 +134,7 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
         // private var channel: MethodChannel? = null
         val channelClassName = ClassName(
             ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
-            ClazzConfig.Flutter.EVENT_CHANNEL_NAME,
+            ClazzConfig.Flutter.EVENT_CHANNEL_NAME
         )
         val channelProperty = PropertySpec.builder(
             "channel",
@@ -147,7 +147,7 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
         // private var eventSink: EventChannel.EventSink? = null
         val sinkClassName = ClassName(
             ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
-            ClazzConfig.Flutter.SINK_NAME,
+            ClazzConfig.Flutter.SINK_NAME
         )
         val sinkProperty = PropertySpec.builder(
             "eventSink",
@@ -185,11 +185,11 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
         // init function
         val contextClassName = ClassName(
             ClazzConfig.Android.CONTEXT_PACKAGE,
-            ClazzConfig.Android.CONTEXT_NAME,
+            ClazzConfig.Android.CONTEXT_NAME
         )
         val engineHelperClassName = ClassName(
             ClazzConfig.ENGINE_HELPER_PACKAGE,
-            ClazzConfig.ENGINE_HELPER_NAME,
+            ClazzConfig.ENGINE_HELPER_NAME
         )
         val initFun = FunSpec.builder("init")
             .addModifiers(KModifier.OVERRIDE)
@@ -306,7 +306,7 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
                         "type",
                         ClassName(
                             ClazzConfig.EVENT_CHANNEL_SENDER_TYPE_PACKAGE,
-                            ClazzConfig.EVENT_CHANNEL_SENDER_ERROR_TYPE_NAME,
+                            ClazzConfig.EVENT_CHANNEL_SENDER_ERROR_TYPE_NAME
                         )
                     ).defaultValue("EventChannelSenderErrorType.ERROR")
                         .build()
@@ -320,7 +320,7 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
                         "type",
                         ClassName(
                             ClazzConfig.EVENT_CHANNEL_SENDER_TYPE_PACKAGE,
-                            ClazzConfig.EVENT_CHANNEL_SENDER_EOS_TYPE_NAME,
+                            ClazzConfig.EVENT_CHANNEL_SENDER_EOS_TYPE_NAME
                         )
                     ).defaultValue("EventChannelSenderEOSType.EOS")
                         .build()

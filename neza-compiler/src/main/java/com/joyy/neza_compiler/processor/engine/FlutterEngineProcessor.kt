@@ -70,7 +70,7 @@ class FlutterEngineProcessor : AbstractProcessor(), Printer {
 
         val contextClassName = ClassName(
             ClazzConfig.Android.CONTEXT_PACKAGE,
-            ClazzConfig.Android.CONTEXT_NAME,
+            ClazzConfig.Android.CONTEXT_NAME
         )
         val engineHelperClassName = ClassName(
             ClazzConfig.ENGINE_HELPER_PACKAGE,

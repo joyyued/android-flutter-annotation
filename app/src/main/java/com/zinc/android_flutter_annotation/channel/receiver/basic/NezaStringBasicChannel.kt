@@ -5,15 +5,15 @@ import com.joyy.neza_annotation.basic.FlutterBasicChannel
 import com.joyy.neza_annotation.common.Callback
 import com.joyy.neza_annotation.method.HandleMessage
 import com.joyy.neza_annotation.model.ChannelType
-import com.zinc.android_flutter_annotation.codec.StringCodec
 import com.zinc.android_flutter_annotation.config.Config
 import io.flutter.plugin.common.BasicMessageChannel
+import io.flutter.plugin.common.StringCodec
 
 /**
  * @author: Jiang Pengyong
  * @date: 2021/8/10 3:44 下午
  * @email: 56002982@qq.com
- * @des:
+ * @des: string channel
  */
 @FlutterBasicChannel(
     codecClass = StringCodec::class,
@@ -27,6 +27,9 @@ class NezaStringBasicChannel {
 
     @HandleMessage
     fun receiverJsonFromFlutter(json: String?) {
-        Log.e("NezaBasicChannel", "[Flutter -> Native] Receiver from string codec: $json")
+        Log.e(
+            "Neza", "[Basic string channel receiver] " +
+                    "receiverJsonFromFlutter(json: $json)"
+        )
     }
 }

@@ -41,12 +41,12 @@ object TypeChangeUtils {
         Float::class.asTypeName() to FloatArray::class.asTypeName(),
         String::class.asTypeName() to StringArray::class.asTypeName(),
         Boolean::class.asTypeName() to BooleanArray::class.asTypeName(),
-        Byte::class.asTypeName() to ByteArray::class.asTypeName(),
+        Byte::class.asTypeName() to ByteArray::class.asTypeName()
     )
     private val TYPE_MAP = mapOf(
         java.util.HashMap::class.java.asTypeName().toString() to HashMap::class.asTypeName(),
         java.util.ArrayList::class.java.asTypeName().toString() to ArrayList::class.asTypeName(),
-        Array::class.java.asTypeName().toString() to Array::class.asTypeName()
+        Array<Any>::class.java.asTypeName().toString() to Array<Any>::class.asTypeName()
     )
 
     private fun changeSelf(typeName: TypeName): TypeName {
@@ -63,7 +63,7 @@ object TypeChangeUtils {
             java.lang.Object::class.java.asTypeName().toString() -> Any::class.asTypeName()
             else -> {
                 for ((key, item) in ARRAY_SKIP_LIST) {
-                    val checkType = Array::class.asTypeName().parameterizedBy(
+                    val checkType = Array<Any>::class.asTypeName().parameterizedBy(
                         key
                     )
                     if (type.startsWith(checkType.toString())) {

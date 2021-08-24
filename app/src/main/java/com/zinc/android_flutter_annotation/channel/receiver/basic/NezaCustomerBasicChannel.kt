@@ -6,19 +6,16 @@ import com.joyy.neza_annotation.common.Callback
 import com.joyy.neza_annotation.method.HandleMessage
 import com.joyy.neza_annotation.model.ChannelType
 import com.zinc.android_flutter_annotation.codec.HashMapMessageCodec
-import com.zinc.android_flutter_annotation.codec.StringCodec
 import com.zinc.android_flutter_annotation.config.Config
 import io.flutter.plugin.common.BasicMessageChannel
-import io.flutter.plugin.common.StandardMessageCodec
 
 /**
  * @author: Jiang Pengyong
  * @date: 2021/8/10 3:44 下午
  * @email: 56002982@qq.com
- * @des:
+ * @des: 自定义 codec
  */
 @FlutterBasicChannel(
-//    codecClass = StandardMessageCodec::class,
     codecClass = HashMapMessageCodec::class,
     channelName = Config.BINARY_CUSTOMER_CHANNEL,
     type = ChannelType.RECEIVER
@@ -27,11 +24,9 @@ class NezaCustomerBasicChannel {
 
     @Callback
     var reply: BasicMessageChannel.Reply<HashMap<String, String>>? = null
-//    var reply: BasicMessageChannel.Reply<Any>? = null
 
     @HandleMessage
     fun receiverJsonFromFlutter(map: HashMap<String, String>?) {
-//    fun receiverJsonFromFlutter(map: Any?) {
-        Log.e("NezaBasicChannel", "[Flutter -> Native] Receiver from customer codec: $map")
+        Log.e("Neza", "[Basic customer channel receiver] receiverJsonFromFlutter(map: $map)")
     }
 }

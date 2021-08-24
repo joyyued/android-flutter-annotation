@@ -29,22 +29,23 @@ class NezaMethodChannel {
 
     @HandleMessage
     fun sayHelloToNative() {
-        Log.e("NezaMethodChannel", "[Flutter -> Native]sayHelloToNative")
+        show("sayHelloToNative")
     }
 
     @ParseData
     @HandleMessage
     fun sayHelloToNativeWithParam(name: String?, age: Int?) {
+        show("sayHelloToNativeWithParam(name: $name, age: $age)")
         result?.success("receiver success[name: $name, $age]")
     }
 
     @HandleMessage
     fun sayHelloToNativeWithRaw(map: Any) {
+        show("sayHelloToNativeWithRaw(map: $map)")
         result?.error("100", "receiver error[$map]", name)
     }
 
-    @HandleMessage
-    fun methodTest(){
-        Log.e("NezaMethodChannel", "[Flutter -> Native] methodTest ")
+    private fun show(msg: String) {
+        Log.i("Neza", "[Method channel receiver] $msg")
     }
 }

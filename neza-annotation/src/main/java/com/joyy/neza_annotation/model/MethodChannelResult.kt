@@ -9,7 +9,7 @@ package com.joyy.neza_annotation.model
 data class MethodChannelResult(
     val resultType: MethodChannelResultType,
     val successResult: SuccessResult? = null,
-    val errorResult: ErrorResult? = null,
+    val errorResult: ErrorResult? = null
 )
 
 /**
@@ -31,7 +31,7 @@ data class SuccessResult(
 data class ErrorResult(
     val errorCode: String?,
     val errorMessage: String?,
-    val errorDetails: Any?,
+    val errorDetails: Any?
 )
 
 /**

@@ -90,7 +90,7 @@ class ReceiverProcessor(
         // private var engine: FlutterEngine? = null
         val engineClassName = ClassName(
             ClazzConfig.Flutter.ENGINE_PACKAGE,
-            ClazzConfig.Flutter.ENGINE_NAME,
+            ClazzConfig.Flutter.ENGINE_NAME
         )
         val flutterEngineProperty = PropertySpec.builder(
             "engine",
@@ -104,7 +104,7 @@ class ReceiverProcessor(
         // private var channel: BasicMessageChannel? = null
         val channelClassName = ClassName(
             ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
-            ClazzConfig.Flutter.BASIC_CHANNEL_NAME,
+            ClazzConfig.Flutter.BASIC_CHANNEL_NAME
         ).parameterizedBy(
             genericsTypeName
         )
@@ -118,9 +118,7 @@ class ReceiverProcessor(
         propertyList.add(channelProperty)
 
         // private val nezaStringBasicChannel: NezaStringBasicChannel = NezaStringBasicChannel()
-        val basicChannelName = element.simpleName.toString().replaceFirstChar {
-            it.uppercase(Locale.getDefault())
-        }
+        val basicChannelName = element.simpleName.toString().capitalize()
         if (!isLackCreator) {
             val basicChannelProperty = PropertySpec.builder(
                 basicChannelName,
@@ -133,11 +131,11 @@ class ReceiverProcessor(
 
         val contextClassName = ClassName(
             ClazzConfig.Android.CONTEXT_PACKAGE,
-            ClazzConfig.Android.CONTEXT_NAME,
+            ClazzConfig.Android.CONTEXT_NAME
         )
         val engineHelperClassName = ClassName(
             ClazzConfig.ENGINE_HELPER_PACKAGE,
-            ClazzConfig.ENGINE_HELPER_NAME,
+            ClazzConfig.ENGINE_HELPER_NAME
         )
         val initFun = FunSpec.builder("init")
             .addModifiers(KModifier.OVERRIDE)
@@ -207,7 +205,7 @@ class ReceiverProcessor(
         // MethodChannelInterface
         val methodChannelInterface = ClassName(
             ClazzConfig.Channel.CHANNEL_PACKAGE,
-            ClazzConfig.Channel.BASIC_CHANNEL_NAME,
+            ClazzConfig.Channel.BASIC_CHANNEL_NAME
         ).parameterizedBy(
             TypeChangeUtils.change(printer, genericsType)
         )
@@ -352,7 +350,7 @@ class ReceiverProcessor(
     private fun assembleHandleMethod(
         typeElement: TypeElement,
         initFun: FunSpec.Builder,
-        handleMethod: ExecutableElement,
+        handleMethod: ExecutableElement
     ) {
         val spacing = "  "
 
@@ -376,7 +374,7 @@ class ReceiverProcessor(
                 ?: error("Parameter must be nullable.[$methodName]")
 
             initFun.addStatement(
-                "$spacing    $paramName = message",
+                "$spacing    $paramName = message"
             )
 
             initFun.addStatement("$spacing  )")

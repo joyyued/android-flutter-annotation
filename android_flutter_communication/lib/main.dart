@@ -75,15 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: () {
           NezaMethodChannel.instance.sayHelloToNative();
         },
-        child: Text('Say hello to native'),
-      ),
-    );
-    result.add(
-      TextButton(
-        onPressed: () {
-          NezaMethodChannel.instance.sayHelloToNativeWithParam();
-        },
-        child: Text('Say hello to native [callback success]'),
+        child: Text('Say hello to native 【Method simple】'),
       ),
     );
     result.add(
@@ -91,15 +83,15 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: () {
           NezaMethodChannel.instance.sayHelloToNativeWithRaw();
         },
-        child: Text('Say hello to native [callback error]'),
+        child: Text('Say hello to native 【Method raw data】'),
       ),
     );
     result.add(
       TextButton(
         onPressed: () {
-          NezaMethodChannel.instance.methodNewName();
+          NezaMethodChannel.instance.sayHelloToNativeWithParam();
         },
-        child: Text('Say hello to native [method]'),
+        child: Text('Say hello to native 【Method parse data】'),
       ),
     );
     result.add(
@@ -107,7 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: () {
           NezaStringBasicChannel.instance.sendJsonToNative();
         },
-        child: Text('Send json to native'),
+        child: Text('Send json to native 【Basic string】'),
       ),
     );
     result.add(
@@ -115,7 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: () {
           NezaStandardBasicChannel.instance.sendToNative();
         },
-        child: Text('Send map to native'),
+        child: Text('Send map to native 【Basic standard】'),
       ),
     );
     result.add(
@@ -123,7 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: () {
           NezaCustomerBasicChannel.instance.sendToNative();
         },
-        child: Text('Send map to native [ Customer codec ] '),
+        child: Text('Send map to native 【Basic customer】'),
       ),
     );
     return result;

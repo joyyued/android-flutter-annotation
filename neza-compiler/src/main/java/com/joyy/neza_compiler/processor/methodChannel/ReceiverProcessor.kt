@@ -1,7 +1,7 @@
 package com.joyy.neza_compiler.processor.methodChannel
 
-import com.joyy.neza_annotation.common.Callback
 import com.joyy.neza_annotation.FlutterEngine
+import com.joyy.neza_annotation.common.Callback
 import com.joyy.neza_annotation.method.FlutterMethodChannel
 import com.joyy.neza_annotation.method.HandleMessage
 import com.joyy.neza_annotation.method.ParseData
@@ -18,7 +18,6 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asTypeName
 import org.jetbrains.annotations.Nullable
-import java.util.Locale
 import javax.annotation.processing.Filer
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
@@ -76,7 +75,7 @@ class ReceiverProcessor(
         // private var engine: FlutterEngine? = null
         val engineClassName = ClassName(
             ClazzConfig.Flutter.ENGINE_PACKAGE,
-            ClazzConfig.Flutter.ENGINE_NAME,
+            ClazzConfig.Flutter.ENGINE_NAME
         )
         val flutterEngineProperty = PropertySpec.builder(
             "engine",
@@ -90,7 +89,7 @@ class ReceiverProcessor(
         // private var channel: MethodChannel? = null
         val channelClassName = ClassName(
             ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
-            ClazzConfig.Flutter.METHOD_CHANNEL_NAME,
+            ClazzConfig.Flutter.METHOD_CHANNEL_NAME
         )
         val channelProperty = PropertySpec.builder(
             "channel",
@@ -102,9 +101,7 @@ class ReceiverProcessor(
         propertyList.add(channelProperty)
 
         //  private val nezaMethodChannel:NezaMethodChannel = NezaMethodChannel()
-        val methodChannelName = element.simpleName.toString().replaceFirstChar {
-            it.lowercase(Locale.getDefault())
-        }
+        val methodChannelName = element.simpleName.toString().capitalize()
         if (!isLackCreator) {
             val methodChannelProperty = PropertySpec.builder(
                 methodChannelName,
@@ -117,11 +114,11 @@ class ReceiverProcessor(
 
         val contextClassName = ClassName(
             ClazzConfig.Android.CONTEXT_PACKAGE,
-            ClazzConfig.Android.CONTEXT_NAME,
+            ClazzConfig.Android.CONTEXT_NAME
         )
         val engineHelperClassName = ClassName(
             ClazzConfig.ENGINE_HELPER_PACKAGE,
-            ClazzConfig.ENGINE_HELPER_NAME,
+            ClazzConfig.ENGINE_HELPER_NAME
         )
         val initFun = FunSpec.builder("init")
             .addModifiers(KModifier.OVERRIDE)
@@ -189,7 +186,7 @@ class ReceiverProcessor(
         // MethodChannelInterface
         val methodChannelInterface = ClassName(
             ClazzConfig.Channel.CHANNEL_PACKAGE,
-            ClazzConfig.Channel.METHOD_CHANNEL_NAME,
+            ClazzConfig.Channel.METHOD_CHANNEL_NAME
         )
         val engineCreatorClazz = TypeSpec.classBuilder(generateClazzName)
             .addSuperinterface(methodChannelInterface)
@@ -272,7 +269,7 @@ class ReceiverProcessor(
             var isSkip = false
             for (fieldElement in fieldElements) {
                 var fieldName = fieldElement.simpleName.toString()
-                fieldName = fieldName.replaceFirstChar { it.uppercase(Locale.getDefault()) }
+                fieldName = fieldName.capitalize()
                 val fieldType = fieldElement.asType()
 
                 val methodName = item.simpleName.toString()
@@ -306,7 +303,7 @@ class ReceiverProcessor(
             methodChannelName = methodChannelName,
             element = element,
             methodList = methodList,
-            initFun = initFun,
+            initFun = initFun
         )
     }
 
@@ -314,7 +311,7 @@ class ReceiverProcessor(
         methodChannelName: String,
         element: Element,
         methodList: List<ExecutableElement>,
-        initFun: FunSpec.Builder,
+        initFun: FunSpec.Builder
     ) {
         val spacing = "    "
         val methodNameSet = HashSet<String>()
@@ -344,8 +341,8 @@ class ReceiverProcessor(
                 val parseDataAnnotation = method.getAnnotation(ParseData::class.java)
 
                 if (parseDataAnnotation != null) {
-                    for (parameter in parameters) {
-                        parameter ?: continue
+                    parameters.forEachIndexed { index, parameter ->
+                        parameter ?: return@forEachIndexed
 
                         val paramName = parameter.simpleName
                         val paramType = parameter.asType()
@@ -358,11 +355,17 @@ class ReceiverProcessor(
                                 "Parameter must be nullable " +
                                         "when you use @ParseData annotation. [$methodName]"
                             )
-                            return
+                            return@forEachIndexed
                         }
-                        block.addStatement(
-                            "$spacing    $paramName = call.argument<$type>(\"$paramName\"),",
-                        )
+                        if (index == parameters.size - 1) {
+                            block.addStatement(
+                                "$spacing    $paramName = call.argument<$type>(\"$paramName\")"
+                            )
+                        } else {
+                            block.addStatement(
+                                "$spacing    $paramName = call.argument<$type>(\"$paramName\"),"
+                            )
+                        }
                     }
                 } else if (parameters.size == 1) {
                     val parameter = parameters[0]
@@ -375,7 +378,7 @@ class ReceiverProcessor(
                         )
                     }
                     block.addStatement(
-                        "$spacing    $name = arguments",
+                        "$spacing    $name = arguments"
                     )
                 } else {
                     printer.error(

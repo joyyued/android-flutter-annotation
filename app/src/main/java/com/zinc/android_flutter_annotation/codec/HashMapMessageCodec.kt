@@ -3,6 +3,7 @@ package com.zinc.android_flutter_annotation.codec
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.flutter.plugin.common.MessageCodec
+import io.flutter.plugin.common.StringCodec
 import org.json.JSONException
 import java.nio.ByteBuffer
 

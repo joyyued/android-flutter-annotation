@@ -38,7 +38,7 @@ interface NezaEventChannel {
     fun sendUserInfo(
         name: String,
         age: Int,
-        height: Int,
+        height: Int
     )
 
     @ParamMap

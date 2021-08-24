@@ -12,59 +12,59 @@ import javax.lang.model.type.TypeMirror
 object DebugUtils {
     fun showInfo(printer: Printer, element: ExecutableElement) {
         val stringBuilder = StringBuilder()
-        stringBuilder.append("【 Executable Element 】").appendLine(element)
-            .append("simpleName: ").appendLine(element.simpleName)
-            .append("kind: ").appendLine(element.kind)
-            .append("modifiers: ").appendLine(element.modifiers)
-            .append("parameters: ").appendLine(element.parameters)
-            .append("defaultValue: ").appendLine(element.defaultValue)
-            .append("isDefault: ").appendLine(element.isDefault)
-            .append("isVarArgs: ").appendLine(element.isVarArgs)
-            .append("receiverType: ").appendLine(element.receiverType)
-            .append("returnType: ").appendLine(element.returnType)
-            .append("thrownTypes: ").appendLine(element.thrownTypes)
-            .append("annotationMirrors: ").appendLine(element.annotationMirrors)
-            .append("enclosedElements: ").appendLine(element.enclosedElements)
-            .append("enclosingElement: ").appendLine(element.enclosingElement)
-            .append("typeParameters: ").appendLine(element.typeParameters)
-            .append("asType: ").appendLine(element.asType())
+        stringBuilder.append("【 Executable Element 】").append(element).append("\n")
+            .append("simpleName: ").append(element.simpleName).append("\n")
+            .append("kind: ").append(element.kind).append("\n")
+            .append("modifiers: ").append(element.modifiers).append("\n")
+            .append("parameters: ").append(element.parameters).append("\n")
+            .append("defaultValue: ").append(element.defaultValue).append("\n")
+            .append("isDefault: ").append(element.isDefault).append("\n")
+            .append("isVarArgs: ").append(element.isVarArgs).append("\n")
+            .append("receiverType: ").append(element.receiverType).append("\n")
+            .append("returnType: ").append(element.returnType).append("\n")
+            .append("thrownTypes: ").append(element.thrownTypes).append("\n")
+            .append("annotationMirrors: ").append(element.annotationMirrors).append("\n")
+            .append("enclosedElements: ").append(element.enclosedElements).append("\n")
+            .append("enclosingElement: ").append(element.enclosingElement).append("\n")
+            .append("typeParameters: ").append(element.typeParameters).append("\n")
+            .append("asType: ").append(element.asType()).append("\n")
         printer.note(stringBuilder.toString())
     }
 
     fun showInfo(printer: Printer, element: VariableElement) {
         val stringBuilder = StringBuilder()
-        stringBuilder.append("【 Variable Element 】").appendLine(element)
-            .append("simpleName: ").appendLine(element.simpleName)
-            .append("kind: ").appendLine(element.kind)
-            .append("modifiers: ").appendLine(element.modifiers)
-            .append("constantValue: ").appendLine(element.constantValue)
-            .append("annotationMirrors: ").appendLine(element.annotationMirrors)
-            .append("enclosedElements: ").appendLine(element.enclosedElements)
-            .append("enclosingElement: ").appendLine(element.enclosingElement)
-            .append("asType: ").appendLine(element.asType())
+        stringBuilder.append("【 Variable Element 】").append(element).append("\n")
+            .append("simpleName: ").append(element.simpleName).append("\n")
+            .append("kind: ").append(element.kind).append("\n")
+            .append("modifiers: ").append(element.modifiers).append("\n")
+            .append("constantValue: ").append(element.constantValue).append("\n")
+            .append("annotationMirrors: ").append(element.annotationMirrors).append("\n")
+            .append("enclosedElements: ").append(element.enclosedElements).append("\n")
+            .append("enclosingElement: ").append(element.enclosingElement).append("\n")
+            .append("asType: ").append(element.asType()).append("\n")
         printer.note(stringBuilder.toString())
     }
 
     fun showInfo(printer: Printer, typeMirror: TypeMirror?) {
         typeMirror ?: return
         val stringBuilder = StringBuilder()
-        stringBuilder.append("【 Type Mirror 】").appendLine(typeMirror)
-            .append("annotationMirrors: ").appendLine(typeMirror.annotationMirrors)
-            .append("kind: ").appendLine(typeMirror.kind)
+        stringBuilder.append("【 Type Mirror 】").append(typeMirror).append("\n")
+            .append("annotationMirrors: ").append(typeMirror.annotationMirrors).append("\n")
+            .append("kind: ").append(typeMirror.kind).append("\n")
 
         when (typeMirror.kind) {
             TypeKind.ARRAY -> {
                 if(typeMirror is ArrayType){
-                    stringBuilder.append("componentType: ").appendLine(typeMirror.componentType)
-                        .append("asElement: ").appendLine(typeMirror.annotationMirrors)
+                    stringBuilder.append("componentType: ").append(typeMirror.componentType).append("\n")
+                        .append("asElement: ").append(typeMirror.annotationMirrors).append("\n")
                 }
             }
             TypeKind.DECLARED -> {
                 if (typeMirror is DeclaredType) {
-                    stringBuilder.append("asElement: ").appendLine(typeMirror.asElement())
-                        .append("enclosingType: ").appendLine(typeMirror.enclosingType)
-                        .append("typeArguments: ").appendLine(typeMirror.typeArguments)
-                        .append("annotationMirrors: ").appendLine(typeMirror.annotationMirrors)
+                    stringBuilder.append("asElement: ").append(typeMirror.asElement()).append("\n")
+                        .append("enclosingType: ").append(typeMirror.enclosingType).append("\n")
+                        .append("typeArguments: ").append(typeMirror.typeArguments).append("\n")
+                        .append("annotationMirrors: ").append(typeMirror.annotationMirrors).append("\n")
                 }
             }
         }
@@ -74,10 +74,10 @@ object DebugUtils {
 
     fun showInfo(printer: Printer, typeName: TypeName) {
         val stringBuilder = StringBuilder()
-        stringBuilder.append("【 Type Name 】").appendLine(typeName)
-            .append("annotations: ").appendLine(typeName.annotations)
-            .append("isAnnotated: ").appendLine(typeName.isAnnotated)
-            .append("isNullable: ").appendLine(typeName.isNullable)
+        stringBuilder.append("【 Type Name 】").append(typeName).append("\n")
+            .append("annotations: ").append(typeName.annotations).append("\n")
+            .append("isAnnotated: ").append(typeName.isAnnotated).append("\n")
+            .append("isNullable: ").append(typeName.isNullable).append("\n")
         printer.note(stringBuilder.toString())
     }
 }

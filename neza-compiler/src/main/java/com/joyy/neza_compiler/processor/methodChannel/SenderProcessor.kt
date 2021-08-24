@@ -54,11 +54,11 @@ class SenderProcessor(
     )
     private val suspendCoroutineClassName = ClassName(
         ClazzConfig.Coroutine.COROUTINE_PACKAGE,
-        ClazzConfig.Coroutine.COROUTINE_SUSPEND_COROUTINE_NAME,
+        ClazzConfig.Coroutine.COROUTINE_SUSPEND_COROUTINE_NAME
     )
     private val resumeClassName = ClassName(
         ClazzConfig.Coroutine.COROUTINE_PACKAGE,
-        ClazzConfig.Coroutine.COROUTINE_RESUME_NAME,
+        ClazzConfig.Coroutine.COROUTINE_RESUME_NAME
     )
     private val deferredClassName = ClassName(
         ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
@@ -175,7 +175,7 @@ class SenderProcessor(
             .addStatement("it.%T(", resumeClassName)
             .addStatement("  %T(", resultClassName)
             .addStatement("    resultType = %T.SUCCESS,", typeClassName)
-            .addStatement("    successResult = %T(result),", successClassName)
+            .addStatement("    successResult = %T(result)", successClassName)
             .addStatement("  )")
             .addStatement(")")
             .endControlFlow()
@@ -198,7 +198,7 @@ class SenderProcessor(
         function.beginControlFlow("override fun notImplemented() ")
             .addStatement("it.%T(", resumeClassName)
             .addStatement("  %T(", resultClassName)
-            .addStatement("    resultType = %T.NOT_IMPLEMENTED,", typeClassName)
+            .addStatement("    resultType = %T.NOT_IMPLEMENTED", typeClassName)
             .addStatement("  )")
             .addStatement(")")
             .endControlFlow()
@@ -212,22 +212,22 @@ class SenderProcessor(
         orgMethodName: String,
         paramType: ParamType,
         methodParameters: List<VariableElement>,
-        parameterList: List<ParameterSpec>,
+        parameterList: List<ParameterSpec>
     ): FunSpec.Builder {
         // scope
         val scopeClassName = ClassName(
             ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
-            ClazzConfig.Coroutine.COROUTINE_SCOPE_NAME,
+            ClazzConfig.Coroutine.COROUTINE_SCOPE_NAME
         )
         // Dispatchers
         val dispatchersClassName = ClassName(
             ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
-            ClazzConfig.Coroutine.COROUTINE_DISPATCHERS_NAME,
+            ClazzConfig.Coroutine.COROUTINE_DISPATCHERS_NAME
         )
         // async
         val asyncClassName = ClassName(
             ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
-            ClazzConfig.Coroutine.COROUTINE_ASYNC_NAME,
+            ClazzConfig.Coroutine.COROUTINE_ASYNC_NAME
         )
 
         val function = FunSpec.builder(orgMethodName)

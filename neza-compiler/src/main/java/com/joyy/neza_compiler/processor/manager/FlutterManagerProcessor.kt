@@ -80,14 +80,14 @@ class FlutterManagerProcessor(
                     .returns(
                         ClassName(
                             ClazzConfig.Flutter.ENGINE_PACKAGE,
-                            ClazzConfig.Flutter.ENGINE_NAME,
+                            ClazzConfig.Flutter.ENGINE_NAME
                         ).copy(nullable = true)
                     )
                     .addStatement(
                         "return %T.getFlutterEngine(engineId)",
                         ClassName(
                             ClazzConfig.ENGINE_HELPER_PACKAGE,
-                            ClazzConfig.ENGINE_HELPER_NAME,
+                            ClazzConfig.ENGINE_HELPER_NAME
                         )
                     )
                     .build()
@@ -155,7 +155,7 @@ class FlutterManagerProcessor(
                 roundEnv = roundEnv,
                 element = typeElement,
                 channelReceiverMap = HashMap(),
-                isLackCreator = true,
+                isLackCreator = true
             )
         }
 
@@ -232,7 +232,7 @@ class FlutterManagerProcessor(
                 roundEnv = roundEnv,
                 element = typeElement,
                 channelReceiverMap = HashMap(),
-                isLackCreator = true,
+                isLackCreator = true
             )
         }
 
@@ -255,7 +255,7 @@ class FlutterManagerProcessor(
                 ClazzConfig.PACKAGE.NEZA_CHANNEL,
                 "${element}Impl"
             )
-            val proName = element.replaceFirstChar { it.lowercase(Locale.getDefault()) }
+            val proName = element.decapitalize()
 
             val propertySpec = PropertySpec.builder(proName, className)
                 .initializer(initializer, className)
@@ -276,7 +276,7 @@ class FlutterManagerProcessor(
                 "context",
                 ClassName(
                     ClazzConfig.Android.CONTEXT_PACKAGE,
-                    ClazzConfig.Android.CONTEXT_NAME,
+                    ClazzConfig.Android.CONTEXT_NAME
                 )
             )
 

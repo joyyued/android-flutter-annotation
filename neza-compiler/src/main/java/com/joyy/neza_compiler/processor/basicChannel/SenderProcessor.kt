@@ -33,23 +33,23 @@ class SenderProcessor(
 
     private val scopeClassName = ClassName(
         ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
-        ClazzConfig.Coroutine.COROUTINE_SCOPE_NAME,
+        ClazzConfig.Coroutine.COROUTINE_SCOPE_NAME
     )
     private val dispatchersClassName = ClassName(
         ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
-        ClazzConfig.Coroutine.COROUTINE_DISPATCHERS_NAME,
+        ClazzConfig.Coroutine.COROUTINE_DISPATCHERS_NAME
     )
     private val asyncClassName = ClassName(
         ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
-        ClazzConfig.Coroutine.COROUTINE_ASYNC_NAME,
+        ClazzConfig.Coroutine.COROUTINE_ASYNC_NAME
     )
     private val suspendCoroutineClassName = ClassName(
         ClazzConfig.Coroutine.COROUTINE_PACKAGE,
-        ClazzConfig.Coroutine.COROUTINE_SUSPEND_COROUTINE_NAME,
+        ClazzConfig.Coroutine.COROUTINE_SUSPEND_COROUTINE_NAME
     )
     private val resumeClassName = ClassName(
         ClazzConfig.Coroutine.COROUTINE_PACKAGE,
-        ClazzConfig.Coroutine.COROUTINE_RESUME_NAME,
+        ClazzConfig.Coroutine.COROUTINE_RESUME_NAME
     )
     private val deferredClassName = ClassName(
         ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
@@ -279,7 +279,7 @@ class SenderProcessor(
                 "val callback = %T.Reply<%T> { reply ->",
                 ClassName(
                     ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
-                    ClazzConfig.Flutter.BASIC_CHANNEL_NAME,
+                    ClazzConfig.Flutter.BASIC_CHANNEL_NAME
                 ),
                 type
             )

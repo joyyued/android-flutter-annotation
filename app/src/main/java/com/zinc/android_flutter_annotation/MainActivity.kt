@@ -6,7 +6,6 @@ import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.joyy.neza.manager.Flutter
 import com.joyy.neza_annotation.model.EventChannelSenderEOSType
-import com.joyy.neza_annotation.model.EventChannelSenderErrorType
 import com.zinc.android_flutter_annotation.config.Config
 import com.zinc.android_flutter_annotation.utils.AssetsUtils
 import io.flutter.embedding.android.FlutterActivity
@@ -43,7 +42,7 @@ class MainActivity : AppCompatActivity() {
                 val result = Flutter.Channels
                     .nezaMethodChannel
                     .sayHelloToFlutter().await()
-                show("none param : $result")
+                show("none param result: $result")
             }
         }
 
@@ -58,7 +57,7 @@ class MainActivity : AppCompatActivity() {
                 val result = Flutter.Channels
                     .nezaMethodChannel
                     .sayHelloToFlutter("Jiang PengYong [ single param ]").await()
-                show("single param : $result")
+                show("single param result: $result")
             }
         }
 
@@ -68,7 +67,7 @@ class MainActivity : AppCompatActivity() {
                 .sayHelloToFlutter(
                     name = "Jiang PengYong [ multi param ]",
                     age = 28,
-                    height = 170,
+                    height = 170
                 )
         }
 
@@ -79,9 +78,9 @@ class MainActivity : AppCompatActivity() {
                     .sayHelloToFlutter(
                         name = "Jiang PengYong [ multi param ]",
                         age = 28,
-                        height = 170,
+                        height = 170
                     ).await()
-                show("multi param : $result")
+                show("multi param result: $result")
             }
         }
 
@@ -123,12 +122,9 @@ class MainActivity : AppCompatActivity() {
         // =========================== Basic ===========================
 
         findViewById<Button>(R.id.btn_send_json_to_flutter).setOnClickListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                Flutter.Channels
-                    .nezaStringBasicChannel
-                    .sendJsonToFlutter("{\"name\":\"江澎涌\", \"age\":28}")
-                    .await()
-            }
+            Flutter.Channels
+                .nezaStringBasicChannel
+                .sendJsonToFlutter("{\"name\":\"江澎涌\", \"age\":28}")
         }
 
         findViewById<Button>(R.id.btn_send_map_to_flutter).setOnClickListener {
@@ -155,6 +151,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun show(msg: String) {
-        Log.e("Neza Project", "[MainActivity] $msg")
+        Log.e("Neza", "[MainActivity] $msg")
     }
 }
