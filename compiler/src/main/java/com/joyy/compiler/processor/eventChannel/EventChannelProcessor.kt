@@ -187,16 +187,15 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
             ClazzConfig.Android.CONTEXT_PACKAGE,
             ClazzConfig.Android.CONTEXT_NAME
         )
-        val engineHelperClassName = ClassName(
-            ClazzConfig.ENGINE_HELPER_PACKAGE,
-            ClazzConfig.ENGINE_HELPER_NAME
+        val engineCacheClassName =  ClassName(
+            ClazzConfig.Flutter.ENGINE_PACKAGE,
+            ClazzConfig.Flutter.ENGINE_CACHE_NAME
         )
         val initFun = FunSpec.builder("init")
-            .addModifiers(KModifier.OVERRIDE)
             .addParameter("context", contextClassName)
             .beginControlFlow(
-                "engine = %T.getFlutterEngine(engineId)?.apply",
-                engineHelperClassName
+                "engine = %T.getInstance().get(engineId)?.apply",
+                engineCacheClassName
             )
             .addStatement("channel = EventChannel(")
             .addStatement("  dartExecutor.binaryMessenger,")
@@ -219,19 +218,16 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
 
         // getChannel function
         val getChannelFun = FunSpec.builder("getChannel")
-            .addModifiers(KModifier.OVERRIDE)
             .addStatement("return channel")
             .build()
 
         // getChannelName function
         val getChannelNameFun = FunSpec.builder("getChannelName")
-            .addModifiers(KModifier.OVERRIDE)
             .addStatement("return name")
             .build()
 
         // getEventSink function
         val getEventSinkFun = FunSpec.builder("getEventSink")
-            .addModifiers(KModifier.OVERRIDE)
             .addStatement("return eventSink")
             .build()
 
@@ -244,12 +240,7 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
             funList.addAll(assembleFun(method))
         }
 
-        val eventChannelClassName = ClassName(
-            ClazzConfig.Channel.CHANNEL_PACKAGE,
-            ClazzConfig.Channel.EVENT_CHANNEL_NAME
-        )
         val engineCreatorClazz = TypeSpec.classBuilder(generateClazzName)
-            .addSuperinterface(eventChannelClassName)
             .primaryConstructor(
                 FunSpec.constructorBuilder()
                     .addModifiers(KModifier.PRIVATE)

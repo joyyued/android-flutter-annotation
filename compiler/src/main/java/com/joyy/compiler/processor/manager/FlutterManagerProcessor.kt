@@ -45,7 +45,6 @@ class FlutterManagerProcessor(
     private val basicSenderClassNameList = ArrayList<String>()
     private val basicSenderChannelNameSet = HashSet<String>()
 
-
     fun process(roundEnv: RoundEnvironment) {
         printer.note("Flutter Manager Processor running.")
 
@@ -83,10 +82,10 @@ class FlutterManagerProcessor(
                         ).copy(nullable = true)
                     )
                     .addStatement(
-                        "return %T.getFlutterEngine(engineId)",
+                        "return %T.getInstance().get(engineId)",
                         ClassName(
-                            ClazzConfig.ENGINE_HELPER_PACKAGE,
-                            ClazzConfig.ENGINE_HELPER_NAME
+                            ClazzConfig.Flutter.ENGINE_PACKAGE,
+                            ClazzConfig.Flutter.ENGINE_CACHE_NAME
                         )
                     )
                     .build()

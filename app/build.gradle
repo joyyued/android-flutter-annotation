@@ -44,7 +44,6 @@ dependencies {
 
     implementation project(":flutter")
     implementation project(':annotation')
-    implementation project(':api')
     kapt project(':compiler')
 
     implementation 'com.google.code.gson:gson:2.8.7'

@@ -116,16 +116,15 @@ class ReceiverProcessor(
             ClazzConfig.Android.CONTEXT_PACKAGE,
             ClazzConfig.Android.CONTEXT_NAME
         )
-        val engineHelperClassName = ClassName(
-            ClazzConfig.ENGINE_HELPER_PACKAGE,
-            ClazzConfig.ENGINE_HELPER_NAME
+        val engineCacheClassName = ClassName(
+            ClazzConfig.Flutter.ENGINE_PACKAGE,
+            ClazzConfig.Flutter.ENGINE_CACHE_NAME
         )
         val initFun = FunSpec.builder("init")
-            .addModifiers(KModifier.OVERRIDE)
             .addParameter("context", contextClassName)
             .beginControlFlow(
-                "engine = %T.getFlutterEngine(engineId)?.apply",
-                engineHelperClassName
+                "engine = %T.getInstance().get(engineId)?.apply",
+                engineCacheClassName
             )
             .addStatement("channel = MethodChannel(")
             .addStatement("  dartExecutor.binaryMessenger,")
@@ -148,13 +147,11 @@ class ReceiverProcessor(
         funList.add(initFun.build())
 
         val getChannelFun = FunSpec.builder("getChannel")
-            .addModifiers(KModifier.OVERRIDE)
             .addStatement("return channel")
             .build()
         funList.add(getChannelFun)
 
         val getChannelNameFun = FunSpec.builder("getChannelName")
-            .addModifiers(KModifier.OVERRIDE)
             .addStatement("return name")
             .build()
         funList.add(getChannelNameFun)
@@ -184,12 +181,7 @@ class ReceiverProcessor(
             .build()
 
         // MethodChannelInterface
-        val methodChannelInterface = ClassName(
-            ClazzConfig.Channel.CHANNEL_PACKAGE,
-            ClazzConfig.Channel.METHOD_CHANNEL_NAME
-        )
         val engineCreatorClazz = TypeSpec.classBuilder(generateClazzName)
-            .addSuperinterface(methodChannelInterface)
             .primaryConstructor(
                 FunSpec.constructorBuilder()
                     .addModifiers(KModifier.PRIVATE)

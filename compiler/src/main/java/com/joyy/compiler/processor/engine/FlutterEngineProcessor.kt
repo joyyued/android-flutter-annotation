@@ -38,6 +38,23 @@ class FlutterEngineProcessor : AbstractProcessor(), Printer {
         const val TAG = "FlutterEngineProcessor"
     }
 
+    private val contextClassName = ClassName(
+        ClazzConfig.Android.CONTEXT_PACKAGE,
+        ClazzConfig.Android.CONTEXT_NAME
+    )
+    private val engineCacheClassName = ClassName(
+        ClazzConfig.Flutter.ENGINE_PACKAGE,
+        ClazzConfig.Flutter.ENGINE_CACHE_NAME
+    )
+    private val engineClassName = ClassName(
+        ClazzConfig.Flutter.ENGINE_PACKAGE,
+        ClazzConfig.Flutter.ENGINE_NAME
+    )
+    private val dartExecutorClassName = ClassName(
+        ClazzConfig.Flutter.DART_EXECUTOR_PACKAGE,
+        ClazzConfig.Flutter.DART_EXECUTOR_NAME
+    )
+
     var filer: Filer? = null
     var elementUtils: Elements? = null
     var types: Types? = null
@@ -68,15 +85,6 @@ class FlutterEngineProcessor : AbstractProcessor(), Printer {
         val annotation = element.getAnnotation(FlutterEngine::class.java)
         val engineId = annotation.engineId
 
-        val contextClassName = ClassName(
-            ClazzConfig.Android.CONTEXT_PACKAGE,
-            ClazzConfig.Android.CONTEXT_NAME
-        )
-        val engineHelperClassName = ClassName(
-            ClazzConfig.ENGINE_HELPER_PACKAGE,
-            ClazzConfig.ENGINE_HELPER_NAME
-        )
-
         // ArrayList<String>
         val arrayList = ClassName("kotlin.collections", "ArrayList")
         val arrayListOfString = arrayList.parameterizedBy(String::class.asTypeName())
@@ -93,11 +101,12 @@ class FlutterEngineProcessor : AbstractProcessor(), Printer {
         }
 
         initFunBuilder.beginControlFlow("for (engineId in engineIds) {")
-            .addStatement("%T.createEngine(context, engineId)", engineHelperClassName)
+            .addStatement("createEngine(context, engineId)")
             .endControlFlow()
         val initFun = initFunBuilder.build()
         val engineCreatorClazz = TypeSpec.objectBuilder(ClazzConfig.ENGINE_CREATOR_NAME)
             .addFunction(initFun)
+            .addFunction(createEngineFunction())
             .build()
 
         val filer = filer
@@ -127,6 +136,31 @@ class FlutterEngineProcessor : AbstractProcessor(), Printer {
         ).process(roundEnv)
 
         return true
+    }
+
+    private fun createEngineFunction(): FunSpec {
+        return FunSpec.builder("createEngine")
+            .addParameter("context", contextClassName)
+            .addParameter("engineId", String::class)
+            .returns(engineClassName)
+            .addStatement(
+                "var engine = %T.getInstance().get(engineId)",
+                engineCacheClassName
+            )
+            .beginControlFlow("if (engine == null)")
+            .beginControlFlow(
+                "engine = %T(context).apply",
+                engineClassName
+            )
+            .addStatement(
+                "dartExecutor.executeDartEntrypoint(%T.DartEntrypoint.createDefault())",
+                dartExecutorClassName
+            )
+            .endControlFlow()
+            .addStatement("%T.getInstance().put(engineId, engine)", engineCacheClassName)
+            .endControlFlow()
+            .addStatement("return engine")
+            .build()
     }
 
     override fun getSupportedAnnotationTypes(): Set<String> {

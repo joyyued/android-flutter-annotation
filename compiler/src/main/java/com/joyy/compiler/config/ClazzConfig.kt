@@ -43,6 +43,10 @@ object ClazzConfig {
     object Flutter {
         const val ENGINE_PACKAGE = "io.flutter.embedding.engine"
         const val ENGINE_NAME = "FlutterEngine"
+        const val ENGINE_CACHE_NAME = "FlutterEngineCache"
+
+        const val DART_EXECUTOR_PACKAGE = "io.flutter.embedding.engine.dart"
+        const val DART_EXECUTOR_NAME = "DartExecutor"
 
         const val METHOD_CHANNEL_PACKAGE = "io.flutter.plugin.common"
         const val METHOD_CHANNEL_NAME = "MethodChannel"
