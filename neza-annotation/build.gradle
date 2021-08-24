@@ -1,9 +1,9 @@
 plugins {
     id 'java-library'
     id 'kotlin'
+    id 'com.github.dcendents.android-maven'
 }
 
-apply plugin: 'com.github.dcendents.android-maven'
 group = 'com.github.joyyued'
 
 java {
