@@ -42,14 +42,35 @@ class ReceiverProcessor(
     private val typeUtils: Types
 ) {
 
+    private val contextClassName = ClassName(
+        ClazzConfig.Android.CONTEXT_PACKAGE,
+        ClazzConfig.Android.CONTEXT_NAME
+    )
+    private val engineCacheClassName = ClassName(
+        ClazzConfig.Flutter.ENGINE_PACKAGE,
+        ClazzConfig.Flutter.ENGINE_CACHE_NAME
+    )
+    private val engineClassName = ClassName(
+        ClazzConfig.Flutter.ENGINE_PACKAGE,
+        ClazzConfig.Flutter.ENGINE_NAME
+    ).copy(nullable = true)
+
+    private var isLackCreator = false
+    private var clazzName = ""
+    private var generateClazzName = ""
+    private var basicChannelName = ""
+
     fun handle(
         roundEnv: RoundEnvironment,
         element: TypeElement,
         channelReceiverMap: HashMap<String, ChannelInfo>,
         isLackCreator: Boolean = false
     ) {
-        val clazzName = element.simpleName
-        val generateClazzName = "${clazzName}Proxy"
+        clazzName = element.simpleName.toString()
+        generateClazzName = "${clazzName}Proxy"
+        this.isLackCreator = isLackCreator
+        basicChannelName = element.simpleName.toString().decapitalize()
+
         val channelAnnotation = element.getAnnotation(FlutterBasicChannel::class.java)
         val engineAnnotation = element.getAnnotation(FlutterEngine::class.java)
         val channelName = channelAnnotation.channelName
@@ -65,7 +86,7 @@ class ReceiverProcessor(
             return
         }
 
-        checkCodecClass(codecTypeMirror = codecTypeMirror)
+        BasicProcessorUtils.checkCodecClass(codecTypeMirror, printer)
         val genericsTypeName = TypeChangeUtils.change(printer, genericsType)
 
         val propertyList = ArrayList<PropertySpec>()
@@ -87,13 +108,9 @@ class ReceiverProcessor(
         propertyList.add(nameProperty)
 
         // private var engine: FlutterEngine? = null
-        val engineClassName = ClassName(
-            ClazzConfig.Flutter.ENGINE_PACKAGE,
-            ClazzConfig.Flutter.ENGINE_NAME
-        )
         val flutterEngineProperty = PropertySpec.builder(
             "engine",
-            engineClassName.copy(nullable = true)
+            engineClassName
         ).mutable()
             .addModifiers(KModifier.PRIVATE)
             .initializer("null")
@@ -117,7 +134,7 @@ class ReceiverProcessor(
         propertyList.add(channelProperty)
 
         // private val nezaStringBasicChannel: NezaStringBasicChannel = NezaStringBasicChannel()
-        val basicChannelName = element.simpleName.toString().capitalize()
+
         if (!isLackCreator) {
             val basicChannelProperty = PropertySpec.builder(
                 basicChannelName,
@@ -127,42 +144,6 @@ class ReceiverProcessor(
                 .build()
             propertyList.add(basicChannelProperty)
         }
-
-        val contextClassName = ClassName(
-            ClazzConfig.Android.CONTEXT_PACKAGE,
-            ClazzConfig.Android.CONTEXT_NAME
-        )
-        val engineCacheClassName =  ClassName(
-            ClazzConfig.Flutter.ENGINE_PACKAGE,
-            ClazzConfig.Flutter.ENGINE_CACHE_NAME
-        )
-        val initFun = FunSpec.builder("init")
-            .addParameter("context", contextClassName)
-            .beginControlFlow(
-                "engine = %T.getInstance().get(engineId)?.apply",
-                engineCacheClassName
-            )
-            .addStatement("channel = BasicMessageChannel(")
-            .addStatement("  dartExecutor.binaryMessenger,")
-            .addStatement("  name,")
-            .addStatement("  %T.INSTANCE", codecTypeMirror)
-            .addStatement(")")
-            .addStatement("channel?.setMessageHandler { message, reply ->")
-
-        if (!isLackCreator) {
-            assembleReplyField(
-                basicChannelName,
-                element,
-                initFun,
-                genericsTypeName
-            )
-            // 拼装方法
-            assembleHandleMethod(element, initFun)
-        }
-
-        initFun.addStatement("}")
-            .endControlFlow()
-        funList.add(initFun.build())
 
         val getChannelFun = FunSpec.builder("getChannel")
             .addStatement("return channel")
@@ -174,39 +155,16 @@ class ReceiverProcessor(
             .build()
         funList.add(getChannelNameFun)
 
-        val companion = TypeSpec.companionObjectBuilder()
-            .addProperty(
-                PropertySpec
-                    .builder(
-                        "instance",
-                        ClassName(
-                            ClazzConfig.PACKAGE.CHANNEL_NAME,
-                            generateClazzName
-                        )
-                    )
-                    .delegate(
-                        CodeBlock.builder()
-                            .beginControlFlow(
-                                "lazy(mode = %T.SYNCHRONIZED)",
-                                LazyThreadSafetyMode::class.asTypeName()
-                            )
-                            .add("$generateClazzName()")
-                            .endControlFlow()
-                            .build()
-                    )
-                    .build()
-            )
-            .build()
-
         // MethodChannelInterface
         val receiverClazz = TypeSpec.classBuilder(generateClazzName)
-            .primaryConstructor(
-                FunSpec.constructorBuilder()
-                    .addModifiers(KModifier.PRIVATE)
-                    .build()
-            )
-            .addType(companion)
             .addProperties(propertyList)
+            .addInitializerBlock(
+                assembleInit(
+                    element,
+                    codecTypeMirror,
+                    genericsTypeName
+                )
+            )
             .addFunctions(funList)
             .build()
 
@@ -222,56 +180,41 @@ class ReceiverProcessor(
         )
     }
 
-    private fun checkCodecClass(
-        codecTypeMirror: TypeMirror
-    ) {
-        if (codecTypeMirror !is DeclaredType) {
-            printer.error("$codecTypeMirror must be a class.")
-            return
-        }
-        val codecElement = codecTypeMirror.asElement()
-        if (codecElement !is TypeElement) {
-            printer.error("$codecTypeMirror must be a class.")
-            return
-        }
+    private fun assembleInit(
+        element: TypeElement,
+        codecTypeMirror: TypeMirror,
+        genericsTypeName: TypeName
+    ): CodeBlock {
+        val initBlock = CodeBlock.builder()
+            .beginControlFlow(
+                "engine = %T.getInstance().get(engineId)?.apply",
+                engineCacheClassName
+            )
+            .addStatement("channel = BasicMessageChannel(")
+            .addStatement("  dartExecutor.binaryMessenger,")
+            .addStatement("  name,")
+            .addStatement("  %T.INSTANCE", codecTypeMirror)
+            .addStatement(")")
+            .addStatement("channel?.setMessageHandler { message, reply ->")
 
-        val enclosedElements = codecElement.enclosedElements
-        var isFindInstance = false
-        for (enclosedElement in enclosedElements) {
-            if (enclosedElement.kind != ElementKind.FIELD) {
-                continue
-            }
-            if (enclosedElement !is VariableElement) {
-                continue
-            }
-
-            if (enclosedElement.simpleName.toString() != "INSTANCE") {
-                continue
-            }
-
-            var isFindStatic = false
-            for (modifier in enclosedElement.modifiers) {
-                if (modifier == Modifier.STATIC) {
-                    isFindStatic = true
-                }
-            }
-
-            if (isFindStatic) {
-                isFindInstance = true
-                break
-            }
+        if (!isLackCreator) {
+            assembleReplyField(
+                element,
+                initBlock,
+                genericsTypeName
+            )
+            // 拼装方法
+            assembleHandleMethod(element, initBlock)
         }
 
-        if (!isFindInstance) {
-            printer.error("You need support a static INSTANCE field. [$codecElement]")
-            return
-        }
+        initBlock.addStatement("}")
+            .endControlFlow()
+        return initBlock.build()
     }
 
     private fun assembleReplyField(
-        basicChannelName: String,
         element: TypeElement,
-        initFun: FunSpec.Builder,
+        initBlock: CodeBlock.Builder,
         genericsTypeName: TypeName
     ) {
         val enclosedElements = element.enclosedElements
@@ -308,13 +251,13 @@ class ReceiverProcessor(
         }
 
         for (resultElement in resultElements) {
-            initFun.addStatement("  $basicChannelName.${resultElement.simpleName} = reply")
+            initBlock.addStatement("  $basicChannelName.${resultElement.simpleName} = reply")
         }
     }
 
     private fun assembleHandleMethod(
         typeElement: TypeElement,
-        initFun: FunSpec.Builder
+        initBlock: CodeBlock.Builder
     ) {
         val enclosedElements = typeElement.enclosedElements
         var handleMethod: ExecutableElement? = null
@@ -330,7 +273,7 @@ class ReceiverProcessor(
         if (handleMethod != null) {
             assembleHandleMethod(
                 typeElement = typeElement,
-                initFun = initFun,
+                initBlock = initBlock,
                 handleMethod = handleMethod
             )
         }
@@ -338,7 +281,7 @@ class ReceiverProcessor(
 
     private fun assembleHandleMethod(
         typeElement: TypeElement,
-        initFun: FunSpec.Builder,
+        initBlock: CodeBlock.Builder,
         handleMethod: ExecutableElement
     ) {
         val spacing = "  "
@@ -354,19 +297,19 @@ class ReceiverProcessor(
         }
 
         if (parameters.isEmpty()) {   // 没有参数
-            initFun.addStatement("$spacing  %T.$methodName()", typeElement)
+            initBlock.addStatement("$spacing$basicChannelName.$methodName()")
         } else {    // 构建参数
-            initFun.addStatement("$spacing  %T.$methodName(", typeElement)
+            initBlock.addStatement("$spacing$basicChannelName.$methodName(")
             val parameter = parameters[0]
             val paramName = parameter.simpleName
             parameter.getAnnotation(Nullable::class.java)
                 ?: error("Parameter must be nullable.[$methodName]")
 
-            initFun.addStatement(
-                "$spacing    $paramName = message"
+            initBlock.addStatement(
+                "$spacing  $paramName = message"
             )
 
-            initFun.addStatement("$spacing  )")
+            initBlock.addStatement("$spacing)")
         }
     }
 }

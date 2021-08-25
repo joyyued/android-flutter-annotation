@@ -2,7 +2,10 @@ package com.joyy.compiler.processor.basicChannel
 
 import com.joyy.annotation.basic.FlutterBasicChannel
 import com.joyy.compiler.Printer
+import javax.lang.model.element.ElementKind
+import javax.lang.model.element.Modifier
 import javax.lang.model.element.TypeElement
+import javax.lang.model.element.VariableElement
 import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.MirroredTypeException
 import javax.lang.model.type.TypeMirror
@@ -50,5 +53,52 @@ object BasicProcessorUtils {
         }
 
         return extendTypeMirror
+    }
+
+    fun checkCodecClass(
+        codecTypeMirror: TypeMirror,
+        printer: Printer
+    ) {
+        if (codecTypeMirror !is DeclaredType) {
+            printer.error("$codecTypeMirror must be a class.")
+            return
+        }
+        val codecElement = codecTypeMirror.asElement()
+        if (codecElement !is TypeElement) {
+            printer.error("$codecTypeMirror must be a class.")
+            return
+        }
+
+        val enclosedElements = codecElement.enclosedElements
+        var isFindInstance = false
+        for (enclosedElement in enclosedElements) {
+            if (enclosedElement.kind != ElementKind.FIELD) {
+                continue
+            }
+            if (enclosedElement !is VariableElement) {
+                continue
+            }
+
+            if (enclosedElement.simpleName.toString() != "INSTANCE") {
+                continue
+            }
+
+            var isFindStatic = false
+            for (modifier in enclosedElement.modifiers) {
+                if (modifier == Modifier.STATIC) {
+                    isFindStatic = true
+                }
+            }
+
+            if (isFindStatic) {
+                isFindInstance = true
+                break
+            }
+        }
+
+        if (!isFindInstance) {
+            printer.error("You need support a static INSTANCE field. [$codecElement]")
+            return
+        }
     }
 }

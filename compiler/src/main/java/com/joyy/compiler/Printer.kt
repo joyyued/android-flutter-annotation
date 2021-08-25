@@ -1,7 +1,7 @@
 package com.joyy.compiler
 
 import com.joyy.compiler.config.ClazzConfig
-import com.joyy.compiler.processor.engine.FlutterEngineProcessor
+import com.joyy.compiler.processor.manager.FlutterEngineProcessor
 import javax.annotation.processing.Messager
 import javax.tools.Diagnostic
 

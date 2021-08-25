@@ -157,42 +157,16 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
             .initializer("null")
             .build()
 
-        // companion block
-        val companion = TypeSpec.companionObjectBuilder()
-            .addProperty(
-                PropertySpec
-                    .builder(
-                        "instance",
-                        ClassName(
-                            ClazzConfig.PACKAGE.CHANNEL_NAME,
-                            generateClazzName
-                        )
-                    )
-                    .delegate(
-                        CodeBlock.builder()
-                            .beginControlFlow(
-                                "lazy(mode = %T.SYNCHRONIZED)",
-                                LazyThreadSafetyMode::class.asTypeName()
-                            )
-                            .add("$generateClazzName()")
-                            .endControlFlow()
-                            .build()
-                    )
-                    .build()
-            )
-            .build()
-
         // init function
         val contextClassName = ClassName(
             ClazzConfig.Android.CONTEXT_PACKAGE,
             ClazzConfig.Android.CONTEXT_NAME
         )
-        val engineCacheClassName =  ClassName(
+        val engineCacheClassName = ClassName(
             ClazzConfig.Flutter.ENGINE_PACKAGE,
             ClazzConfig.Flutter.ENGINE_CACHE_NAME
         )
-        val initFun = FunSpec.builder("init")
-            .addParameter("context", contextClassName)
+        val initBlock = CodeBlock.builder()
             .beginControlFlow(
                 "engine = %T.getInstance().get(engineId)?.apply",
                 engineCacheClassName
@@ -241,18 +215,12 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
         }
 
         val engineCreatorClazz = TypeSpec.classBuilder(generateClazzName)
-            .primaryConstructor(
-                FunSpec.constructorBuilder()
-                    .addModifiers(KModifier.PRIVATE)
-                    .build()
-            )
-            .addType(companion)
             .addProperty(engineIdProperty)
             .addProperty(nameProperty)
             .addProperty(flutterEngineProperty)
             .addProperty(channelProperty)
             .addProperty(sinkProperty)
-            .addFunction(initFun)
+            .addInitializerBlock(initBlock)
             .addFunction(getChannelFun)
             .addFunction(getChannelNameFun)
             .addFunction(getEventSinkFun)

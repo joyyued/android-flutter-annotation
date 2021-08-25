@@ -1,10 +1,9 @@
-package com.joyy.compiler.processor.engine
+package com.joyy.compiler.processor.manager
 
 import com.google.auto.service.AutoService
 import com.joyy.annotation.FlutterEngine
 import com.joyy.compiler.Printer
 import com.joyy.compiler.config.ClazzConfig
-import com.joyy.compiler.processor.manager.FlutterManagerProcessor
 import com.joyy.compiler.utils.EngineHelper
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec

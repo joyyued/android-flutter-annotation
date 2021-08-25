@@ -9,8 +9,10 @@ import com.joyy.compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.asTypeName
@@ -77,23 +79,13 @@ class SenderProcessor(
             printer.error("Can not get codec.Check the codec is exist.")
             return
         }
-
         val genericsType = BasicProcessorUtils.getGenericsType(codecTypeMirror, printer)
         if (genericsType == null) {
             printer.error("You must support a generic in codec.")
             return
         }
-
-        // 生成接收类名
-        if (channelReceiverMap[channelName] == null) {
-            channelReceiverMap[channelName] = ChannelInfo(
-                className = ClassName(
-                    ClazzConfig.PACKAGE.CHANNEL_NAME,
-                    "${clazzName}Proxy"
-                ),
-                typeMirror = genericsType
-            )
-        }
+        BasicProcessorUtils.checkCodecClass(codecTypeMirror, printer)
+        val genericsTypeName = TypeChangeUtils.change(printer, genericsType)
 
         val enclosedElements = (element as TypeElement).enclosedElements
         val functions = ArrayList<FunSpec>()
@@ -112,11 +104,29 @@ class SenderProcessor(
             }
         }
 
-        val engineCreatorClazzBuilder = TypeSpec.objectBuilder(generateClazzName)
-
-        functions.forEach {
-            engineCreatorClazzBuilder.addFunction(it)
-        }
+        val channelClassName = ClassName(
+            ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
+            ClazzConfig.Flutter.BASIC_CHANNEL_NAME
+        ).parameterizedBy(
+            genericsTypeName
+        ).copy(nullable = true)
+        val engineCreatorClazzBuilder = TypeSpec.classBuilder(generateClazzName)
+            .addFunctions(functions)
+            .primaryConstructor(
+                FunSpec.constructorBuilder()
+                    .addParameter(
+                        "channel",
+                        channelClassName
+                    )
+                    .build()
+            )
+            .addProperty(
+                PropertySpec.builder("channel", channelClassName)
+                    .initializer("channel")
+                    .mutable(true)
+                    .addModifiers(KModifier.PRIVATE)
+                    .build()
+            )
 
         FileSpec.get(ClazzConfig.PACKAGE.CHANNEL_NAME, engineCreatorClazzBuilder.build())
             .writeTo(filer)
@@ -298,9 +308,8 @@ class SenderProcessor(
             )
         }
 
-        function.addStatement("%T.instance", receiverClassName)
-            .addStatement("  .getChannel()")
-            .addStatement("  ?.send($paramName, callback)")
+        function
+            .addStatement("channel?.send($paramName, callback)")
             .endControlFlow()
             .endControlFlow()
             .addStatement("return result")
