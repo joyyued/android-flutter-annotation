@@ -128,10 +128,8 @@ class FlutterEngineProcessor : AbstractProcessor(), Printer {
             .writeTo(filer)
 
         FlutterManagerProcessor(
-            elementUtils,
-            typeUtils,
-            filer,
-            this
+            printer = this,
+            processingEnv = processingEnv
         ).process(roundEnv)
 
         return true

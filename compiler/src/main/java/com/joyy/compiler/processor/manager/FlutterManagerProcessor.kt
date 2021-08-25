@@ -15,6 +15,7 @@ import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import javax.annotation.processing.Filer
+import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.TypeElement
 import javax.lang.model.util.Elements
@@ -27,11 +28,16 @@ import javax.lang.model.util.Types
  * @des: flutter manager 处理器
  */
 class FlutterManagerProcessor(
-    private val elementUtils: Elements,
-    private val typeUtils: Types,
-    private val filer: Filer,
-    private val printer: Printer
+    private val printer: Printer,
+    private val processingEnv: ProcessingEnvironment
 ) {
+    private val filer = processingEnv.filer
+    private val elementUtils = processingEnv.elementUtils
+    private val typeUtils = processingEnv.typeUtils
+    private val message = processingEnv.messager
+    private val options = processingEnv.options
+    private val sourceVersion = processingEnv.sourceVersion
+    private val locale = processingEnv.locale
 
     private val methodReceiverClassNameList = ArrayList<String>()
     private val methodReceiverChannelNameSet = HashSet<String>()
@@ -143,10 +149,8 @@ class FlutterManagerProcessor(
             }
         }
         val methodProcessor = com.joyy.compiler.processor.methodChannel.ReceiverProcessor(
-            elementUtils = elementUtils,
-            typeUtils = typeUtils,
-            filer = filer,
-            printer = printer
+            printer = printer,
+            processingEnv = processingEnv
         )
         for (typeElement in needCreatorChannelElement) {
             methodProcessor.handle(
@@ -221,8 +225,7 @@ class FlutterManagerProcessor(
             }
         }
         val basicProcessor = com.joyy.compiler.processor.basicChannel.ReceiverProcessor(
-            typeUtils = typeUtils,
-            filer = filer,
+            processingEnv = processingEnv,
             printer = printer
         )
         for (typeElement in needCreatorChannelElement) {

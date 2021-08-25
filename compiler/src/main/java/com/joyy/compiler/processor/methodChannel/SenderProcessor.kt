@@ -18,6 +18,7 @@ import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.asTypeName
 import org.jetbrains.annotations.Nullable
 import javax.annotation.processing.Filer
+import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
@@ -28,11 +29,16 @@ import javax.lang.model.util.Elements
 import javax.lang.model.util.Types
 
 class SenderProcessor(
-    private val elementUtils: Elements,
-    private val typeUtils: Types,
-    private val filer: Filer,
-    private val printer: Printer
+    private val printer: Printer,
+    private val processingEnv: ProcessingEnvironment
 ) {
+    private val filer = processingEnv.filer
+    private val elementUtils = processingEnv.elementUtils
+    private val typeUtils = processingEnv.typeUtils
+    private val message = processingEnv.messager
+    private val options = processingEnv.options
+    private val sourceVersion = processingEnv.sourceVersion
+    private val locale = processingEnv.locale
 
     private val resultClassName = ClassName(
         ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,

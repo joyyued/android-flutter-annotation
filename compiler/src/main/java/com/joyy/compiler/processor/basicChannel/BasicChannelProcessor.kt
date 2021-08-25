@@ -68,8 +68,8 @@ class BasicChannelProcessor : AbstractProcessor(), Printer {
             error("Type utils is null.Please try to run again.")
             return true
         }
-        receiverProcessor = ReceiverProcessor(filer, this, typeUtils)
-        senderProcessor = SenderProcessor(filer, this, typeUtils)
+        receiverProcessor = ReceiverProcessor(this, processingEnv)
+        senderProcessor = SenderProcessor(this, processingEnv)
 
         if (annotations.isEmpty()) {
             return false

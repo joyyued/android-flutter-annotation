@@ -17,7 +17,6 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
-import com.squareup.kotlinpoet.asTypeName
 import org.jetbrains.annotations.Nullable
 import java.util.LinkedHashSet
 import java.util.Locale
