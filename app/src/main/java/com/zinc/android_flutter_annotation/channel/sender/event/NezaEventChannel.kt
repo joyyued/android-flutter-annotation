@@ -12,7 +12,7 @@ import com.zinc.android_flutter_annotation.config.Config
  * @des: Event Channel
  */
 //@FlutterEngine(engineId = "江澎涌")
-@FlutterEventChannel(channelName = Config.EVENT_CHANNEL)
+//@FlutterEventChannel(channelName = Config.EVENT_CHANNEL)
 interface NezaEventChannel {
 
     /**

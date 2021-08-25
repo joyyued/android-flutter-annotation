@@ -11,11 +11,11 @@ import io.flutter.plugin.common.JSONMessageCodec
  * @email: 56002982@qq.com
  * @des: json channel sender
  */
-@FlutterBasicChannel(
-    codecClass = JSONMessageCodec::class,
-    channelName = Config.BINARY_JSON_CHANNEL,
-    type = ChannelType.SENDER
-)
+//@FlutterBasicChannel(
+//    codecClass = JSONMessageCodec::class,
+//    channelName = Config.BINARY_JSON_CHANNEL,
+//    type = ChannelType.SENDER
+//)
 interface NezaJsonBasicChannel {
     fun sendJson(msg: String)
 }

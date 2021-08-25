@@ -9,8 +9,10 @@ import com.joyy.compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.asTypeName
@@ -66,18 +68,25 @@ class SenderProcessor(
     ).parameterizedBy(
         resultClassName
     )
+    private val methodChannelClassName = ClassName(
+        ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
+        ClazzConfig.Flutter.METHOD_CHANNEL_NAME
+    ).copy(nullable = true)
 
     fun handle(
         roundEnv: RoundEnvironment,
         element: Element,
         channelReceiverMap: HashMap<String, ClassName>
     ) {
+        // 注解类名
         val clazzName = element.simpleName.toString()
+        // 生成类名
         val generateClazzName = "${clazzName}Impl"
+
         val channelAnnotation = element.getAnnotation(FlutterMethodChannel::class.java)
         val channelName = channelAnnotation.channelName
-        val kind = element.kind
 
+        val kind = element.kind
         if (kind != ElementKind.INTERFACE) {
             printer.error("The sender of Method channel must be a interface.[$clazzName]")
         }
@@ -100,11 +109,23 @@ class SenderProcessor(
             }
         }
 
-        val engineCreatorClazzBuilder = TypeSpec.objectBuilder(generateClazzName)
-
-        functions.forEach {
-            engineCreatorClazzBuilder.addFunction(it)
-        }
+        val engineCreatorClazzBuilder = TypeSpec
+            .classBuilder(generateClazzName)
+            .addFunctions(functions)
+            .primaryConstructor(
+                FunSpec.constructorBuilder()
+                    .addParameter(
+                        "channel",
+                        methodChannelClassName
+                    )
+                    .build()
+            )
+            .addProperty(
+                PropertySpec.builder("channel", methodChannelClassName)
+                    .initializer("channel")
+                    .addModifiers(KModifier.PRIVATE)
+                    .build()
+            )
 
         FileSpec.get(ClazzConfig.PACKAGE.CHANNEL_NAME, engineCreatorClazzBuilder.build())
             .writeTo(filer)
@@ -271,7 +292,7 @@ class SenderProcessor(
         var log = ""
         val statement = when (paramType) {
             ParamType.MAP -> {
-                "  ?.invokeMethod(%S, params, callback)"
+                "channel?.invokeMethod(%S, params, callback)"
             }
             ParamType.ORIGIN -> {
                 val size = methodParameters.size
@@ -290,7 +311,7 @@ class SenderProcessor(
                     }
                 }
 
-                "  ?.invokeMethod(%S, $paramName, callback)"
+                "channel?.invokeMethod(%S, $paramName, callback)"
             }
         }
 
@@ -305,8 +326,7 @@ class SenderProcessor(
                 log
             )
         }
-        function.addStatement("%T.instance", receiverClassName)
-            .addStatement("  .getChannel()")
+        function
             .addStatement(statement, orgMethodName)
             .endControlFlow()
             .endControlFlow()

@@ -72,7 +72,7 @@ object ClazzConfig {
 
     object PACKAGE {
         // 包名
-        const val PACKAGE_NAME = "com.joyy.flutter_annotation"
+        const val PACKAGE_NAME = "com.joyy.ued.android_flutter_annotation"
 
         // 引擎包
         const val ENGINE_NAME = "$PACKAGE_NAME.engine"

@@ -12,11 +12,11 @@ import io.flutter.plugin.common.StringCodec
  * @email: 56002982@qq.com
  * @des: string channel sender
  */
-@FlutterBasicChannel(
-    codecClass = StringCodec::class,
-    channelName = Config.STRING_BASIC_CHANNEL,
-    type = ChannelType.SENDER
-)
+//@FlutterBasicChannel(
+//    codecClass = StringCodec::class,
+//    channelName = Config.STRING_BASIC_CHANNEL,
+//    type = ChannelType.SENDER
+//)
 interface NezaStringBasicChannel {
     @Param
     fun sendJsonToFlutter(json: String)

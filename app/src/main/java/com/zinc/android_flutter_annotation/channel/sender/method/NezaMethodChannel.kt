@@ -20,27 +20,27 @@ interface NezaMethodChannel {
         hashMap: HashMap<String, Any?>
     )
 
-    /**
-     * 会组合成 HashMap 传递
-     */
-    @ParamMap
-    fun sayHelloToFlutter(
-        name: String
-    )
-
-    /**
-     * 只会使用到 name 参数
-     */
-    @Param
-    fun sayHelloToFlutter(
-        name: String,
-        age: Int,
-        height: Int?
-    )
-
-    @ParamMap
-    fun sayHelloToFlutter(
-        name: String,
-        weight: Int
-    )
+//    /**
+//     * 会组合成 HashMap 传递
+//     */
+//    @ParamMap
+//    fun sayHelloToFlutter(
+//        name: String
+//    )
+//
+//    /**
+//     * 只会使用到 name 参数
+//     */
+//    @Param
+//    fun sayHelloToFlutter(
+//        name: String,
+//        age: Int,
+//        height: Int?
+//    )
+//
+//    @ParamMap
+//    fun sayHelloToFlutter(
+//        name: String,
+//        weight: Int
+//    )
 }

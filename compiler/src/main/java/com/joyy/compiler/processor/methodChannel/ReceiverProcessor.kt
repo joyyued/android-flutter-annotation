@@ -41,18 +41,43 @@ class ReceiverProcessor(
     private val printer: Printer
 ) {
 
+    private val contextClassName = ClassName(
+        ClazzConfig.Android.CONTEXT_PACKAGE,
+        ClazzConfig.Android.CONTEXT_NAME
+    )
+    private val engineCacheClassName = ClassName(
+        ClazzConfig.Flutter.ENGINE_PACKAGE,
+        ClazzConfig.Flutter.ENGINE_CACHE_NAME
+    )
+    private val methodChannelClassName = ClassName(
+        ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
+        ClazzConfig.Flutter.METHOD_CHANNEL_NAME
+    ).copy(nullable = true)
+    private val flutterEngineClassName = ClassName(
+        ClazzConfig.Flutter.ENGINE_PACKAGE,
+        ClazzConfig.Flutter.ENGINE_NAME
+    ).copy(nullable = true)
+
+    private var methodChannelName = ""
+    private var clazzName = ""
+    private var generateClazzName = ""
+    private var channelName = ""
+    private var isLackCreator = false
+
     fun handle(
         roundEnv: RoundEnvironment,
         element: TypeElement,
         channelReceiverMap: HashMap<String, ClassName>,
         isLackCreator: Boolean = false
     ) {
+        clazzName = element.simpleName.toString()
+        generateClazzName = "${clazzName}Proxy"
+        methodChannelName = element.simpleName.toString().capitalize()
+        this.isLackCreator = isLackCreator
 
-        val clazzName = element.simpleName
-        val generateClazzName = "${clazzName}Proxy"
         val channelAnnotation = element.getAnnotation(FlutterMethodChannel::class.java)
         val engineAnnotation = element.getAnnotation(FlutterEngine::class.java)
-        val channelName = channelAnnotation.channelName
+        channelName = channelAnnotation.channelName
 
         val funList = ArrayList<FunSpec>()
         val propertyList = ArrayList<PropertySpec>()
@@ -73,13 +98,9 @@ class ReceiverProcessor(
         propertyList.add(nameProperty)
 
         // private var engine: FlutterEngine? = null
-        val engineClassName = ClassName(
-            ClazzConfig.Flutter.ENGINE_PACKAGE,
-            ClazzConfig.Flutter.ENGINE_NAME
-        )
         val flutterEngineProperty = PropertySpec.builder(
             "engine",
-            engineClassName.copy(nullable = true)
+            flutterEngineClassName
         ).mutable()
             .addModifiers(KModifier.PRIVATE)
             .initializer("null")
@@ -87,13 +108,9 @@ class ReceiverProcessor(
         propertyList.add(flutterEngineProperty)
 
         // private var channel: MethodChannel? = null
-        val channelClassName = ClassName(
-            ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
-            ClazzConfig.Flutter.METHOD_CHANNEL_NAME
-        )
         val channelProperty = PropertySpec.builder(
             "channel",
-            channelClassName.copy(nullable = true)
+            methodChannelClassName
         ).mutable()
             .addModifiers(KModifier.PRIVATE)
             .initializer("null")
@@ -101,7 +118,6 @@ class ReceiverProcessor(
         propertyList.add(channelProperty)
 
         //  private val nezaMethodChannel:NezaMethodChannel = NezaMethodChannel()
-        val methodChannelName = element.simpleName.toString().capitalize()
         if (!isLackCreator) {
             val methodChannelProperty = PropertySpec.builder(
                 methodChannelName,
@@ -111,40 +127,6 @@ class ReceiverProcessor(
                 .build()
             propertyList.add(methodChannelProperty)
         }
-
-        val contextClassName = ClassName(
-            ClazzConfig.Android.CONTEXT_PACKAGE,
-            ClazzConfig.Android.CONTEXT_NAME
-        )
-        val engineCacheClassName = ClassName(
-            ClazzConfig.Flutter.ENGINE_PACKAGE,
-            ClazzConfig.Flutter.ENGINE_CACHE_NAME
-        )
-        val initFun = FunSpec.builder("init")
-            .addParameter("context", contextClassName)
-            .beginControlFlow(
-                "engine = %T.getInstance().get(engineId)?.apply",
-                engineCacheClassName
-            )
-            .addStatement("channel = MethodChannel(")
-            .addStatement("  dartExecutor.binaryMessenger,")
-            .addStatement("  name")
-            .addStatement(")")
-            .addStatement("channel?.setMethodCallHandler { call, result ->")
-        if (!isLackCreator) {
-            assembleResultField(methodChannelName, element, initFun)
-        }
-        initFun.addStatement("  val method = call.method")
-            .addStatement("  val arguments = call.arguments")
-            .addStatement("  when (method) {")
-        if (!isLackCreator) {
-            // 拼装方法
-            assembleMethod(methodChannelName, element, initFun)
-        }
-        initFun.addStatement("  }")
-            .addStatement("}")
-            .endControlFlow()
-        funList.add(initFun.build())
 
         val getChannelFun = FunSpec.builder("getChannel")
             .addStatement("return channel")
@@ -156,39 +138,9 @@ class ReceiverProcessor(
             .build()
         funList.add(getChannelNameFun)
 
-        val companion = TypeSpec.companionObjectBuilder()
-            .addProperty(
-                PropertySpec
-                    .builder(
-                        "instance",
-                        ClassName(
-                            ClazzConfig.PACKAGE.CHANNEL_NAME,
-                            generateClazzName
-                        )
-                    )
-                    .delegate(
-                        CodeBlock.builder()
-                            .beginControlFlow(
-                                "lazy(mode = %T.SYNCHRONIZED)",
-                                LazyThreadSafetyMode::class.asTypeName()
-                            )
-                            .add("$generateClazzName()")
-                            .endControlFlow()
-                            .build()
-                    )
-                    .build()
-            )
-            .build()
-
-        // MethodChannelInterface
         val engineCreatorClazz = TypeSpec.classBuilder(generateClazzName)
-            .primaryConstructor(
-                FunSpec.constructorBuilder()
-                    .addModifiers(KModifier.PRIVATE)
-                    .build()
-            )
-            .addType(companion)
             .addProperties(propertyList)
+            .addInitializerBlock(assembleInit(element))
             .addFunctions(funList)
             .build()
 
@@ -201,10 +153,42 @@ class ReceiverProcessor(
         )
     }
 
+    private fun assembleInit(element: TypeElement): CodeBlock {
+        val initBlock = CodeBlock.builder()
+            .beginControlFlow(
+                "engine = %T.getInstance().get(engineId)?.apply",
+                engineCacheClassName
+            )
+            .addStatement("channel = MethodChannel(")
+            .addStatement("  dartExecutor.binaryMessenger,")
+            .addStatement("  name")
+            .addStatement(")")
+            .addStatement("channel?.setMethodCallHandler { call, result ->")
+
+        if (!isLackCreator) {
+            assembleResultField(methodChannelName, element, initBlock)
+        }
+
+        initBlock.addStatement("  val method = call.method")
+            .addStatement("  val arguments = call.arguments")
+            .addStatement("  when (method) {")
+
+        if (!isLackCreator) {
+            // 拼装方法
+            assembleMethod(methodChannelName, element, initBlock)
+        }
+
+        initBlock.addStatement("  }")
+            .addStatement("}")
+            .endControlFlow()
+
+        return initBlock.build()
+    }
+
     private fun assembleResultField(
         methodChannelName: String,
         element: TypeElement,
-        initFun: FunSpec.Builder
+        initBlock: CodeBlock.Builder
     ) {
         val enclosedElements = element.enclosedElements
         val resultPath = ClazzConfig.Flutter.METHOD_RESULT_PACKAGE +
@@ -233,14 +217,14 @@ class ReceiverProcessor(
         }
 
         for (resultElement in resultElements) {
-            initFun.addStatement("  $methodChannelName.${resultElement.simpleName} = result")
+            initBlock.addStatement("  $methodChannelName.${resultElement.simpleName} = result")
         }
     }
 
     private fun assembleMethod(
         methodChannelName: String,
         element: TypeElement,
-        initFun: FunSpec.Builder
+        initBlock: CodeBlock.Builder
     ) {
         val enclosedElements = element.enclosedElements
 
@@ -295,7 +279,7 @@ class ReceiverProcessor(
             methodChannelName = methodChannelName,
             element = element,
             methodList = methodList,
-            initFun = initFun
+            initBlock = initBlock
         )
     }
 
@@ -303,7 +287,7 @@ class ReceiverProcessor(
         methodChannelName: String,
         element: Element,
         methodList: List<ExecutableElement>,
-        initFun: FunSpec.Builder
+        initBlock: CodeBlock.Builder
     ) {
         val spacing = "    "
         val methodNameSet = HashSet<String>()
@@ -325,7 +309,7 @@ class ReceiverProcessor(
             method.getAnnotation(HandleMessage::class.java) ?: continue
 
             // "sayHelloToNative" -> {
-            val block = initFun.addStatement("$spacing%S -> {", methodName)
+            val block = initBlock.addStatement("$spacing%S -> {", methodName)
             if (parameters.isEmpty()) {   // 没有参数
                 block.addStatement("$spacing  $methodChannelName.$methodName()")
             } else {    // 构建参数
