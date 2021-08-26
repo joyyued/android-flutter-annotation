@@ -94,6 +94,17 @@ class SenderProcessor(
         BasicProcessorUtils.checkCodecClass(codecTypeMirror, printer)
         val genericsTypeName = TypeChangeUtils.change(printer, genericsType)
 
+        // 生成接收类名
+        if (channelReceiverMap[channelName] == null) {
+            channelReceiverMap[channelName] = ChannelInfo(
+                className = ClassName(
+                    ClazzConfig.PACKAGE.CHANNEL_NAME,
+                    "${clazzName}Proxy"
+                ),
+                typeMirror = genericsType
+            )
+        }
+
         val enclosedElements = (element as TypeElement).enclosedElements
         val functions = ArrayList<FunSpec>()
         if (enclosedElements != null) {

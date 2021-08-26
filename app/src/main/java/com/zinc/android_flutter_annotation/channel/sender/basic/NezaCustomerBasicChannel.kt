@@ -11,11 +11,11 @@ import com.zinc.android_flutter_annotation.config.Config
  * @email: 56002982@qq.com
  * @des: customer channel sender
  */
-//@FlutterBasicChannel(
-//    codecClass = HashMapMessageCodec::class,
-//    channelName = Config.BINARY_CUSTOMER_CHANNEL,
-//    type = ChannelType.SENDER
-//)
+@FlutterBasicChannel(
+    codecClass = HashMapMessageCodec::class,
+    channelName = Config.BINARY_CUSTOMER_CHANNEL,
+    type = ChannelType.SENDER
+)
 interface NezaCustomerBasicChannel {
     fun sendMapToFlutter(map: HashMap<String, String>)
 }

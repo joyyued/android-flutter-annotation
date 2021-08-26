@@ -12,9 +12,18 @@ object Config {
 
     const val METHOD_CHANNEL = "com.zinc.android_flutter_annotation/nezaMethodChannel"
 
+    const val METHOD_CHANNEL_NONE_SENDER = "com.zinc" +
+            ".android_flutter_annotation/nezaMethodChannelNoneSender"
+
+    const val METHOD_CHANNEL_NONE_RECEIVER = "com.zinc" +
+            ".android_flutter_annotation/nezaMethodChannelNoneReceiver"
+
     const val EVENT_CHANNEL = "com.zinc.android_flutter_annotation/nezaEventChannel"
 
     const val STRING_BASIC_CHANNEL = "com.zinc.android_flutter_annotation/nezaStringBasicChannel"
+
+    const val STRING_BASIC_CHANNEL_NONE_SENDER = "com.zinc" +
+            ".android_flutter_annotation/nezaStringBasicChannelNoneSender"
 
     const val STANDER_BASIC_CHANNEL = "com.zinc.android_flutter_annotation/nezaStandardBasicChannel"
 

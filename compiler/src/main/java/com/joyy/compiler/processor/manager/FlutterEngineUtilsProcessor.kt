@@ -104,7 +104,7 @@ class FlutterEngineUtilsProcessor(
                 )
             )
             .beginControlFlow("for (engineId in engineIdList)")
-            .addStatement("removeEngine(engineId)")
+            .addStatement("releaseEngine(engineId)")
             .endControlFlow()
             .build()
     }

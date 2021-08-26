@@ -28,35 +28,35 @@ interface NezaStandardBasicChannel {
     @Param
     fun sendToFlutter(age: Int)
 
-//    @ParamMap
-//    fun sendToFlutterMap(age: Int)
-//
-//    @Param
-//    fun sendToFlutter(
-//        map: HashMap<String, String>
-//    )
-//
-//    @Param
-//    fun sendToFlutterMapList(
-//        map: HashMap<String, ArrayList<String>>
-//    )
-//
-//    @Param
-//    fun sendToFlutterByteArray(
-//        map: HashMap<String, ByteArray>
-//    )
-//
-//    @Param
-//    fun sendToFlutter(
-//        name: String,
-//        age: Int
-//    )
-//
-//    @ParamMap
-//    fun sendToFlutter(
-//        name: String,
-//        age: Int,
-//        height: Int,
-//        byteArray: ByteArray
-//    )
+    @ParamMap
+    fun sendToFlutterMap(age: Int)
+
+    @Param
+    fun sendToFlutter(
+        map: HashMap<String, String>
+    )
+
+    @Param
+    fun sendToFlutterMapList(
+        map: HashMap<String, ArrayList<String>>
+    )
+
+    @Param
+    fun sendToFlutterByteArray(
+        map: HashMap<String, ByteArray>
+    )
+
+    @Param
+    fun sendToFlutter(
+        name: String,
+        age: Int
+    )
+
+    @ParamMap
+    fun sendToFlutter(
+        name: String,
+        age: Int,
+        height: Int,
+        byteArray: ByteArray
+    )
 }

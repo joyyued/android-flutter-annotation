@@ -17,18 +17,18 @@ import io.flutter.plugin.common.StringCodec
  */
 @FlutterBasicChannel(
     codecClass = StringCodec::class,
-    channelName = Config.STRING_BASIC_CHANNEL,
+    channelName = Config.STRING_BASIC_CHANNEL_NONE_SENDER,
     type = ChannelType.RECEIVER
 )
-class NezaStringBasicChannel {
+class NezaStringBasicChannelNoneSender {
 
     @Callback
     var reply: BasicMessageChannel.Reply<String>? = null
 
     @HandleMessage
-    fun receiverJsonFromFlutter(json: String?) {
+    fun test(json: String?) {
         Log.e(
-            "Neza", "[Basic string channel receiver] " +
+            "Neza", "[test] " +
                     "receiverJsonFromFlutter(json: $json)"
         )
     }

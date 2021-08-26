@@ -37,17 +37,13 @@ class FlutterManagerProcessor(
     roundEnv
 ) {
 
-    private val methodReceiverClassNameList = ArrayList<String>()
-    private val methodReceiverChannelNameSet = HashSet<String>()
-    private val methodSenderClassNameList = ArrayList<String>()
-    private val methodSenderChannelNameSet = HashSet<String>()
+    private val methodReceiverClassNameMap = HashMap<String, String>()
+    private val methodSenderClassNameMap = HashMap<String, String>()
 
-    private val eventChannelList = ArrayList<String>()
+    private val eventChannelMap = HashMap<String, String>()
 
-    private val basicReceiverClassNameList = ArrayList<String>()
-    private val basicReceiverChannelNameSet = HashSet<String>()
-    private val basicSenderClassNameList = ArrayList<String>()
-    private val basicSenderChannelNameSet = HashSet<String>()
+    private val basicReceiverClassNameMap = HashMap<String, String>()
+    private val basicSenderClassNameMap = HashMap<String, String>()
 
     fun process() {
         printer.note("Flutter Manager Processor running.")
@@ -96,14 +92,13 @@ class FlutterManagerProcessor(
             )
             .build()
 
-        val initFun = initFunction()
-
         val engineCreatorClazz = TypeSpec.objectBuilder(ClazzConfig.FLUTTER_MANAGER_NAME)
             .addProperty(createAllEngineProperty())
             .addProperties(createChannelMap())
             .addType(channelsType)
             .addType(engineType)
-            .addFunction(initFun)
+            .addFunction(initFunction())
+            .addFunction(releaseFunction())
             .build()
 
         generatorClass(ClazzConfig.PACKAGE.ENGINE_NAME, engineCreatorClazz)
@@ -171,6 +166,9 @@ class FlutterManagerProcessor(
     private fun handleMethodChannel(roundEnv: RoundEnvironment): ArrayList<PropertySpec> {
         val methodChannel = roundEnv.getElementsAnnotatedWith(FlutterMethodChannel::class.java)
 
+        val methodReceiverChannelNameSet = HashSet<String>()
+        val methodSenderChannelNameSet = HashSet<String>()
+
         for (element in methodChannel) {
             if (element !is TypeElement) {
                 continue
@@ -179,10 +177,10 @@ class FlutterManagerProcessor(
             val clazzName = element.simpleName.toString()
             val annotation = element.getAnnotation(FlutterMethodChannel::class.java) ?: continue
             if (annotation.type == ChannelType.RECEIVER) {
-                methodReceiverClassNameList.add(clazzName)
+                methodReceiverClassNameMap[clazzName] = annotation.channelName
                 methodReceiverChannelNameSet.add(annotation.channelName)
             } else {
-                methodSenderClassNameList.add(clazzName)
+                methodSenderClassNameMap[clazzName] = annotation.channelName
                 methodSenderChannelNameSet.add(annotation.channelName)
             }
         }
@@ -203,7 +201,7 @@ class FlutterManagerProcessor(
 
             if (needCreatorChannelName.contains(annotation.channelName)) {
                 needCreatorChannelElement.add(element)
-                methodReceiverClassNameList.add(element.simpleName.toString())
+                methodReceiverClassNameMap[element.simpleName.toString()] = annotation.channelName
             }
         }
         val methodProcessor = com.joyy.compiler.processor.methodChannel.ReceiverProcessor(
@@ -220,8 +218,8 @@ class FlutterManagerProcessor(
         }
 
         return assembleProperty(
-            methodSenderClassNameList,
-            "%T",
+            methodSenderClassNameMap,
+            "senderChannelMap[%S] as %T",
             "============ Method Channel ============"
         )
     }
@@ -233,19 +231,22 @@ class FlutterManagerProcessor(
             if (element !is TypeElement) {
                 continue
             }
-            element.getAnnotation(FlutterEventChannel::class.java) ?: continue
-            eventChannelList.add(element.simpleName.toString())
+            val annotation = element.getAnnotation(FlutterEventChannel::class.java) ?: continue
+            eventChannelMap[element.simpleName.toString()] = annotation.channelName
         }
 
         return assembleProperty(
-            eventChannelList,
-            "%T.instance",
+            eventChannelMap,
+            "receiverChannelMap[%S] as %T",
             "============ Event Channel ============"
         )
     }
 
     private fun handleBasicChannel(roundEnv: RoundEnvironment): ArrayList<PropertySpec> {
         val basicChannel = roundEnv.getElementsAnnotatedWith(FlutterBasicChannel::class.java)
+
+        val basicReceiverChannelNameSet = HashSet<String>()
+        val basicSenderChannelNameSet = HashSet<String>()
 
         for (element in basicChannel) {
             if (element !is TypeElement) {
@@ -255,10 +256,10 @@ class FlutterManagerProcessor(
             val clazzName = element.simpleName.toString()
             val annotation = element.getAnnotation(FlutterBasicChannel::class.java) ?: continue
             if (annotation.type == ChannelType.RECEIVER) {
-                basicReceiverClassNameList.add(clazzName)
+                basicReceiverClassNameMap[clazzName] = annotation.channelName
                 basicReceiverChannelNameSet.add(annotation.channelName)
             } else {
-                basicSenderClassNameList.add(clazzName)
+                basicSenderClassNameMap[clazzName] = annotation.channelName
                 basicSenderChannelNameSet.add(annotation.channelName)
             }
         }
@@ -279,7 +280,7 @@ class FlutterManagerProcessor(
 
             if (needCreatorChannelName.contains(annotation.channelName)) {
                 needCreatorChannelElement.add(element)
-                basicReceiverClassNameList.add(element.simpleName.toString())
+                basicReceiverClassNameMap[element.simpleName.toString()] = annotation.channelName
             }
         }
         val basicProcessor = com.joyy.compiler.processor.basicChannel.ReceiverProcessor(
@@ -296,20 +297,20 @@ class FlutterManagerProcessor(
         }
 
         return assembleProperty(
-            basicSenderClassNameList,
-            "%T",
+            basicSenderClassNameMap,
+            "senderChannelMap[%S] as %T",
             "============ Basic Channel ============"
         )
     }
 
     private fun assembleProperty(
-        list: ArrayList<String>,
+        map: HashMap<String, String>,
         initializer: String,
         doc: String
     ): ArrayList<PropertySpec> {
         val propertySpecList = ArrayList<PropertySpec>()
         var isFirst = true
-        for (element in list) {
+        for ((element, channelName) in map) {
             val className = ClassName(
                 ClazzConfig.PACKAGE.CHANNEL_NAME,
                 "${element}Impl"
@@ -317,7 +318,7 @@ class FlutterManagerProcessor(
             val proName = element.decapitalize()
 
             val propertySpec = PropertySpec.builder(proName, className)
-                .initializer(initializer, className)
+                .initializer(initializer, channelName, className)
 
             if (isFirst) {
                 isFirst = false
@@ -345,40 +346,102 @@ class FlutterManagerProcessor(
                     ClazzConfig.ENGINE_UTILS_NAME
                 )
             )
+            .addStatement("")
 
-        for (element in methodReceiverClassNameList) {
-            val name = "${element}Proxy"
-            initFun.addStatement(
-                "%T.instance.init(context)",
-                ClassName(
-                    ClazzConfig.PACKAGE.CHANNEL_NAME,
-                    name
+        for ((element, channelName) in methodReceiverClassNameMap) {
+            val proxyClazzName = "${element}Proxy"
+            val implClazzName = "${element}Impl"
+            val objectName = proxyClazzName.decapitalize()
+
+            initFun
+                .addStatement(
+                    "val $objectName = %T()",
+                    ClassName(
+                        ClazzConfig.PACKAGE.CHANNEL_NAME,
+                        proxyClazzName
+                    )
                 )
-            )
+                .addStatement("receiverChannelMap[%S] = $objectName", channelName)
+
+            if (methodSenderClassNameMap.containsValue(channelName)) {
+                initFun.addStatement(
+                    "senderChannelMap[%S] = %T($objectName.getChannel())",
+                    channelName,
+                    ClassName(
+                        ClazzConfig.PACKAGE.CHANNEL_NAME,
+                        implClazzName
+                    )
+                )
+            }
+
+            initFun.addStatement("")
         }
 
-        for (element in eventChannelList) {
-            val name = "${element}Impl"
-            initFun.addStatement(
-                "%T.instance.init(context)",
-                ClassName(
-                    ClazzConfig.PACKAGE.CHANNEL_NAME,
-                    name
+        for ((element, channelName) in eventChannelMap) {
+            val implClazzName = "${element}Impl"
+            val objectName = implClazzName.decapitalize()
+            initFun
+                .addStatement(
+                    "val $objectName = %T()",
+                    ClassName(
+                        ClazzConfig.PACKAGE.CHANNEL_NAME,
+                        implClazzName
+                    )
                 )
-            )
+                .addStatement(
+                    "receiverChannelMap[%S] = $objectName",
+                    channelName
+                )
+                .addStatement("")
         }
 
-        for (element in basicReceiverClassNameList) {
-            val name = "${element}Proxy"
-            initFun.addStatement(
-                "%T.instance.init(context)",
-                ClassName(
-                    ClazzConfig.PACKAGE.CHANNEL_NAME,
-                    name
+        for ((element, channelName) in basicReceiverClassNameMap) {
+            val proxyClazzName = "${element}Proxy"
+            val implClazzName = "${element}Impl"
+            val objectName = proxyClazzName.decapitalize()
+
+            initFun
+                .addStatement(
+                    "val $objectName = %T()",
+                    ClassName(
+                        ClazzConfig.PACKAGE.CHANNEL_NAME,
+                        proxyClazzName
+                    )
                 )
-            )
+                .addStatement("receiverChannelMap[%S] = $objectName", channelName)
+            if (basicSenderClassNameMap.containsValue(channelName)) {
+                initFun.addStatement(
+                    "senderChannelMap[%S] = %T($objectName.getChannel())",
+                    channelName,
+                    ClassName(
+                        ClazzConfig.PACKAGE.CHANNEL_NAME,
+                        implClazzName
+                    )
+                )
+            }
+            initFun.addStatement("")
         }
 
         return initFun.build()
+    }
+
+    private fun releaseFunction(): FunSpec {
+        return FunSpec.builder("release")
+            .addStatement(
+                "%T.releaseEngine(engineIds)",
+                ClassName(
+                    ClazzConfig.PACKAGE.ENGINE_NAME,
+                    ClazzConfig.ENGINE_UTILS_NAME
+                )
+            )
+            .beginControlFlow("for ((_, channel) in receiverChannelMap)")
+            .addStatement("channel.release()")
+            .endControlFlow()
+            .addStatement("receiverChannelMap.clear()")
+            .beginControlFlow("for ((_, channel) in senderChannelMap)")
+            .addStatement("channel.release()")
+            .endControlFlow()
+            .addStatement("senderChannelMap.clear()")
+            .build()
     }
 }

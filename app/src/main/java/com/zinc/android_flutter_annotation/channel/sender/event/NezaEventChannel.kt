@@ -26,36 +26,36 @@ interface NezaEventChannel {
     @Param
     fun sendImageInfo()
 
-//    @Param
-//    fun sendImageInfo(
-//        width: Int
-//    )
-//
-//    /**
-//     * 只使用第一个参数
-//     */
-//    @Param
-//    fun sendUserInfo(
-//        name: String,
-//        age: Int,
-//        height: Int
-//    )
-//
-//    @ParamMap
-//    fun sendImageInfo(
-//        byteArray: ByteArray
-//    )
-//
-//    @ParamMap
-//    fun sendImageInfo(
-//        id: Int,
-//        byteArray: ByteArray
-//    )
-//
-//    @ParamMap
-//    fun sendImageInfo(
-//        id: Int,
-//        date: Long,
-//        byteArray: ByteArray
-//    )
+    @Param
+    fun sendImageInfo(
+        width: Int
+    )
+
+    /**
+     * 只使用第一个参数
+     */
+    @Param
+    fun sendUserInfo(
+        name: String,
+        age: Int,
+        height: Int
+    )
+
+    @ParamMap
+    fun sendImageInfo(
+        byteArray: ByteArray
+    )
+
+    @ParamMap
+    fun sendImageInfo(
+        id: Int,
+        byteArray: ByteArray
+    )
+
+    @ParamMap
+    fun sendImageInfo(
+        id: Int,
+        date: Long,
+        byteArray: ByteArray
+    )
 }

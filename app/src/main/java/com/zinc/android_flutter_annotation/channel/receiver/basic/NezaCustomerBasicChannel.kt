@@ -15,11 +15,11 @@ import io.flutter.plugin.common.BasicMessageChannel
  * @email: 56002982@qq.com
  * @des: 自定义 codec
  */
-//@FlutterBasicChannel(
-//    codecClass = HashMapMessageCodec::class,
-//    channelName = Config.BINARY_CUSTOMER_CHANNEL,
-//    type = ChannelType.RECEIVER
-//)
+@FlutterBasicChannel(
+    codecClass = HashMapMessageCodec::class,
+    channelName = Config.BINARY_CUSTOMER_CHANNEL,
+    type = ChannelType.RECEIVER
+)
 class NezaCustomerBasicChannel {
 
     @Callback

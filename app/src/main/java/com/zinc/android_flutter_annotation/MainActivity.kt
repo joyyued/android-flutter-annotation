@@ -3,9 +3,11 @@ package com.zinc.android_flutter_annotation
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.joyy.annotation.model.EventChannelSenderEOSType
-import com.joyy.flutter_annotation.manager.Flutter
+import com.joyy.ued.android_flutter_annotation.engine.EngineUtils
+import com.joyy.ued.android_flutter_annotation.engine.Flutter
 import com.zinc.android_flutter_annotation.config.Config
 import com.zinc.android_flutter_annotation.utils.AssetsUtils
 import io.flutter.embedding.android.FlutterActivity
@@ -25,6 +27,14 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        findViewById<Button>(R.id.btn_init_engine).setOnClickListener {
+            Flutter.init(this)
+        }
+
+        findViewById<Button>(R.id.btn_release_engine).setOnClickListener {
+            Flutter.release()
+        }
 
         findViewById<Button>(R.id.btn_goto_flutter_page).setOnClickListener {
             openFlutterPage()
@@ -143,11 +153,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openFlutterPage() {
-        startActivity(
-            FlutterActivity
-                .withCachedEngine(Config.ENGINE_ID)
-                ?.build(this)
-        )
+        if (EngineUtils.getEngine(Config.ENGINE_ID) != null) {
+            startActivity(
+                FlutterActivity
+                    .withCachedEngine(Config.ENGINE_ID)
+                    .build(this@MainActivity)
+            )
+        } else {
+            Toast.makeText(this, "请先初始化 Engine", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun show(msg: String) {
