@@ -6,19 +6,18 @@ import com.joyy.annotation.method.FlutterMethodChannel
 import com.joyy.annotation.method.HandleMessage
 import com.joyy.annotation.method.ParseData
 import com.joyy.compiler.Printer
+import com.joyy.compiler.base.BaseProcessor
 import com.joyy.compiler.config.ClazzConfig
 import com.joyy.compiler.utils.EngineHelper
 import com.joyy.compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
-import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asTypeName
 import org.jetbrains.annotations.Nullable
-import javax.annotation.processing.Filer
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
@@ -26,8 +25,6 @@ import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
 import javax.lang.model.element.VariableElement
-import javax.lang.model.util.Elements
-import javax.lang.model.util.Types
 
 /**
  * @author: Jiang Pengyong
@@ -36,16 +33,14 @@ import javax.lang.model.util.Types
  * @des: 接收者处理器
  */
 class ReceiverProcessor(
-    private val printer: Printer,
-    private val processingEnv: ProcessingEnvironment
+    printer: Printer,
+    processingEnv: ProcessingEnvironment,
+    roundEnv: RoundEnvironment
+) : BaseProcessor(
+    printer,
+    processingEnv,
+    roundEnv
 ) {
-    private val filer = processingEnv.filer
-    private val elementUtils = processingEnv.elementUtils
-    private val typeUtils = processingEnv.typeUtils
-    private val message = processingEnv.messager
-    private val options = processingEnv.options
-    private val sourceVersion = processingEnv.sourceVersion
-    private val locale = processingEnv.locale
 
     private val contextClassName = ClassName(
         ClazzConfig.Android.CONTEXT_PACKAGE,
@@ -63,6 +58,10 @@ class ReceiverProcessor(
         ClazzConfig.Flutter.ENGINE_PACKAGE,
         ClazzConfig.Flutter.ENGINE_NAME
     ).copy(nullable = true)
+    private val baseReceiverChannelClassName = ClassName(
+        ClazzConfig.PACKAGE.BASE_NAME,
+        ClazzConfig.BASE_RECEIVER_CHANNEL_NAME
+    )
 
     private var methodChannelName = ""
     private var clazzName = ""
@@ -71,14 +70,13 @@ class ReceiverProcessor(
     private var isLackCreator = false
 
     fun handle(
-        roundEnv: RoundEnvironment,
         element: TypeElement,
         channelReceiverMap: HashMap<String, ClassName>,
         isLackCreator: Boolean = false
     ) {
         clazzName = element.simpleName.toString()
         generateClazzName = "${clazzName}Proxy"
-        methodChannelName = element.simpleName.toString().capitalize()
+        methodChannelName = element.simpleName.toString().decapitalize()
         this.isLackCreator = isLackCreator
 
         val channelAnnotation = element.getAnnotation(FlutterMethodChannel::class.java)
@@ -125,10 +123,13 @@ class ReceiverProcessor(
 
         //  private val nezaMethodChannel:NezaMethodChannel = NezaMethodChannel()
         if (!isLackCreator) {
-            val methodChannelProperty = PropertySpec.builder(
-                methodChannelName,
-                element.asType().asTypeName()
-            ).addModifiers(KModifier.PRIVATE)
+            val methodChannelProperty = PropertySpec
+                .builder(
+                    methodChannelName,
+                    element.asType().asTypeName().copy(nullable = true)
+                )
+                .addModifiers(KModifier.PRIVATE)
+                .mutable(true)
                 .initializer("%T()", element)
                 .build()
             propertyList.add(methodChannelProperty)
@@ -140,18 +141,36 @@ class ReceiverProcessor(
         funList.add(getChannelFun)
 
         val getChannelNameFun = FunSpec.builder("getChannelName")
+            .addModifiers(KModifier.OVERRIDE)
             .addStatement("return name")
             .build()
         funList.add(getChannelNameFun)
 
+        val getEngineIdFun = FunSpec.builder("getEngineId")
+            .addModifiers(KModifier.OVERRIDE)
+            .addStatement("return engineId")
+            .build()
+        funList.add(getEngineIdFun)
+
+        val releaseFun = FunSpec.builder("release")
+            .addModifiers(KModifier.OVERRIDE)
+            .addStatement("engine = null")
+            .addStatement("channel?.setMethodCallHandler(null)")
+            .addStatement("channel = null")
+        if (!isLackCreator) {
+            releaseFun.addStatement("$methodChannelName = null")
+        }
+
+        funList.add(releaseFun.build())
+
         val engineCreatorClazz = TypeSpec.classBuilder(generateClazzName)
+            .addSuperinterface(baseReceiverChannelClassName)
             .addProperties(propertyList)
             .addInitializerBlock(assembleInit(element))
             .addFunctions(funList)
             .build()
 
-        FileSpec.get(ClazzConfig.PACKAGE.CHANNEL_NAME, engineCreatorClazz)
-            .writeTo(filer)
+        generatorClass(ClazzConfig.PACKAGE.CHANNEL_NAME, engineCreatorClazz)
 
         channelReceiverMap[channelName] = ClassName(
             ClazzConfig.PACKAGE.CHANNEL_NAME,
@@ -223,7 +242,7 @@ class ReceiverProcessor(
         }
 
         for (resultElement in resultElements) {
-            initBlock.addStatement("  $methodChannelName.${resultElement.simpleName} = result")
+            initBlock.addStatement("  $methodChannelName?.${resultElement.simpleName} = result")
         }
     }
 
@@ -317,9 +336,9 @@ class ReceiverProcessor(
             // "sayHelloToNative" -> {
             val block = initBlock.addStatement("$spacing%S -> {", methodName)
             if (parameters.isEmpty()) {   // 没有参数
-                block.addStatement("$spacing  $methodChannelName.$methodName()")
+                block.addStatement("$spacing  $methodChannelName?.$methodName()")
             } else {    // 构建参数
-                block.addStatement("$spacing  $methodChannelName.$methodName(")
+                block.addStatement("$spacing  $methodChannelName?.$methodName(")
                 val parseDataAnnotation = method.getAnnotation(ParseData::class.java)
 
                 if (parseDataAnnotation != null) {

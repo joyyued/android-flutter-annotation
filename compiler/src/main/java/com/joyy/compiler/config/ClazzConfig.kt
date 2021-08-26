@@ -11,8 +11,13 @@ object ClazzConfig {
     // 项目名称
     const val PROJECT_NAME = "FlutterAnnotation"
 
-    // 引擎类名称
-    const val ENGINE_CREATOR_NAME = "EngineUtils"
+    // 引擎工具名称
+    const val ENGINE_UTILS_NAME = "EngineUtils"
+
+    // BaseSenderChannel 名称
+    const val BASE_SENDER_CHANNEL_NAME = "BaseSenderChannel"
+    // BaseReceiverChannel 名称
+    const val BASE_RECEIVER_CHANNEL_NAME = "BaseReceiverChannel"
 
     const val METHOD_RESULT_MODEL_PACKAGE = "com.joyy.annotation.model"
     const val METHOD_RESULT_NAME = "MethodChannelResult"
@@ -27,7 +32,6 @@ object ClazzConfig {
     const val FLUTTER_MANAGER_NAME = "Flutter"
     const val FLUTTER_CHANNEL_NAME = "Channels"
     const val FLUTTER_ENGINE_NAME = "Engine"
-    const val FLUTTER_INIT_NAME = "init"
 
     object Flutter {
         const val ENGINE_PACKAGE = "io.flutter.embedding.engine"
@@ -69,8 +73,8 @@ object ClazzConfig {
         // channel
         const val CHANNEL_NAME = "$PACKAGE_NAME.channel"
 
-        // manager
-        const val FLUTTER_MANAGER = "$PACKAGE_NAME.utils"
+        // base
+        const val BASE_NAME = "$PACKAGE_NAME.base"
     }
 
     object Coroutine {

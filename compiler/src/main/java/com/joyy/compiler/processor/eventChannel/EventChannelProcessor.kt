@@ -196,12 +196,26 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
 
         // getChannelName function
         val getChannelNameFun = FunSpec.builder("getChannelName")
+            .addModifiers(KModifier.OVERRIDE)
             .addStatement("return name")
+            .build()
+
+        val getEngineIdFun = FunSpec.builder("getEngineId")
+            .addModifiers(KModifier.OVERRIDE)
+            .addStatement("return engineId")
             .build()
 
         // getEventSink function
         val getEventSinkFun = FunSpec.builder("getEventSink")
             .addStatement("return eventSink")
+            .build()
+
+        val releaseFun = FunSpec.builder("release")
+            .addModifiers(KModifier.OVERRIDE)
+            .addStatement("engine = null")
+            .addStatement("channel?.setStreamHandler(null)")
+            .addStatement("channel = null")
+            .addStatement("eventSink = null")
             .build()
 
         val funList = ArrayList<FunSpec>()
@@ -213,7 +227,12 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
             funList.addAll(assembleFun(method))
         }
 
+        val baseReceiverChannelClassName = ClassName(
+            ClazzConfig.PACKAGE.BASE_NAME,
+            ClazzConfig.BASE_RECEIVER_CHANNEL_NAME
+        )
         val engineCreatorClazz = TypeSpec.classBuilder(generateClazzName)
+            .addSuperinterface(baseReceiverChannelClassName)
             .addProperty(engineIdProperty)
             .addProperty(nameProperty)
             .addProperty(flutterEngineProperty)
@@ -222,7 +241,9 @@ class EventChannelProcessor : AbstractProcessor(), Printer {
             .addInitializerBlock(initBlock)
             .addFunction(getChannelFun)
             .addFunction(getChannelNameFun)
+            .addFunction(getEngineIdFun)
             .addFunction(getEventSinkFun)
+            .addFunction(releaseFun)
             .addFunctions(funList)
             .build()
         FileSpec.get(ClazzConfig.PACKAGE.CHANNEL_NAME, engineCreatorClazz)

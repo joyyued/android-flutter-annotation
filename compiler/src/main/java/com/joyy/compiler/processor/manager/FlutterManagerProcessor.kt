@@ -1,25 +1,25 @@
 package com.joyy.compiler.processor.manager
 
+import com.joyy.annotation.FlutterEngine
 import com.joyy.annotation.basic.FlutterBasicChannel
 import com.joyy.annotation.event.FlutterEventChannel
 import com.joyy.annotation.method.FlutterMethodChannel
 import com.joyy.annotation.model.ChannelType
 import com.joyy.compiler.Printer
+import com.joyy.compiler.base.BaseProcessor
 import com.joyy.compiler.config.ClazzConfig
 import com.joyy.compiler.utils.EngineHelper
 import com.squareup.kotlinpoet.ClassName
-import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
-import javax.annotation.processing.Filer
+import com.squareup.kotlinpoet.asTypeName
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.TypeElement
-import javax.lang.model.util.Elements
-import javax.lang.model.util.Types
 
 /**
  * @author: Jiang Pengyong
@@ -28,16 +28,14 @@ import javax.lang.model.util.Types
  * @des: flutter manager 处理器
  */
 class FlutterManagerProcessor(
-    private val printer: Printer,
-    private val processingEnv: ProcessingEnvironment
+    printer: Printer,
+    processingEnv: ProcessingEnvironment,
+    roundEnv: RoundEnvironment
+) : BaseProcessor(
+    printer,
+    processingEnv,
+    roundEnv
 ) {
-    private val filer = processingEnv.filer
-    private val elementUtils = processingEnv.elementUtils
-    private val typeUtils = processingEnv.typeUtils
-    private val message = processingEnv.messager
-    private val options = processingEnv.options
-    private val sourceVersion = processingEnv.sourceVersion
-    private val locale = processingEnv.locale
 
     private val methodReceiverClassNameList = ArrayList<String>()
     private val methodReceiverChannelNameSet = HashSet<String>()
@@ -51,7 +49,7 @@ class FlutterManagerProcessor(
     private val basicSenderClassNameList = ArrayList<String>()
     private val basicSenderChannelNameSet = HashSet<String>()
 
-    fun process(roundEnv: RoundEnvironment) {
+    fun process() {
         printer.note("Flutter Manager Processor running.")
 
         val methodChannelPropertySpecList = handleMethodChannel(roundEnv)
@@ -98,16 +96,76 @@ class FlutterManagerProcessor(
             )
             .build()
 
-        val initFun = handleForInit()
+        val initFun = initFunction()
 
         val engineCreatorClazz = TypeSpec.objectBuilder(ClazzConfig.FLUTTER_MANAGER_NAME)
+            .addProperty(createAllEngineProperty())
+            .addProperties(createChannelMap())
             .addType(channelsType)
             .addType(engineType)
             .addFunction(initFun)
             .build()
 
-        FileSpec.get(ClazzConfig.PACKAGE.FLUTTER_MANAGER, engineCreatorClazz)
-            .writeTo(filer)
+        generatorClass(ClazzConfig.PACKAGE.ENGINE_NAME, engineCreatorClazz)
+    }
+
+    private fun createAllEngineProperty(): PropertySpec {
+        val element = EngineHelper.getFlutterEngineElements(roundEnv).first()
+        val annotation = element.getAnnotation(FlutterEngine::class.java)
+        val engineId = annotation.engineId
+
+        val arrayListClassName = ClassName(
+            "kotlin.collections",
+            "ArrayList"
+        ).parameterizedBy(String::class.asTypeName())
+
+        return PropertySpec
+            .builder(
+                "engineIds",
+                arrayListClassName
+            ).initializer(
+                "arrayListOf(%S)",
+                engineId
+            )
+            .build()
+    }
+
+    private fun createChannelMap(): List<PropertySpec> {
+        val list = ArrayList<PropertySpec>()
+
+        val senderType = HashMap::class.asTypeName().parameterizedBy(
+            String::class.asTypeName(),
+            ClassName(
+                ClazzConfig.PACKAGE.BASE_NAME,
+                ClazzConfig.BASE_SENDER_CHANNEL_NAME
+            )
+        )
+        val senderProperty = PropertySpec
+            .builder(
+                "senderChannelMap",
+                senderType
+            )
+            .initializer("%T()", senderType)
+            .build()
+        list.add(senderProperty)
+
+        val receiverType = HashMap::class.asTypeName().parameterizedBy(
+            String::class.asTypeName(),
+            ClassName(
+                ClazzConfig.PACKAGE.BASE_NAME,
+                ClazzConfig.BASE_RECEIVER_CHANNEL_NAME
+            )
+        )
+        val receiverProperty = PropertySpec
+            .builder(
+                "receiverChannelMap",
+                receiverType
+            )
+            .initializer("%T()", receiverType)
+            .build()
+        list.add(receiverProperty)
+
+        return list
     }
 
     private fun handleMethodChannel(roundEnv: RoundEnvironment): ArrayList<PropertySpec> {
@@ -150,11 +208,11 @@ class FlutterManagerProcessor(
         }
         val methodProcessor = com.joyy.compiler.processor.methodChannel.ReceiverProcessor(
             printer = printer,
-            processingEnv = processingEnv
+            processingEnv = processingEnv,
+            roundEnv = roundEnv
         )
         for (typeElement in needCreatorChannelElement) {
             methodProcessor.handle(
-                roundEnv = roundEnv,
                 element = typeElement,
                 channelReceiverMap = HashMap(),
                 isLackCreator = true
@@ -226,11 +284,11 @@ class FlutterManagerProcessor(
         }
         val basicProcessor = com.joyy.compiler.processor.basicChannel.ReceiverProcessor(
             processingEnv = processingEnv,
-            printer = printer
+            printer = printer,
+            roundEnv = roundEnv
         )
         for (typeElement in needCreatorChannelElement) {
             basicProcessor.handle(
-                roundEnv = roundEnv,
                 element = typeElement,
                 channelReceiverMap = HashMap(),
                 isLackCreator = true
@@ -271,8 +329,8 @@ class FlutterManagerProcessor(
         return propertySpecList
     }
 
-    private fun handleForInit(): FunSpec {
-        val initFun = FunSpec.builder(ClazzConfig.FLUTTER_INIT_NAME)
+    private fun initFunction(): FunSpec {
+        val initFun = FunSpec.builder("init")
             .addParameter(
                 "context",
                 ClassName(
@@ -280,14 +338,13 @@ class FlutterManagerProcessor(
                     ClazzConfig.Android.CONTEXT_NAME
                 )
             )
-
-        initFun.addStatement(
-            "%T.init(context)",
-            ClassName(
-                ClazzConfig.PACKAGE.ENGINE_NAME,
-                ClazzConfig.ENGINE_CREATOR_NAME
+            .addStatement(
+                "%T.createEngine(context, engineIds)",
+                ClassName(
+                    ClazzConfig.PACKAGE.ENGINE_NAME,
+                    ClazzConfig.ENGINE_UTILS_NAME
+                )
             )
-        )
 
         for (element in methodReceiverClassNameList) {
             val name = "${element}Proxy"

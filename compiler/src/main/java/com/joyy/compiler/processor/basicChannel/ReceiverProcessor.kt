@@ -5,6 +5,7 @@ import com.joyy.annotation.basic.FlutterBasicChannel
 import com.joyy.annotation.common.Callback
 import com.joyy.annotation.method.HandleMessage
 import com.joyy.compiler.Printer
+import com.joyy.compiler.base.BaseProcessor
 import com.joyy.compiler.config.ClazzConfig
 import com.joyy.compiler.utils.EngineHelper
 import com.joyy.compiler.utils.TypeChangeUtils
@@ -33,16 +34,14 @@ import javax.lang.model.type.TypeMirror
  * @des: 接收者处理器
  */
 class ReceiverProcessor(
-    private val printer: Printer,
-    private val processingEnv: ProcessingEnvironment
+    printer: Printer,
+    processingEnv: ProcessingEnvironment,
+    roundEnv: RoundEnvironment
+) : BaseProcessor(
+    printer,
+    processingEnv,
+    roundEnv
 ) {
-    private val filer = processingEnv.filer
-    private val elementUtils = processingEnv.elementUtils
-    private val typeUtils = processingEnv.typeUtils
-    private val message = processingEnv.messager
-    private val options = processingEnv.options
-    private val sourceVersion = processingEnv.sourceVersion
-    private val locale = processingEnv.locale
 
     private val contextClassName = ClassName(
         ClazzConfig.Android.CONTEXT_PACKAGE,
@@ -56,6 +55,10 @@ class ReceiverProcessor(
         ClazzConfig.Flutter.ENGINE_PACKAGE,
         ClazzConfig.Flutter.ENGINE_NAME
     ).copy(nullable = true)
+    private val baseReceiverChannelClassName = ClassName(
+        ClazzConfig.PACKAGE.BASE_NAME,
+        ClazzConfig.BASE_RECEIVER_CHANNEL_NAME
+    )
 
     private var isLackCreator = false
     private var clazzName = ""
@@ -63,7 +66,6 @@ class ReceiverProcessor(
     private var basicChannelName = ""
 
     fun handle(
-        roundEnv: RoundEnvironment,
         element: TypeElement,
         channelReceiverMap: HashMap<String, ChannelInfo>,
         isLackCreator: Boolean = false
@@ -138,10 +140,13 @@ class ReceiverProcessor(
         // private val nezaStringBasicChannel: NezaStringBasicChannel = NezaStringBasicChannel()
 
         if (!isLackCreator) {
-            val basicChannelProperty = PropertySpec.builder(
-                basicChannelName,
-                element.asType().asTypeName()
-            ).addModifiers(KModifier.PRIVATE)
+            val basicChannelProperty = PropertySpec
+                .builder(
+                    basicChannelName,
+                    element.asType().asTypeName().copy(nullable = true)
+                )
+                .mutable(true)
+                .addModifiers(KModifier.PRIVATE)
                 .initializer("%T()", element)
                 .build()
             propertyList.add(basicChannelProperty)
@@ -153,12 +158,30 @@ class ReceiverProcessor(
         funList.add(getChannelFun)
 
         val getChannelNameFun = FunSpec.builder("getChannelName")
+            .addModifiers(KModifier.OVERRIDE)
             .addStatement("return name")
             .build()
         funList.add(getChannelNameFun)
 
+        val getEngineIdFun = FunSpec.builder("getEngineId")
+            .addModifiers(KModifier.OVERRIDE)
+            .addStatement("return engineId")
+            .build()
+        funList.add(getEngineIdFun)
+
+        val releaseFun = FunSpec.builder("release")
+            .addModifiers(KModifier.OVERRIDE)
+            .addStatement("engine = null")
+            .addStatement("channel?.setMessageHandler(null)")
+            .addStatement("channel = null")
+        if (!isLackCreator) {
+            releaseFun.addStatement("$basicChannelName = null")
+        }
+        funList.add(releaseFun.build())
+
         // MethodChannelInterface
         val receiverClazz = TypeSpec.classBuilder(generateClazzName)
+            .addSuperinterface(baseReceiverChannelClassName)
             .addProperties(propertyList)
             .addInitializerBlock(
                 assembleInit(
@@ -170,8 +193,7 @@ class ReceiverProcessor(
             .addFunctions(funList)
             .build()
 
-        FileSpec.get(ClazzConfig.PACKAGE.CHANNEL_NAME, receiverClazz)
-            .writeTo(filer)
+        generatorClass(ClazzConfig.PACKAGE.CHANNEL_NAME, receiverClazz)
 
         channelReceiverMap[channelName] = ChannelInfo(
             ClassName(
@@ -253,7 +275,7 @@ class ReceiverProcessor(
         }
 
         for (resultElement in resultElements) {
-            initBlock.addStatement("  $basicChannelName.${resultElement.simpleName} = reply")
+            initBlock.addStatement("  $basicChannelName?.${resultElement.simpleName} = reply")
         }
     }
 
@@ -299,9 +321,9 @@ class ReceiverProcessor(
         }
 
         if (parameters.isEmpty()) {   // 没有参数
-            initBlock.addStatement("$spacing$basicChannelName.$methodName()")
+            initBlock.addStatement("$spacing$basicChannelName?.$methodName()")
         } else {    // 构建参数
-            initBlock.addStatement("$spacing$basicChannelName.$methodName(")
+            initBlock.addStatement("$spacing$basicChannelName?.$methodName(")
             val parameter = parameters[0]
             val paramName = parameter.simpleName
             parameter.getAnnotation(Nullable::class.java)

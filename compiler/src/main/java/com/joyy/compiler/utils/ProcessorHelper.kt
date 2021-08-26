@@ -3,6 +3,7 @@ package com.joyy.compiler.utils
 import com.joyy.annotation.common.Param
 import com.joyy.annotation.common.ParamMap
 import com.joyy.compiler.Printer
+import com.squareup.kotlinpoet.TypeSpec
 import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.VariableElement
 

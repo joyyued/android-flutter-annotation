@@ -71,8 +71,8 @@ class MethodChannelProcessor : AbstractProcessor(), Printer {
             return true
         }
 
-        receiverProcessor = ReceiverProcessor(this, processingEnv)
-        senderProcessor = SenderProcessor(this, processingEnv)
+        receiverProcessor = ReceiverProcessor(this, processingEnv, roundEnv)
+        senderProcessor = SenderProcessor(this, processingEnv, roundEnv)
 
         if (annotations.isEmpty()) {
             return false
@@ -102,12 +102,12 @@ class MethodChannelProcessor : AbstractProcessor(), Printer {
             if (element !is TypeElement) {
                 return@forEach
             }
-            receiverProcessor?.handle(roundEnv, element, channelReceiverMap)
+            receiverProcessor?.handle(element, channelReceiverMap)
         }
 
         // ============================ 生成发送者 ================================
         sender.forEach { element ->
-            senderProcessor?.handle(roundEnv, element, channelReceiverMap)
+            senderProcessor?.handle(element, channelReceiverMap)
         }
 
         return true

@@ -68,8 +68,8 @@ class BasicChannelProcessor : AbstractProcessor(), Printer {
             error("Type utils is null.Please try to run again.")
             return true
         }
-        receiverProcessor = ReceiverProcessor(this, processingEnv)
-        senderProcessor = SenderProcessor(this, processingEnv)
+        receiverProcessor = ReceiverProcessor(this, processingEnv, roundEnv)
+        senderProcessor = SenderProcessor(this, processingEnv, roundEnv)
 
         if (annotations.isEmpty()) {
             return false
@@ -99,7 +99,7 @@ class BasicChannelProcessor : AbstractProcessor(), Printer {
             if (element !is TypeElement) {
                 return@forEach
             }
-            receiverProcessor?.handle(roundEnv, element, channelReceiverMap)
+            receiverProcessor?.handle(element, channelReceiverMap)
         }
 
         // ============================ 生成发送者 ================================
@@ -108,7 +108,7 @@ class BasicChannelProcessor : AbstractProcessor(), Printer {
                 return@forEach
             }
 
-            senderProcessor?.handle(roundEnv, element, channelReceiverMap)
+            senderProcessor?.handle(element, channelReceiverMap)
         }
 
         return true

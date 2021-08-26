@@ -2,6 +2,7 @@ package com.joyy.compiler.processor.basicChannel
 
 import com.joyy.annotation.basic.FlutterBasicChannel
 import com.joyy.compiler.Printer
+import com.joyy.compiler.base.BaseProcessor
 import com.joyy.compiler.config.ClazzConfig
 import com.joyy.compiler.utils.ParamType
 import com.joyy.compiler.utils.ProcessorHelper
@@ -27,16 +28,14 @@ import javax.lang.model.element.VariableElement
 import javax.lang.model.type.TypeMirror
 
 class SenderProcessor(
-    private val printer: Printer,
-    private val processingEnv: ProcessingEnvironment
+    printer: Printer,
+    processingEnv: ProcessingEnvironment,
+    roundEnv: RoundEnvironment
+) : BaseProcessor(
+    printer,
+    processingEnv,
+    roundEnv
 ) {
-    private val filer = processingEnv.filer
-    private val elementUtils = processingEnv.elementUtils
-    private val typeUtils = processingEnv.typeUtils
-    private val message = processingEnv.messager
-    private val options = processingEnv.options
-    private val sourceVersion = processingEnv.sourceVersion
-    private val locale = processingEnv.locale
 
     private val scopeClassName = ClassName(
         ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
@@ -62,9 +61,12 @@ class SenderProcessor(
         ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
         ClazzConfig.Coroutine.DEFERRED_NAME
     )
+    private val baseSenderChannelClassName = ClassName(
+        ClazzConfig.PACKAGE.BASE_NAME,
+        ClazzConfig.BASE_SENDER_CHANNEL_NAME
+    )
 
     fun handle(
-        roundEnv: RoundEnvironment,
         element: Element,
         channelReceiverMap: HashMap<String, ChannelInfo>
     ) {
@@ -109,6 +111,12 @@ class SenderProcessor(
             }
         }
 
+        val releaseFunction = FunSpec.builder("release")
+            .addModifiers(KModifier.OVERRIDE)
+            .addStatement("channel = null")
+            .build()
+        functions.add(releaseFunction)
+
         val channelClassName = ClassName(
             ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
             ClazzConfig.Flutter.BASIC_CHANNEL_NAME
@@ -132,6 +140,7 @@ class SenderProcessor(
                     .addModifiers(KModifier.PRIVATE)
                     .build()
             )
+            .addSuperinterface(baseSenderChannelClassName)
 
         FileSpec.get(ClazzConfig.PACKAGE.CHANNEL_NAME, engineCreatorClazzBuilder.build())
             .writeTo(filer)
