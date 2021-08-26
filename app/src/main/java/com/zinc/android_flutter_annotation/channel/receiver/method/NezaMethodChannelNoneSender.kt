@@ -1,11 +1,10 @@
 package com.zinc.android_flutter_annotation.channel.receiver.method
 
 import android.util.Log
-import com.joyy.annotation.common.Callback
-import com.joyy.annotation.model.ChannelType
-import com.joyy.annotation.method.FlutterMethodChannel
-import com.joyy.annotation.method.HandleMessage
-import com.joyy.annotation.method.ParseData
+import com.joyy.ued.android_flutter_annotation.annotation.common.Callback
+import com.joyy.ued.android_flutter_annotation.annotation.model.ChannelType
+import com.joyy.ued.android_flutter_annotation.annotation.method.FlutterMethodChannel
+import com.joyy.ued.android_flutter_annotation.annotation.method.HandleMessage
 import com.zinc.android_flutter_annotation.config.Config
 import io.flutter.plugin.common.MethodChannel
 

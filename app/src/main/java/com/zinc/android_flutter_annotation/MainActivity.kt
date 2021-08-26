@@ -5,7 +5,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.joyy.annotation.model.EventChannelSenderEOSType
+import com.joyy.ued.android_flutter_annotation.annotation.model.EventChannelSenderEOSType
 import com.joyy.ued.android_flutter_annotation.engine.EngineUtils
 import com.joyy.ued.android_flutter_annotation.engine.Flutter
 import com.zinc.android_flutter_annotation.config.Config
