@@ -30,7 +30,7 @@ object ClazzConfig {
     const val EVENT_CHANNEL_SENDER_EOS_TYPE_NAME = "EventChannelSenderEOSType"
 
     const val FLUTTER_MANAGER_NAME = "Flutter"
-    const val FLUTTER_CHANNEL_NAME = "Channels"
+    const val FLUTTER_CHANNEL_NAME = "FlutterChannel"
     const val FLUTTER_ENGINE_NAME = "Engine"
 
     object Flutter {

@@ -45,20 +45,97 @@ class FlutterManagerProcessor(
     private val basicReceiverClassNameMap = HashMap<String, String>()
     private val basicSenderClassNameMap = HashMap<String, String>()
 
+    private val senderType = HashMap::class.asTypeName().parameterizedBy(
+        String::class.asTypeName(),
+        ClassName(
+            ClazzConfig.PACKAGE.BASE_NAME,
+            ClazzConfig.BASE_SENDER_CHANNEL_NAME
+        )
+    )
+    private val receiverType = HashMap::class.asTypeName().parameterizedBy(
+        String::class.asTypeName(),
+        ClassName(
+            ClazzConfig.PACKAGE.BASE_NAME,
+            ClazzConfig.BASE_RECEIVER_CHANNEL_NAME
+        )
+    )
+
     fun process() {
         printer.note("Flutter Manager Processor running.")
 
+        createFlutterChannel()
+
+        val engineCreatorClazz = TypeSpec.objectBuilder(ClazzConfig.FLUTTER_MANAGER_NAME)
+            .addProperty(createAllEngineProperty())
+            .addProperties(createChannelMap())
+            .addProperty(
+                PropertySpec
+                    .builder(
+                        "channels",
+                        ClassName(
+                            ClazzConfig.PACKAGE.ENGINE_NAME,
+                            ClazzConfig.FLUTTER_CHANNEL_NAME
+                        ).copy(nullable = true)
+                    )
+                    .mutable(true)
+                    .initializer("null")
+                    .build()
+            )
+            .addType(createEngineObject())
+            .addFunction(initFunction())
+            .addFunction(releaseFunction())
+            .build()
+
+        generatorClass(ClazzConfig.PACKAGE.ENGINE_NAME, engineCreatorClazz)
+    }
+
+    private fun createFlutterChannel() {
         val methodChannelPropertySpecList = handleMethodChannel(roundEnv)
         val eventChannelPropertySpecList = handleEventChannel(roundEnv)
         val basicChannelChannelPropertySpecList = handleBasicChannel(roundEnv)
 
-        val channelsType = TypeSpec.objectBuilder(ClazzConfig.FLUTTER_CHANNEL_NAME)
+        val flutterChannelType = TypeSpec.classBuilder(ClazzConfig.FLUTTER_CHANNEL_NAME)
+            .primaryConstructor(
+                FunSpec.constructorBuilder()
+                    .addParameter(
+                        "senderChannelMap",
+                        senderType
+                    )
+                    .addParameter(
+                        "receiverChannelMap",
+                        receiverType
+                    )
+                    .build()
+            )
+            .addProperty(
+                PropertySpec
+                    .builder(
+                        "senderChannelMap",
+                        senderType,
+                        KModifier.PRIVATE
+                    )
+                    .initializer("senderChannelMap")
+                    .build()
+            )
+            .addProperty(
+                PropertySpec
+                    .builder(
+                        "receiverChannelMap",
+                        receiverType,
+                        KModifier.PRIVATE
+                    )
+                    .initializer("receiverChannelMap")
+                    .build()
+            )
             .addProperties(methodChannelPropertySpecList)
             .addProperties(eventChannelPropertySpecList)
             .addProperties(basicChannelChannelPropertySpecList)
             .build()
+        generatorClass(ClazzConfig.PACKAGE.ENGINE_NAME, flutterChannelType)
+    }
 
-        val engineType = TypeSpec.objectBuilder(ClazzConfig.FLUTTER_ENGINE_NAME)
+    private fun createEngineObject(): TypeSpec {
+        return TypeSpec.objectBuilder(ClazzConfig.FLUTTER_ENGINE_NAME)
             .addProperty(
                 PropertySpec
                     .builder("DEFAULT_ENGINE", String::class)
@@ -91,17 +168,6 @@ class FlutterManagerProcessor(
                     .build()
             )
             .build()
-
-        val engineCreatorClazz = TypeSpec.objectBuilder(ClazzConfig.FLUTTER_MANAGER_NAME)
-            .addProperty(createAllEngineProperty())
-            .addProperties(createChannelMap())
-            .addType(channelsType)
-            .addType(engineType)
-            .addFunction(initFunction())
-            .addFunction(releaseFunction())
-            .build()
-
-        generatorClass(ClazzConfig.PACKAGE.ENGINE_NAME, engineCreatorClazz)
     }
 
     private fun createAllEngineProperty(): PropertySpec {
@@ -122,41 +188,30 @@ class FlutterManagerProcessor(
                 "arrayListOf(%S)",
                 engineId
             )
+            .addModifiers(KModifier.PRIVATE)
             .build()
     }
 
     private fun createChannelMap(): List<PropertySpec> {
         val list = ArrayList<PropertySpec>()
 
-        val senderType = HashMap::class.asTypeName().parameterizedBy(
-            String::class.asTypeName(),
-            ClassName(
-                ClazzConfig.PACKAGE.BASE_NAME,
-                ClazzConfig.BASE_SENDER_CHANNEL_NAME
-            )
-        )
         val senderProperty = PropertySpec
             .builder(
                 "senderChannelMap",
                 senderType
             )
             .initializer("%T()", senderType)
+            .addModifiers(KModifier.PRIVATE)
             .build()
         list.add(senderProperty)
 
-        val receiverType = HashMap::class.asTypeName().parameterizedBy(
-            String::class.asTypeName(),
-            ClassName(
-                ClazzConfig.PACKAGE.BASE_NAME,
-                ClazzConfig.BASE_RECEIVER_CHANNEL_NAME
-            )
-        )
         val receiverProperty = PropertySpec
             .builder(
                 "receiverChannelMap",
                 receiverType
             )
             .initializer("%T()", receiverType)
+            .addModifiers(KModifier.PRIVATE)
             .build()
         list.add(receiverProperty)
 
@@ -219,7 +274,7 @@ class FlutterManagerProcessor(
 
         return assembleProperty(
             methodSenderClassNameMap,
-            "senderChannelMap[%S] as %T",
+            "return senderChannelMap[%S] as? %T",
             "============ Method Channel ============"
         )
     }
@@ -237,7 +292,7 @@ class FlutterManagerProcessor(
 
         return assembleProperty(
             eventChannelMap,
-            "receiverChannelMap[%S] as %T",
+            "return receiverChannelMap[%S] as? %T",
             "============ Event Channel ============"
         )
     }
@@ -298,7 +353,7 @@ class FlutterManagerProcessor(
 
         return assembleProperty(
             basicSenderClassNameMap,
-            "senderChannelMap[%S] as %T",
+            "return senderChannelMap[%S] as? %T",
             "============ Basic Channel ============"
         )
     }
@@ -317,8 +372,16 @@ class FlutterManagerProcessor(
             )
             val proName = element.decapitalize()
 
-            val propertySpec = PropertySpec.builder(proName, className)
-                .initializer(initializer, channelName, className)
+            val propertySpec = PropertySpec
+                .builder(
+                    proName,
+                    className.copy(nullable = true)
+                )
+                .getter(
+                    FunSpec.getterBuilder()
+                        .addStatement(initializer, channelName, className)
+                        .build()
+                )
 
             if (isFirst) {
                 isFirst = false
@@ -422,6 +485,14 @@ class FlutterManagerProcessor(
             initFun.addStatement("")
         }
 
+        initFun.addStatement(
+            "channels = %T(senderChannelMap, receiverChannelMap)",
+            ClassName(
+                ClazzConfig.PACKAGE.ENGINE_NAME,
+                ClazzConfig.FLUTTER_CHANNEL_NAME
+            )
+        )
+
         return initFun.build()
     }
 
@@ -442,6 +513,7 @@ class FlutterManagerProcessor(
             .addStatement("channel.release()")
             .endControlFlow()
             .addStatement("senderChannelMap.clear()")
+            .addStatement("channels = null")
             .build()
     }
 }

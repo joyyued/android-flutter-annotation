@@ -42,39 +42,41 @@ class MainActivity : AppCompatActivity() {
 
         // =========================== Method ===========================
         findViewById<Button>(R.id.btn_method_none).setOnClickListener {
-            Flutter.Channels
-                .nezaMethodChannel
-                .sayHelloToFlutter()
+            Flutter.channels
+                ?.nezaMethodChannel
+                ?.sayHelloToFlutter()
         }
 
         findViewById<Button>(R.id.btn_method_none_async).setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val result = Flutter.Channels
-                    .nezaMethodChannel
-                    .sayHelloToFlutter().await()
+                val result = Flutter.channels
+                    ?.nezaMethodChannel
+                    ?.sayHelloToFlutter()
+                    ?.await()
                 show("none param result: $result")
             }
         }
 
         findViewById<Button>(R.id.btn_method_single).setOnClickListener {
-            Flutter.Channels
-                .nezaMethodChannel
-                .sayHelloToFlutter("Jiang PengYong [ single param ]")
+            Flutter.channels
+                ?.nezaMethodChannel
+                ?.sayHelloToFlutter("Jiang PengYong [ single param ]")
         }
 
         findViewById<Button>(R.id.btn_method_single_async).setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val result = Flutter.Channels
-                    .nezaMethodChannel
-                    .sayHelloToFlutter("Jiang PengYong [ single param ]").await()
+                val result = Flutter.channels
+                    ?.nezaMethodChannel
+                    ?.sayHelloToFlutter("Jiang PengYong [ single param ]")
+                    ?.await()
                 show("single param result: $result")
             }
         }
 
         findViewById<Button>(R.id.btn_method_multi).setOnClickListener {
-            Flutter.Channels
-                .nezaMethodChannel
-                .sayHelloToFlutter(
+            Flutter.channels
+                ?.nezaMethodChannel
+                ?.sayHelloToFlutter(
                     name = "Jiang PengYong [ multi param ]",
                     age = 28,
                     height = 170
@@ -83,13 +85,14 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btn_method_multi_async).setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
-                val result = Flutter.Channels
-                    .nezaMethodChannel
-                    .sayHelloToFlutter(
+                val result = Flutter.channels
+                    ?.nezaMethodChannel
+                    ?.sayHelloToFlutter(
                         name = "Jiang PengYong [ multi param ]",
                         age = 28,
                         height = 170
-                    ).await()
+                    )
+                    ?.await()
                 show("multi param result: $result")
             }
         }
@@ -97,27 +100,27 @@ class MainActivity : AppCompatActivity() {
         // =========================== Event ===========================
         findViewById<Button>(R.id.event_send_image).setOnClickListener {
             val byteArray = AssetsUtils.getAssetsFile(resources, "sample.png")
-            Flutter.Channels
-                .nezaEventChannel
-                .sendImageInfo(
+            Flutter.channels
+                ?.nezaEventChannel
+                ?.sendImageInfo(
                     byteArray = byteArray
                 )
         }
 
         findViewById<Button>(R.id.event_send_info).setOnClickListener {
             val byteArray = AssetsUtils.getAssetsFile(resources, "sample.png")
-            Flutter.Channels
-                .nezaEventChannel
-                .sendImageInfo(
+            Flutter.channels
+                ?.nezaEventChannel
+                ?.sendImageInfo(
                     id = 5,
                     byteArray = byteArray
                 )
         }
 
         findViewById<Button>(R.id.event_send_error).setOnClickListener {
-            Flutter.Channels
-                .nezaEventChannel
-                .sendImageInfo(
+            Flutter.channels
+                ?.nezaEventChannel
+                ?.sendImageInfo(
                     errorCode = "404",
                     errorMessage = "Error Message",
                     errorDetails = "Error Details"
@@ -125,30 +128,30 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.event_send_end_of_stream).setOnClickListener {
-            Flutter.Channels
-                .nezaEventChannel
-                .sendImageInfo(type = EventChannelSenderEOSType.EOS)
+            Flutter.channels
+                ?.nezaEventChannel
+                ?.sendImageInfo(type = EventChannelSenderEOSType.EOS)
         }
         // =========================== Basic ===========================
 
         findViewById<Button>(R.id.btn_send_json_to_flutter).setOnClickListener {
-            Flutter.Channels
-                .nezaStringBasicChannel
-                .sendJsonToFlutter("{\"name\":\"江澎涌\", \"age\":28}")
+            Flutter.channels
+                ?.nezaStringBasicChannel
+                ?.sendJsonToFlutter("{\"name\":\"江澎涌\", \"age\":28}")
         }
 
         findViewById<Button>(R.id.btn_send_map_to_flutter).setOnClickListener {
             val map = HashMap<String, String>()
             map["name"] = "Jiang Peng Yong"
             map["age"] = "28"
-            Flutter.Channels.nezaStandardBasicChannel.sendToFlutter(map)
+            Flutter.channels?.nezaStandardBasicChannel?.sendToFlutter(map)
         }
 
         findViewById<Button>(R.id.btn_send_map_to_flutter_customer).setOnClickListener {
             val map = HashMap<String, String>()
             map["name"] = "Jiang Peng Yong"
             map["age"] = "28"
-            Flutter.Channels.nezaCustomerBasicChannel.sendMapToFlutter(map)
+            Flutter.channels?.nezaCustomerBasicChannel?.sendMapToFlutter(map)
         }
     }
 
