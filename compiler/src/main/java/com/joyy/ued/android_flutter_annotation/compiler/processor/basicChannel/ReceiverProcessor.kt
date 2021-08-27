@@ -4,10 +4,12 @@ import com.joyy.ued.android_flutter_annotation.annotation.FlutterEngine
 import com.joyy.ued.android_flutter_annotation.annotation.basic.FlutterBasicChannel
 import com.joyy.ued.android_flutter_annotation.annotation.common.Callback
 import com.joyy.ued.android_flutter_annotation.annotation.method.HandleMessage
+import com.joyy.ued.android_flutter_annotation.annotation.method.ParseData
 import com.joyy.ued.android_flutter_annotation.compiler.Printer
 import com.joyy.ued.android_flutter_annotation.compiler.base.BaseProcessor
 import com.joyy.ued.android_flutter_annotation.compiler.config.ClazzConfig
 import com.joyy.ued.android_flutter_annotation.compiler.utils.EngineHelper
+import com.joyy.ued.android_flutter_annotation.compiler.utils.ReceiverHelper
 import com.joyy.ued.android_flutter_annotation.compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
@@ -221,13 +223,12 @@ class ReceiverProcessor(
             .addStatement("channel?.setMessageHandler { message, reply ->")
 
         if (!isLackCreator) {
-            assembleReplyField(
-                element,
-                initBlock,
-                genericsTypeName
-            )
             // 拼装方法
-            assembleHandleMethod(element, initBlock)
+            assembleHandleMethod(
+                typeElement = element,
+                initBlock = initBlock,
+                genericsTypeName = genericsTypeName
+            )
         }
 
         initBlock.addStatement("}")
@@ -235,52 +236,10 @@ class ReceiverProcessor(
         return initBlock.build()
     }
 
-    private fun assembleReplyField(
-        element: TypeElement,
-        initBlock: CodeBlock.Builder,
-        genericsTypeName: TypeName
-    ) {
-        val enclosedElements = element.enclosedElements
-        val resultPath = ClazzConfig.Flutter.BASIC_REPLY_PACKAGE +
-                "." +
-                ClazzConfig.Flutter.BASIC_REPLY_NAME
-
-        val className = ClassName(
-            ClazzConfig.Flutter.BASIC_REPLY_PACKAGE,
-            ClazzConfig.Flutter.BASIC_REPLY_NAME
-        ).parameterizedBy(
-            genericsTypeName
-        )
-
-        val resultElements = ArrayList<VariableElement>()
-        for (item in enclosedElements) {
-            if (item !is VariableElement) {
-                continue
-            }
-
-            if (item.getAnnotation(Callback::class.java) == null) {
-                continue
-            }
-
-            val type = item.asType().toString()
-            if (type == className.toString()) {
-                printer.error(
-                    "The parameter must be a $resultPath type if you use @Callback." +
-                            "[$element -- $item]"
-                )
-                return
-            }
-            resultElements.add(item)
-        }
-
-        for (resultElement in resultElements) {
-            initBlock.addStatement("  $basicChannelName?.${resultElement.simpleName} = reply")
-        }
-    }
-
     private fun assembleHandleMethod(
         typeElement: TypeElement,
-        initBlock: CodeBlock.Builder
+        initBlock: CodeBlock.Builder,
+        genericsTypeName: TypeName
     ) {
         val enclosedElements = typeElement.enclosedElements
         var handleMethod: ExecutableElement? = null
@@ -295,9 +254,10 @@ class ReceiverProcessor(
         }
         if (handleMethod != null) {
             assembleHandleMethod(
-                typeElement = typeElement,
                 initBlock = initBlock,
-                handleMethod = handleMethod
+                typeElement = typeElement,
+                handleMethod = handleMethod,
+                genericsTypeName = genericsTypeName
             )
         }
     }
@@ -305,33 +265,78 @@ class ReceiverProcessor(
     private fun assembleHandleMethod(
         typeElement: TypeElement,
         initBlock: CodeBlock.Builder,
+        genericsTypeName: TypeName,
         handleMethod: ExecutableElement
     ) {
         val spacing = "  "
 
         val methodName = handleMethod.simpleName
         val parameters = handleMethod.parameters
+        val onlyParamSize = ReceiverHelper.getParamSize(parameters)
+        val allParamSize = parameters.size
 
-        if (parameters.size > 1) {
-            printer.error(
-                "Basic method channel only can accept one parameters."
-            )
+        val className = ClassName(
+            ClazzConfig.Flutter.BASIC_REPLY_PACKAGE,
+            ClazzConfig.Flutter.BASIC_REPLY_NAME
+        ).parameterizedBy(
+            genericsTypeName
+        )
+        val replyType = ClazzConfig.Flutter.BASIC_REPLY_PACKAGE +
+                "." +
+                ClazzConfig.Flutter.BASIC_REPLY_NAME
+
+        // 检测参数类型
+        // 非 @Callback 类型只能有一个
+        if (onlyParamSize > 1) {
+            printer.error("Basic message channel only can accept one parameters.")
             return
         }
+        parameters.forEach { parameter ->
+            // 检测 @Callback 类型参数
+            if (ReceiverHelper.isCallback(parameter)) {
+                val type = parameter.asType().toString()
+                if (type == className.toString()) {
+                    printer.error(
+                        "The parameter must be a $replyType type if you use @Callback." +
+                                "[$typeElement -- $parameter]"
+                    )
+                    return
+                }
+                return@forEach
+            }
+            if (parameter.getAnnotation(Nullable::class.java) == null) {
+                printer.error("Parameter must be nullable.[$methodName]")
+            }
+            // 非 @Callback 类型必须为
+            val type = parameter.asType().toString()
+            if (type == className.toString()) {
+                printer.error(
+                    "The parameter must be a $replyType type if you use @Callback." +
+                            "[$typeElement -- $parameter]"
+                )
+                return
+            }
+        }
 
-        if (parameters.isEmpty()) {   // 没有参数
+        if (allParamSize == 0) {   // 没有参数
             initBlock.addStatement("$spacing$basicChannelName?.$methodName()")
-        } else {    // 构建参数
+        } else {
             initBlock.addStatement("$spacing$basicChannelName?.$methodName(")
-            val parameter = parameters[0]
-            val paramName = parameter.simpleName
-            parameter.getAnnotation(Nullable::class.java)
-                ?: error("Parameter must be nullable.[$methodName]")
+            parameters.forEachIndexed { index, parameter ->
+                val paramName = parameter.simpleName
 
-            initBlock.addStatement(
-                "$spacing  $paramName = message"
-            )
+                var statement = if (ReceiverHelper.isCallback(parameter)) {
+                    "$spacing  $paramName = reply"
+                } else {
+                    "$spacing  $paramName = message"
+                }
 
+                if (index < parameters.size - 1) {
+                    statement += ","
+                }
+
+                initBlock.addStatement(statement)
+            }
             initBlock.addStatement("$spacing)")
         }
     }

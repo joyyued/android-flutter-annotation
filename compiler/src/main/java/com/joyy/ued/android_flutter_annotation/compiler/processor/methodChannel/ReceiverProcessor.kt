@@ -9,6 +9,9 @@ import com.joyy.ued.android_flutter_annotation.compiler.Printer
 import com.joyy.ued.android_flutter_annotation.compiler.base.BaseProcessor
 import com.joyy.ued.android_flutter_annotation.compiler.config.ClazzConfig
 import com.joyy.ued.android_flutter_annotation.compiler.utils.EngineHelper
+import com.joyy.ued.android_flutter_annotation.compiler.utils.ReceiverHelper.checkCallbackType
+import com.joyy.ued.android_flutter_annotation.compiler.utils.ReceiverHelper.getParamSize
+import com.joyy.ued.android_flutter_annotation.compiler.utils.ReceiverHelper.isCallback
 import com.joyy.ued.android_flutter_annotation.compiler.utils.TypeChangeUtils
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
@@ -23,6 +26,7 @@ import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
+import javax.lang.model.element.PackageElement
 import javax.lang.model.element.TypeElement
 import javax.lang.model.element.VariableElement
 
@@ -62,6 +66,10 @@ class ReceiverProcessor(
         ClazzConfig.PACKAGE.BASE_NAME,
         ClazzConfig.BASE_RECEIVER_CHANNEL_NAME
     )
+
+    private val resultType = ClazzConfig.Flutter.METHOD_RESULT_PACKAGE +
+            "." +
+            ClazzConfig.Flutter.METHOD_RESULT_NAME
 
     private var methodChannelName = ""
     private var clazzName = ""
@@ -189,10 +197,6 @@ class ReceiverProcessor(
             .addStatement("  name")
             .addStatement(")")
             .addStatement("channel?.setMethodCallHandler { call, result ->")
-
-        if (!isLackCreator) {
-            assembleResultField(methodChannelName, element, initBlock)
-        }
 
         initBlock.addStatement("  val method = call.method")
             .addStatement("  val arguments = call.arguments")
@@ -333,55 +337,32 @@ class ReceiverProcessor(
 
             method.getAnnotation(HandleMessage::class.java) ?: continue
 
-            // "sayHelloToNative" -> {
-            val block = initBlock.addStatement("$spacing%S -> {", methodName)
-            if (parameters.isEmpty()) {   // 没有参数
-                block.addStatement("$spacing  $methodChannelName?.$methodName()")
-            } else {    // 构建参数
-                block.addStatement("$spacing  $methodChannelName?.$methodName(")
-                val parseDataAnnotation = method.getAnnotation(ParseData::class.java)
+            val onlyParamSize = getParamSize(parameters)
+            val allParamSize = parameters.size
+            val isNeedParseData = method.getAnnotation(ParseData::class.java) != null
 
-                if (parseDataAnnotation != null) {
-                    parameters.forEachIndexed { index, parameter ->
-                        parameter ?: return@forEachIndexed
-
-                        val paramName = parameter.simpleName
-                        val paramType = parameter.asType()
-                        val nullableAnnotation = parameter.getAnnotation(Nullable::class.java)
-
-                        val type = TypeChangeUtils.change(paramType.toString())
-
-                        if (nullableAnnotation == null) {
-                            printer.error(
-                                "Parameter must be nullable " +
-                                        "when you use @ParseData annotation. [$methodName]"
-                            )
-                            return@forEachIndexed
-                        }
-                        if (index == parameters.size - 1) {
-                            block.addStatement(
-                                "$spacing    $paramName = call.argument<$type>(\"$paramName\")"
-                            )
-                        } else {
-                            block.addStatement(
-                                "$spacing    $paramName = call.argument<$type>(\"$paramName\"),"
-                            )
-                        }
+            // 检测参数类型
+            if (isNeedParseData) {
+                parameters.forEach { parameter ->
+                    // @Callback 类型检测
+                    if (isCallback(parameter)) {
+                        checkCallbackType(printer, resultType, parameter)
+                        return@forEach
                     }
-                } else if (parameters.size == 1) {
-                    val parameter = parameters[0]
-                    val type =
-                        TypeChangeUtils.change(parameter.asType().asTypeName().toString())
-                    val name = parameter.simpleName.toString()
-                    if (type != "Any") {
+
+                    // 参数必须要为可空
+                    val nullableAnnotation = parameter.getAnnotation(Nullable::class.java)
+                    if (nullableAnnotation == null) {
                         printer.error(
-                            "Only Any type can be use in one parameter function. [$methodName]"
+                            "Parameter must be nullable " +
+                                    "when you use @ParseData annotation. [$methodName]"
                         )
+                        return
                     }
-                    block.addStatement(
-                        "$spacing    $name = arguments"
-                    )
-                } else {
+                }
+            } else {
+                // 非 @Callback 类型只能有一个
+                if (onlyParamSize > 1) {
                     printer.error(
                         "There are more than one parameter in $methodName function." +
                                 "You have two choice:\n" +
@@ -389,10 +370,52 @@ class ReceiverProcessor(
                                 "2、User @ParseData annotation on this method, we'll parse the data " +
                                 "for you，while it may be cause some error if you use the complex type."
                     )
+                    return
                 }
+                parameters.forEach { parameter ->
+                    // 检测 @Callback 类型参数
+                    if (isCallback(parameter)) {
+                        checkCallbackType(printer, resultType, parameter)
+                        return@forEach
+                    }
+                    // 非 @Callback 类型必须为 Any
+                    val type = TypeChangeUtils.change(parameter.asType().asTypeName().toString())
+                    if (type != "Any") {
+                        printer.error(
+                            "Only Any type can be use in one parameter function. [$methodName]"
+                        )
+                        return
+                    }
+                }
+            }
 
+            // "sayHelloToNative" -> {
+            val block = initBlock.addStatement("$spacing%S -> {", methodName)
+            if (allParamSize == 0) {
+                block.addStatement("$spacing  $methodChannelName?.$methodName()")
+            } else {
+                block.addStatement("$spacing  $methodChannelName?.$methodName(")
+                parameters.forEachIndexed { index, parameter ->
+                    val paramName = parameter.simpleName
+                    val paramType = parameter.asType().asTypeName()
+                    val type = TypeChangeUtils.change(paramType.toString())
+                    var statement = if (isCallback(parameter)) {
+                        "$spacing    $paramName = result"
+                    } else {
+                        if (isNeedParseData) {
+                            "$spacing    $paramName = call.argument<$type>(\"$paramName\")"
+                        } else {
+                            "$spacing    $paramName = arguments"
+                        }
+                    }
+                    if (index < parameters.size - 1) {
+                        statement += ","
+                    }
+                    block.addStatement(statement)
+                }
                 block.addStatement("$spacing  )")
             }
+
             block.addStatement("$spacing}")
             methodNameSet.add(methodName.toString())
         }

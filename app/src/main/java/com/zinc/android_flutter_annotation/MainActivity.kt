@@ -42,9 +42,7 @@ class MainActivity : AppCompatActivity() {
 
         // =========================== Method ===========================
         findViewById<Button>(R.id.btn_method_none).setOnClickListener {
-            Flutter.channels
-                ?.nezaMethodChannel
-                ?.sayHelloToFlutter()
+            Flutter.channels?.nezaMethodChannel?.sayHelloToFlutter()
         }
 
         findViewById<Button>(R.id.btn_method_none_async).setOnClickListener {

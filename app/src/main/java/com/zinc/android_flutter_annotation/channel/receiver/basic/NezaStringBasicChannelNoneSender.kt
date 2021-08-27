@@ -22,11 +22,11 @@ import io.flutter.plugin.common.StringCodec
 )
 class NezaStringBasicChannelNoneSender {
 
-    @Callback
-    var reply: BasicMessageChannel.Reply<String>? = null
-
     @HandleMessage
-    fun test(json: String?) {
+    fun test(
+        json: String?,
+        @Callback reply: BasicMessageChannel.Reply<String>
+    ) {
         Log.e(
             "Neza", "[test] " +
                     "receiverJsonFromFlutter(json: $json)"

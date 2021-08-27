@@ -22,11 +22,11 @@ import io.flutter.plugin.common.StandardMessageCodec
 )
 class NezaStandardBasicChannel {
 
-    @Callback
-    var reply: BasicMessageChannel.Reply<Any>? = null
-
     @HandleMessage
-    fun receiverFromFlutter(receiver: Any?) {
+    fun receiverFromFlutter(
+        receiver: Any?,
+        @Callback reply: BasicMessageChannel.Reply<Any>
+    ) {
         val map = receiver as? HashMap<*, *> ?: return
         val name = map["name"]
         val weight = map["weight"]

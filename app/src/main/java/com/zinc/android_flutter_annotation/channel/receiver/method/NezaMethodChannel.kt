@@ -24,25 +24,40 @@ class NezaMethodChannel {
 
     var name: String = "jiang peng yong"
 
-    @Callback
-    var result: MethodChannel.Result? = null
-
     @HandleMessage
     fun sayHelloToNative() {
         show("sayHelloToNative")
     }
 
-    @ParseData
     @HandleMessage
-    fun sayHelloToNativeWithParam(name: String?, age: Int?) {
-        show("sayHelloToNativeWithParam(name: $name, age: $age)")
-        result?.success("receiver success[name: $name, $age]")
+    fun sayHelloToNativeOnlyCallback(@Callback result: MethodChannel.Result) {
+        show("sayHelloToNative")
     }
 
     @HandleMessage
-    fun sayHelloToNativeWithRaw(map: Any) {
+    fun sayHelloToNativeWithoutCallback(any: Any) {
+        show("sayHelloToNative")
+    }
+
+    @ParseData
+    @HandleMessage
+    fun sayHelloToNativeWithParam(
+        name: String?,
+        age: Int?,
+        @Callback result: MethodChannel.Result
+    ) {
+        show("sayHelloToNativeWithParam(name: $name, age: $age)")
+        result.success("receiver success[name: $name, $age]")
+    }
+
+    @HandleMessage
+    fun sayHelloToNativeWithRaw(
+        @Callback result1: MethodChannel.Result,
+        map: Any,
+        @Callback result2: MethodChannel.Result
+    ) {
         show("sayHelloToNativeWithRaw(map: $map)")
-        result?.error("100", "receiver error[$map]", name)
+        result1.error("100", "receiver error[$map]", name)
     }
 
     private fun show(msg: String) {

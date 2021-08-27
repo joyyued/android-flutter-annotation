@@ -21,12 +21,13 @@ import io.flutter.plugin.common.BasicMessageChannel
     type = ChannelType.RECEIVER
 )
 class NezaCustomerBasicChannel {
-
-    @Callback
-    var reply: BasicMessageChannel.Reply<HashMap<String, String>>? = null
-
     @HandleMessage
-    fun receiverJsonFromFlutter(map: HashMap<String, String>?) {
+    fun receiverJsonFromFlutter(
+        map: HashMap<String, String>?,
+        @Callback reply: BasicMessageChannel.Reply<HashMap<String, String>>
+    ) {
         Log.e("Neza", "[Basic customer channel receiver] receiverJsonFromFlutter(map: $map)")
+        map?.put("platform", "Android")
+        reply.reply(map)
     }
 }

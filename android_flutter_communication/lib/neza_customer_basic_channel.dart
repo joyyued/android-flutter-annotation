@@ -36,7 +36,9 @@ class NezaCustomerBasicChannel {
     var map = HashMap<String, dynamic>();
     map["name"] = "Jiang PengYong";
     map["weight"] = "60kg";
-    _channel?.send(map);
+    _channel?.send(map).then((value) {
+      print("=========== [Native to Flutter] Customer await: $map ===========");
+    });
   }
 
   Future<dynamic> methodCallHandler(dynamic message) async {

@@ -20,9 +20,6 @@ import io.flutter.plugin.common.MethodChannel
 )
 class NezaMethodChannelNoneSender {
 
-    @Callback
-    var result: MethodChannel.Result? = null
-
     @HandleMessage
     fun test() {
         show("test")
