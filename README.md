@@ -155,9 +155,9 @@ class NezaMethodChannel {
 
 #### @Callback
 
-用于标记回调的属性，在 Method Channel 中，必须为 `io.flutter.plugin.common.MethodChannel.Result` 类型的属性。
+用于标记回调的参数，在 Method Channel 中，必须为 `io.flutter.plugin.common.MethodChannel.Result` 类型的属性。
 
-框架会在每次接收到 Flutter 传递的信息时，将回调注入到该属性，方法中可以进行逻辑处理后传递返回值给 Flutter 端
+框架会在每次接收到 Flutter 传递的信息时，将回调设置到该参数，方法中可以进行逻辑处理后传递返回值给 Flutter 端
 
 代码使用如下
 
@@ -168,20 +168,21 @@ class NezaMethodChannel {
 )
 class NezaMethodChannel {
 
-    @Callback
-    var result: MethodChannel.Result? = null
-
-    fun sayHelloToNativeWithRaw(map: Any) {
+    @HandleMessage
+    fun sayHelloToNativeWithRaw(
+        map: Any,
+        @Callback result: MethodChannel.Result
+    ) {
         //  your logic
 
         // success
-        result?.success("")
+        result.success("")
 
         // error
-        result?.error("code", "message", "detail")
+        result.error("code", "message", "detail")
 
         // notImplemented
-        result?.notImplemented()
+        result.notImplemented()
     }
 
 }
@@ -283,9 +284,9 @@ CoroutineScope(Dispatchers.Main).launch {
 
 #### @Callback
 
-在接收者中，用于标记回调 Flutter 的属性，属性的类型必须为 ``io.flutter.plugin.common.BasicMessageChannel.Reply<T>``
+在接收者中，用于标记回调 Flutter 的参数，属性的类型必须为 ``io.flutter.plugin.common.BasicMessageChannel.Reply<T>``
 
-框架会在每次接收到 Flutter 传递的信息时，将回调注入到该属性，方法中可以进行逻辑处理后传递返回值给 Flutter 端
+框架会在每次接收到 Flutter 传递的信息时，将回调设置到该参数，方法中可以进行逻辑处理后传递返回值给 Flutter 端
 
 代码使用如下
 
@@ -297,17 +298,14 @@ CoroutineScope(Dispatchers.Main).launch {
 )
 class NezaStringBasicChannel {
 
-    @Callback
-    var reply: BasicMessageChannel.Reply<String>? = null
-
-    @MessageHandler
-    fun receiverJsonFromFlutter(json: String?) {
+    @HandleMessage
+    fun receiverJsonFromFlutter(
+        json: String?,
+        @Callback reply: BasicMessageChannel.Reply<String>
+    ) {
         Log.e("NezaBasicChannel", "[Flutter -> Native] $json")
-        handle()
-    }
-
-    fun handle(){
-        reply?.reply("")
+        
+        reply.reply("Reply something......")
     }
 }
 ```
@@ -325,6 +323,6 @@ class NezaStringBasicChannel {
 2. 不使用注解，则框架会通过参数个数进行默认行为：1 个参数则以标注了 `@Param` 处理，其余情况以标注了 `@ParamMap` 处理
 3. 当多参数的方法，使用了 `@Param` 注解，框架不会报错，内部逻辑只会使用第一个参数作为传递参数，传递类型也是第一个参数类型，其余的参数将形同虚设。
 
-## LICENSE
+## 三、LICENSE
 
 [MIT](LICENSE)
