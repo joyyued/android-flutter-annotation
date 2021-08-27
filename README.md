@@ -1,26 +1,26 @@
-# android-flutter-annotation
+# Android-Flutter-Annotation
 
-本项目用于 Android 端，通过使用注解自动生成与 Flutter 通信的代码。
+用于 Android 端项目，通过使用注解自动生成与 Flutter 通信的代码。
 
 可生成的三种通信渠道有:
 
-- MethodChannel
-- EventChannel
-- BasicMessageChannel
+* MethodChannel
+* EventChannel
+* BasicMessageChannel
 
-## 一、集成
-在项目的 ``build.gradle`` 添加 jitpack 仓库的依赖
+## 集成
+
+在项目的 `build.gradle` 添加 jitpack 仓库的依赖
 
 ```gradle
 allprojects {
     repositories {
-        // add this
         maven { url 'https://jitpack.io' }
     }
 }
 ```
 
-在 module 的 ``build.gradle`` 中添加
+在 module 的 `build.gradle` 中添加
 
 ```gradle
 apply plugin: 'kotlin-kapt'
@@ -31,17 +31,15 @@ dependencies {
 }
 ```
 
-## 二、使用
+## 使用
 
-### 1、Flutter 引擎
+### Flutter 引擎
 
-用于标记 Flutter 引擎的 id，会生成创建 Flutter 引擎 id 的代码
-
-**值得注意：** 后续的 channel 注解生成的注入渠道会默认使用该 engineId
+用于标记 Flutter 引擎的 id，会生成创建 Flutter 引擎 id 的代。并注解生成的 channel 会默认使用该 engineId。
 
 ```kotlin
 @FlutterEngine(engineId = "引擎 id")
-class MyFlutterEngine
+class MyFlutterEngine {}
 ```
 
 使用此注解之后，可以进行以下操作
@@ -60,15 +58,15 @@ Flutter.Engine.DEFAULT_ENGINE
 Flutter.Engine.getEngine("引擎 id")
 ```
 
-### 2、Method Channel
+### MethodChannel
 
-由 Method Channel 特征决定了，可以通过该渠道在 native 接收来自 flutter 的信息，也可以在 native 发送信息给 flutter，使用中请注意 接收 和 发送 的类型。
+由 MethodChannel 特征决定了，可以通过该渠道在 Native 接收来自 Flutter 的信息，也可以在 Native 发送信息给 Flutter，使用中请注意 **接收** 和 **发送** 的类型。
 
 #### @FlutterMethodChannel
 
-用于生成 Android 端中，与 Flutter 通信的 Method Channel 代码
+用于生成 Android 端中，与 Flutter 通信的 MethodChannel 代码
 
-**接收者 [flutter -> native]**
+**接收者 [Flutter -> Native]**
 
 ```kotlin
 @FlutterMethodChannel(
@@ -79,6 +77,10 @@ class NezaMethodChannel {
 
     @HandleMessage
     fun sayHelloToNative() {
+        sayHello()
+    }
+
+    fun sayHello() {
         Log.e("NezaMethodChannel", "[Flutter -> Native] sayHelloToNative")
     }
 
@@ -87,9 +89,7 @@ class NezaMethodChannel {
 
 在需要接收信息的方法加上 `@HandleMessage` 注解，则当 Flutter 端调用渠道名称为 `ChannelConfig.METHOD_CHANNEL` 的渠道，并且方法为 `sayHelloToNative` 时，则框架则会调用至该方法。
 
-> 如果类中不使用 @HandleMessage 注解，则 flutter 发送来的信息不会被处理
-
-**发送者 [native -> flutter]**
+**发送者 [Native -> Flutter]**
 
 ```kotlin
 @FlutterMethodChannel(
@@ -101,7 +101,7 @@ interface NezaMethodChannel {
 }
 ```
 
-使用此注解后，可以通过以下代码进行发送信息给 Flutter ，发送的方法名为所定义的方法名称（例子中则为 `sayHelloToFlutter`）
+使用此注解后，可以通过以下代码进行发送信息给 Flutter，发送的方法名为所定义的方法名称（例子中则为 `sayHelloToFlutter`）
 
 ```kotlin
 Flutter.channels?.nezaMethodChannel?.sayHelloToFlutter()
@@ -188,9 +188,9 @@ class NezaMethodChannel {
 }
 ```
 
-### 3、Event Channel
+### EventChannel
 
-由于 Event Channel 特征决定了，只能单向从 native 发送信息给 flutter，所以相较于 Method Channel 渠道，只有发送者。
+由于 EventChannel 特征决定了，只能单向从 Native 发送信息给 Flutter，所以相较于 MethodChannel 渠道，只有发送者。
 
 #### @FlutterEventChannel
 
@@ -210,9 +210,9 @@ interface NezaEventChannel {
 Flutter.channels?.nezaEventChannel?.sendImageInfo(byteArray)
 ```
 
-### 4、Basic Message Channel
+### BasicMessageChannel
 
-由于 Basic Message Channel 特征决定了，可以通过该渠道在 native 接收来自 flutter 的信息，也可以在 native 发送信息给 flutter，使用中请注意 接收 和 发送 的类型。
+由于 BasicMessageChannel 特征决定了，可以通过该渠道在 Native 接收来自 Flutter 的信息，也可以在 Native 发送信息给 Flutter，使用中请注意 **接收** 和 **发送** 的类型。
 
 同时还需要一个 解析器（注解中的 codeccClass）进行对数据的解析，谷歌官方提供了四种解析器：
 
@@ -227,7 +227,7 @@ Flutter.channels?.nezaEventChannel?.sendImageInfo(byteArray)
 
 用于生成 Android 端中，与 Flutter 通信的 Basic Message Channel 代码
 
-**接收者 [flutter -> native]**
+**接收者 [Flutter -> Native]**
 
 ```kotlin
 @FlutterBasicChannel(
@@ -245,7 +245,7 @@ object NezaBasicChannel {
 
 当 Flutter 端调用渠道名称为 `ChannelConfig.STANDER_BASIC_CHANNEL` 的渠道时，框架则会调用标记了 `@MessageHandler` 注解的方法。
 
-**发送者 [native -> flutter]**
+**发送者 [Native -> Flutter]**
 
 ```kotlin
 @FlutterBasicChannel(
@@ -284,7 +284,7 @@ CoroutineScope(Dispatchers.Main).launch {
 
 #### @Callback
 
-在接收者中，用于标记回调 Flutter 的参数，属性的类型必须为 ``io.flutter.plugin.common.BasicMessageChannel.Reply<T>``
+在接收者中，用于标记回调 Flutter 的参数，属性的类型必须为 `io.flutter.plugin.common.BasicMessageChannel.Reply<T>`
 
 框架会在每次接收到 Flutter 传递的信息时，将回调设置到该参数，方法中可以进行逻辑处理后传递返回值给 Flutter 端
 
@@ -304,13 +304,13 @@ class NezaStringBasicChannel {
         @Callback reply: BasicMessageChannel.Reply<String>
     ) {
         Log.e("NezaBasicChannel", "[Flutter -> Native] $json")
-        
         reply.reply("Reply something......")
     }
+
 }
 ```
 
-### 5、添加参数
+### 添加参数
 
 三种 channel 发送者的方法都可以携带参数，可以使用 `@Param` 或 `@ParamMap` 对方法标注
 
@@ -323,6 +323,6 @@ class NezaStringBasicChannel {
 2. 不使用注解，则框架会通过参数个数进行默认行为：1 个参数则以标注了 `@Param` 处理，其余情况以标注了 `@ParamMap` 处理
 3. 当多参数的方法，使用了 `@Param` 注解，框架不会报错，内部逻辑只会使用第一个参数作为传递参数，传递类型也是第一个参数类型，其余的参数将形同虚设。
 
-## 三、LICENSE
+## LICENSE
 
 [MIT](LICENSE)
