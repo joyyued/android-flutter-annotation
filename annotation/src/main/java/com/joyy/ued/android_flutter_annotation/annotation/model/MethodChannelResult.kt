@@ -1,7 +1,7 @@
 package com.joyy.ued.android_flutter_annotation.annotation.model
 
 /**
- * @author: Jiang Pengyong
+ * @author: Jiang PengYong
  * @date: 2021/8/11 2:55 下午
  * @email: 56002982@qq.com
  * @des: Method channel 的回调结果
@@ -13,7 +13,7 @@ data class MethodChannelResult(
 )
 
 /**
- * @author: Jiang Pengyong
+ * @author: Jiang PengYong
  * @date: 2021/8/11 2:57 下午
  * @email: 56002982@qq.com
  * @des: 成功的数据
@@ -23,7 +23,7 @@ data class SuccessResult(
 )
 
 /**
- * @author: Jiang Pengyong
+ * @author: Jiang PengYong
  * @date: 2021/8/11 2:57 下午
  * @email: 56002982@qq.com
  * @des: 失败的数据
@@ -35,7 +35,7 @@ data class ErrorResult(
 )
 
 /**
- * @author: Jiang Pengyong
+ * @author: Jiang PengYong
  * @date: 2021/8/11 2:54 下午
  * @email: 56002982@qq.com
  * @des: Method channel 的回调结果类型

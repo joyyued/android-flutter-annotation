@@ -5,6 +5,12 @@ import com.joyy.ued.android_flutter_annotation.compiler.processor.manager.Flutte
 import javax.annotation.processing.Messager
 import javax.tools.Diagnostic
 
+/**
+ * @author: Jiang Pengyong
+ * @date: 2021/8/30 10:29 上午
+ * @email: 56002982@qq.com
+ * @des: 打印
+ */
 interface Printer {
     fun getMessager(): Messager?
 

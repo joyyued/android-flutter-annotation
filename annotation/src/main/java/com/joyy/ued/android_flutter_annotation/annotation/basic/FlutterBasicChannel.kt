@@ -4,7 +4,7 @@ import com.joyy.ued.android_flutter_annotation.annotation.model.ChannelType
 import kotlin.reflect.KClass
 
 /**
- * @author: Jiang Pengyong
+ * @author: Jiang PengYong
  * @date: 2021/8/13 3:19 下午
  * @email: 56002982@qq.com
  * @des: flutter basic channel 的注解

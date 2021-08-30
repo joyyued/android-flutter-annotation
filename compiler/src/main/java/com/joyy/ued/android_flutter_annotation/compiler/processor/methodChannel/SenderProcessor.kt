@@ -1,5 +1,6 @@
 package com.joyy.ued.android_flutter_annotation.compiler.processor.methodChannel
 
+import com.joyy.ued.android_flutter_annotation.annotation.common.Send
 import com.joyy.ued.android_flutter_annotation.annotation.method.FlutterMethodChannel
 import com.joyy.ued.android_flutter_annotation.compiler.Printer
 import com.joyy.ued.android_flutter_annotation.compiler.base.BaseProcessor
@@ -26,6 +27,12 @@ import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
 import javax.lang.model.element.VariableElement
 
+/**
+ * @author: Jiang Pengyong
+ * @date: 2021/8/30 10:24 上午
+ * @email: 56002982@qq.com
+ * @des: Method Channel 发送者
+ */
 class SenderProcessor(
     printer: Printer,
     processingEnv: ProcessingEnvironment,
@@ -36,44 +43,81 @@ class SenderProcessor(
     roundEnv
 ) {
 
+    // scope
+    private val scopeClassName = ClassName(
+        ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
+        ClazzConfig.Coroutine.COROUTINE_SCOPE_NAME
+    )
+
+    // Dispatchers
+    private val dispatchersClassName = ClassName(
+        ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
+        ClazzConfig.Coroutine.COROUTINE_DISPATCHERS_NAME
+    )
+
+    // async
+    private val asyncClassName = ClassName(
+        ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
+        ClazzConfig.Coroutine.COROUTINE_ASYNC_NAME
+    )
+
+    // MethodChannelResult
     private val resultClassName = ClassName(
         ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
         ClazzConfig.METHOD_RESULT_NAME
     )
+
+    // SuccessResult
     private val successClassName = ClassName(
         ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
         ClazzConfig.METHOD_RESULT_SUCCESS_NAME
     )
+
+    // ErrorResult
     private val errorClassName = ClassName(
         ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
         ClazzConfig.METHOD_RESULT_ERROR_NAME
     )
+
+    // MethodChannelResultType
     private val typeClassName = ClassName(
         ClazzConfig.METHOD_RESULT_MODEL_PACKAGE,
         ClazzConfig.METHOD_RESULT_TYPE_NAME
     )
+
+    // Result
     private val callbackClassName = ClassName(
         ClazzConfig.Flutter.METHOD_RESULT_PACKAGE,
         ClazzConfig.Flutter.METHOD_RESULT_NAME
     )
+
+    // suspendCoroutine
     private val suspendCoroutineClassName = ClassName(
         ClazzConfig.Coroutine.COROUTINE_PACKAGE,
         ClazzConfig.Coroutine.COROUTINE_SUSPEND_COROUTINE_NAME
     )
+
+    // resume
     private val resumeClassName = ClassName(
         ClazzConfig.Coroutine.COROUTINE_PACKAGE,
         ClazzConfig.Coroutine.COROUTINE_RESUME_NAME
     )
+
+    // Deferred
     private val deferredClassName = ClassName(
         ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
         ClazzConfig.Coroutine.DEFERRED_NAME
     ).parameterizedBy(
         resultClassName
     )
+
+    // MethodChannel
     private val methodChannelClassName = ClassName(
         ClazzConfig.Flutter.METHOD_CHANNEL_PACKAGE,
         ClazzConfig.Flutter.METHOD_CHANNEL_NAME
     ).copy(nullable = true)
+
+    // BaseSenderChannel
     private val baseSenderChannelClassName = ClassName(
         ClazzConfig.PACKAGE.BASE_NAME,
         ClazzConfig.BASE_SENDER_CHANNEL_NAME
@@ -105,10 +149,7 @@ class SenderProcessor(
                 }
                 functions.addAll(
                     assembleFunction(
-                        clazzName,
-                        method,
-                        channelName,
-                        channelReceiverMap
+                        method
                     )
                 )
             }
@@ -145,26 +186,15 @@ class SenderProcessor(
     }
 
     private fun assembleFunction(
-        clazzName: String,
-        method: ExecutableElement,
-        channelName: String,
-        channelReceiverMap: HashMap<String, ClassName>
+        method: ExecutableElement
     ): ArrayList<FunSpec> {
 
+        val senderAnnotation = method.getAnnotation(Send::class.java)
         val methodName = method.simpleName.toString()
         val parameters = method.parameters
 
         // 获取参数类型
         val paramType = ProcessorHelper.checkParam(printer, method, parameters)
-
-        // Proxy 类名
-        var receiverClassName = channelReceiverMap[channelName]
-        if (receiverClassName == null) {
-            receiverClassName = ClassName(
-                ClazzConfig.PACKAGE.CHANNEL_NAME,
-                "${clazzName}Proxy"
-            )
-        }
 
         // 组装参数类型
         val parameterList = ArrayList<ParameterSpec>()
@@ -185,11 +215,13 @@ class SenderProcessor(
             )
         }
 
+        val senderName = senderAnnotation?.name ?: methodName
+
         // 创建方法
         val list = ArrayList<FunSpec>()
         val function = createMethod(
-            receiverClassName = receiverClassName,
             orgMethodName = methodName,
+            senderName = senderName,
             paramType = paramType,
             methodParameters = parameters,
             parameterList = parameterList
@@ -242,27 +274,12 @@ class SenderProcessor(
      * 创建方法
      */
     private fun createMethod(
-        receiverClassName: ClassName,
         orgMethodName: String,
+        senderName: String,
         paramType: ParamType,
         methodParameters: List<VariableElement>,
         parameterList: List<ParameterSpec>
     ): FunSpec.Builder {
-        // scope
-        val scopeClassName = ClassName(
-            ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
-            ClazzConfig.Coroutine.COROUTINE_SCOPE_NAME
-        )
-        // Dispatchers
-        val dispatchersClassName = ClassName(
-            ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
-            ClazzConfig.Coroutine.COROUTINE_DISPATCHERS_NAME
-        )
-        // async
-        val asyncClassName = ClassName(
-            ClazzConfig.Coroutine.COROUTINE_X_PACKAGE,
-            ClazzConfig.Coroutine.COROUTINE_ASYNC_NAME
-        )
 
         val function = FunSpec.builder(orgMethodName)
             .returns(deferredClassName)
@@ -340,7 +357,7 @@ class SenderProcessor(
             )
         }
         function
-            .addStatement(statement, orgMethodName)
+            .addStatement(statement, senderName)
             .endControlFlow()
             .endControlFlow()
             .addStatement("return result")

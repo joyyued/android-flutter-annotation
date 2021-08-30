@@ -75,7 +75,15 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: () {
           NezaMethodChannel.instance.sayHelloToNative();
         },
-        child: Text('Say hello to native 【Method simple】'),
+        child: Text('Say hello to native 【Method】'),
+      ),
+    );
+    result.add(
+      TextButton(
+        onPressed: () {
+          NezaMethodChannel.instance.changeMethodName();
+        },
+        child: Text('change method name 【Method】'),
       ),
     );
     result.add(

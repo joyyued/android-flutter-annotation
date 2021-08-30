@@ -2,6 +2,7 @@ package com.zinc.android_flutter_annotation.channel.sender.method
 
 import com.joyy.ued.android_flutter_annotation.annotation.common.Param
 import com.joyy.ued.android_flutter_annotation.annotation.common.ParamMap
+import com.joyy.ued.android_flutter_annotation.annotation.common.Send
 import com.joyy.ued.android_flutter_annotation.annotation.method.FlutterMethodChannel
 import com.joyy.ued.android_flutter_annotation.annotation.model.ChannelType
 import com.zinc.android_flutter_annotation.config.Config
@@ -43,4 +44,7 @@ interface NezaMethodChannel {
         name: String,
         weight: Int
     )
+
+    @Send("method/change_name")
+    fun changeName()
 }

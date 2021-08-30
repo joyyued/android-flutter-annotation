@@ -27,6 +27,12 @@ import javax.lang.model.element.TypeElement
 import javax.lang.model.element.VariableElement
 import javax.lang.model.type.TypeMirror
 
+/**
+ * @author: Jiang Pengyong
+ * @date: 2021/8/30 10:23 上午
+ * @email: 56002982@qq.com
+ * @des: Basic Message Channel 发送者
+ */
 class SenderProcessor(
     printer: Printer,
     processingEnv: ProcessingEnvironment,

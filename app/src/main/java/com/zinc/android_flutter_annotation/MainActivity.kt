@@ -16,7 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**
- * @author: Jiang Pengyong
+ * @author: Jiang PengYong
  * @date: 2021/8/9 6:38 下午
  * @email: 56002982@qq.com
  * @des:
@@ -93,6 +93,12 @@ class MainActivity : AppCompatActivity() {
                     ?.await()
                 show("multi param result: $result")
             }
+        }
+
+        findViewById<Button>(R.id.btn_method_change_name).setOnClickListener {
+            Flutter.channels
+                ?.nezaMethodChannel
+                ?.changeName()
         }
 
         // =========================== Event ===========================

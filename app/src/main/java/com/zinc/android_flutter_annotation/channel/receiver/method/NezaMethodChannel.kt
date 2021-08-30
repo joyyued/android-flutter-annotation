@@ -2,15 +2,15 @@ package com.zinc.android_flutter_annotation.channel.receiver.method
 
 import android.util.Log
 import com.joyy.ued.android_flutter_annotation.annotation.common.Callback
+import com.joyy.ued.android_flutter_annotation.annotation.common.Receive
 import com.joyy.ued.android_flutter_annotation.annotation.model.ChannelType
 import com.joyy.ued.android_flutter_annotation.annotation.method.FlutterMethodChannel
-import com.joyy.ued.android_flutter_annotation.annotation.method.HandleMessage
 import com.joyy.ued.android_flutter_annotation.annotation.method.ParseData
 import com.zinc.android_flutter_annotation.config.Config
 import io.flutter.plugin.common.MethodChannel
 
 /**
- * @author: Jiang Pengyong
+ * @author: Jiang PengYong
  * @date: 2021/8/10 11:19 上午
  * @email: 56002982@qq.com
  * @des: Method Channel
@@ -24,23 +24,31 @@ class NezaMethodChannel {
 
     var name: String = "jiang peng yong"
 
-    @HandleMessage
+    @Receive
     fun sayHelloToNative() {
         show("sayHelloToNative")
     }
 
-    @HandleMessage
-    fun sayHelloToNativeOnlyCallback(@Callback result: MethodChannel.Result) {
-        show("sayHelloToNative")
+    @Receive("change_method_name")
+    fun changeMethodName() {
+        show("changeMethodName")
     }
 
-    @HandleMessage
+    @Receive
+    fun sayHelloToNativeOnlyCallback(
+        @Callback result: MethodChannel.Result
+    ) {
+        show("sayHelloToNative")
+        result.success("sayHelloToNative [ receive ]")
+    }
+
+    @Receive
     fun sayHelloToNativeWithoutCallback(any: Any) {
         show("sayHelloToNative")
     }
 
     @ParseData
-    @HandleMessage
+    @Receive
     fun sayHelloToNativeWithParam(
         name: String?,
         age: Int?,
@@ -50,7 +58,7 @@ class NezaMethodChannel {
         result.success("receiver success[name: $name, $age]")
     }
 
-    @HandleMessage
+    @Receive
     fun sayHelloToNativeWithRaw(
         @Callback result1: MethodChannel.Result,
         map: Any,

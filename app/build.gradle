@@ -43,10 +43,10 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:${coroutines_android_version}"
 
     implementation project(":flutter")
-//    implementation project(':annotation')
-//    kapt project(':compiler')
-    implementation "com.github.joyyued.android-flutter-annotation:annotation:1.0.0-beta.2"
-    kapt "com.github.joyyued.android-flutter-annotation:compiler:1.0.0-beta.2"
+    implementation project(':annotation')
+    kapt project(':compiler')
+//    implementation "com.github.joyyued.android-flutter-annotation:annotation:1.0.0-beta.2"
+//    kapt "com.github.joyyued.android-flutter-annotation:compiler:1.0.0-beta.2"
 
     implementation 'com.google.code.gson:gson:2.8.7'
 }

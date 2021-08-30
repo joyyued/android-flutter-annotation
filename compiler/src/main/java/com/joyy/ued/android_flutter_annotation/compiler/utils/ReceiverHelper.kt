@@ -5,7 +5,7 @@ import com.joyy.ued.android_flutter_annotation.compiler.Printer
 import javax.lang.model.element.VariableElement
 
 /**
- * @author: Jiang Pengyong
+ * @author: Jiang PengYong
  * @date: 2021/8/27 10:05 上午
  * @email: 56002982@qq.com
  * @des: receiver 的辅助类

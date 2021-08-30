@@ -9,6 +9,12 @@ import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.TypeKind
 import javax.lang.model.type.TypeMirror
 
+/**
+ * @author: Jiang Pengyong
+ * @date: 2021/8/30 10:28 上午
+ * @email: 56002982@qq.com
+ * @des: 调试工具
+ */
 object DebugUtils {
     fun showInfo(printer: Printer, element: ExecutableElement) {
         val stringBuilder = StringBuilder()

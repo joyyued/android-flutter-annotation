@@ -1,7 +1,7 @@
 package com.joyy.ued.android_flutter_annotation.compiler.config
 
 /**
- * @author: Jiang Pengyong
+ * @author: Jiang PengYong
  * @date: 2021/8/11 10:03 上午
  * @email: 56002982@qq.com
  * @des: 类的配置

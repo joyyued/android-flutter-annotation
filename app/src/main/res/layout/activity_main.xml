@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,205 +8,222 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <LinearLayout
-        android:id="@+id/main_control"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        android:background="@drawable/primary_bg"
-        android:padding="10dp"
-        android:layout_margin="10dp"
-        app:layout_constraintBottom_toTopOf="@id/event_control"
-        app:layout_constraintEnd_toStartOf="@id/method_control"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <TextView
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="主面板"
-            android:textColor="@color/white"
-            android:gravity="center"
-            android:padding="5dp"
-            android:textSize="14sp"
-            />
+            android:layout_height="match_parent"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
-        <Button
-            android:id="@+id/btn_init_engine"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="初始化 Engine" />
+            <LinearLayout
+                android:id="@+id/main_control"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:background="@drawable/primary_bg"
+                android:padding="10dp"
+                android:layout_margin="10dp"
+                app:layout_constraintBottom_toTopOf="@id/event_control"
+                app:layout_constraintEnd_toStartOf="@id/method_control"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
-        <Button
-            android:id="@+id/btn_release_engine"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="释放 Engine" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="主面板"
+                    android:textColor="@color/white"
+                    android:gravity="center"
+                    android:padding="5dp"
+                    android:textSize="14sp"
+                    />
 
-        <Button
-            android:id="@+id/btn_goto_flutter_page"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="开启 flutter 页" />
+                <Button
+                    android:id="@+id/btn_init_engine"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="初始化 Engine" />
 
-    </LinearLayout>
+                <Button
+                    android:id="@+id/btn_release_engine"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="释放 Engine" />
 
-    <LinearLayout
-        android:id="@+id/method_control"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:background="@drawable/secondary_bg"
-        android:padding="10dp"
-        android:layout_margin="10dp"
-        app:layout_constraintBottom_toTopOf="@id/basic_control"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/main_control"
-        app:layout_constraintTop_toTopOf="parent">
+                <Button
+                    android:id="@+id/btn_goto_flutter_page"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="开启 flutter 页" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Method Channel"
-            android:textColor="@color/white"
-            android:gravity="center"
-            android:padding="5dp"
-            android:textSize="14sp"
-            />
+            </LinearLayout>
 
-        <Button
-            android:id="@+id/btn_method_none"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="say hello to flutter" />
+            <LinearLayout
+                android:id="@+id/method_control"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:background="@drawable/secondary_bg"
+                android:padding="10dp"
+                android:layout_margin="10dp"
+                app:layout_constraintBottom_toTopOf="@id/basic_control"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/main_control"
+                app:layout_constraintTop_toTopOf="parent">
 
-        <Button
-            android:id="@+id/btn_method_none_async"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="say hello to flutter [ async ]" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Method Channel"
+                    android:textColor="@color/white"
+                    android:gravity="center"
+                    android:padding="5dp"
+                    android:textSize="14sp"
+                    />
 
-        <Button
-            android:id="@+id/btn_method_single"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="say hello to flutter multi" />
+                <Button
+                    android:id="@+id/btn_method_none"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="say hello to flutter" />
 
-        <Button
-            android:id="@+id/btn_method_single_async"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="say hello to flutter multi [ async]" />
+                <Button
+                    android:id="@+id/btn_method_none_async"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="say hello to flutter [ async ]" />
 
-        <Button
-            android:id="@+id/btn_method_multi"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="say hello to flutter multi" />
+                <Button
+                    android:id="@+id/btn_method_single"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="say hello to flutter multi" />
 
-        <Button
-            android:id="@+id/btn_method_multi_async"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="say hello to flutter multi [ async]" />
+                <Button
+                    android:id="@+id/btn_method_single_async"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="say hello to flutter multi [ async ]" />
 
-    </LinearLayout>
+                <Button
+                    android:id="@+id/btn_method_multi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="say hello to flutter multi" />
 
-    <LinearLayout
-        android:id="@+id/event_control"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:background="@drawable/secondary_bg"
-        android:padding="10dp"
-        android:layout_margin="10dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/basic_control"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/main_control">
+                <Button
+                    android:id="@+id/btn_method_multi_async"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="say hello to flutter multi [ async ]" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Event Channel"
-            android:textColor="@color/white"
-            android:gravity="center"
-            android:padding="5dp"
-            android:textSize="14sp"
-            />
+                <Button
+                    android:id="@+id/btn_method_change_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="change Send Name" />
 
-        <Button
-            android:id="@+id/event_send_image"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="发送 image 信息" />
+            </LinearLayout>
 
-        <Button
-            android:id="@+id/event_send_info"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="发送 image 信息 [multi]" />
+            <LinearLayout
+                android:id="@+id/event_control"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:background="@drawable/secondary_bg"
+                android:padding="10dp"
+                android:layout_margin="10dp"
+                app:layout_constraintEnd_toStartOf="@id/basic_control"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/main_control">
 
-        <Button
-            android:id="@+id/event_send_error"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="发送 image 信息 [error]" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Event Channel"
+                    android:textColor="@color/white"
+                    android:gravity="center"
+                    android:padding="5dp"
+                    android:textSize="14sp"
+                    />
 
-        <Button
-            android:id="@+id/event_send_end_of_stream"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="发送 image 信息 [ eos ]" />
+                <Button
+                    android:id="@+id/event_send_image"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="发送 image 信息" />
 
-    </LinearLayout>
+                <Button
+                    android:id="@+id/event_send_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="发送 image 信息 [multi]" />
 
-    <LinearLayout
-        android:id="@+id/basic_control"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:background="@drawable/secondary_bg"
-        android:padding="10dp"
-        android:layout_margin="10dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/event_control"
-        app:layout_constraintTop_toBottomOf="@id/method_control">
+                <Button
+                    android:id="@+id/event_send_error"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="发送 image 信息 [error]" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Basic Message Channel"
-            android:textColor="@color/white"
-            android:gravity="center"
-            android:padding="5dp"
-            android:textSize="14sp"
-            />
+                <Button
+                    android:id="@+id/event_send_end_of_stream"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="发送 image 信息 [ eos ]" />
 
-        <Button
-            android:id="@+id/btn_send_json_to_flutter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="发送 json 信息" />
+            </LinearLayout>
 
-        <Button
-            android:id="@+id/btn_send_map_to_flutter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="发送 map 信息" />
+            <LinearLayout
+                android:id="@+id/basic_control"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:background="@drawable/secondary_bg"
+                android:padding="10dp"
+                android:layout_margin="10dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/event_control"
+                app:layout_constraintTop_toBottomOf="@id/method_control">
 
-        <Button
-            android:id="@+id/btn_send_map_to_flutter_customer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="发送 map 信息 [ Customer Codec ]" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Basic Message Channel"
+                    android:textColor="@color/white"
+                    android:gravity="center"
+                    android:padding="5dp"
+                    android:textSize="14sp"
+                    />
 
-    </LinearLayout>
+                <Button
+                    android:id="@+id/btn_send_json_to_flutter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="发送 json 信息" />
 
+                <Button
+                    android:id="@+id/btn_send_map_to_flutter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="发送 map 信息" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+                <Button
+                    android:id="@+id/btn_send_map_to_flutter_customer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="发送 map 信息 [ Customer Codec ]" />
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
+
+</LinearLayout>

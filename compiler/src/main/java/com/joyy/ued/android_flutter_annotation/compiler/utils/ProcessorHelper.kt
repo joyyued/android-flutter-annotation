@@ -7,10 +7,10 @@ import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.VariableElement
 
 /**
- * @author: Jiang Pengyong
+ * @author: Jiang PengYong
  * @date: 2021/8/18 10:51 上午
  * @email: 56002982@qq.com
- * @des: Sender
+ * @des: 处理辅助
  */
 object ProcessorHelper {
 
@@ -46,7 +46,7 @@ object ProcessorHelper {
 }
 
 /**
- * @author: Jiang Pengyong
+ * @author: Jiang PengYong
  * @date: 2021/8/18 10:53 上午
  * @email: 56002982@qq.com
  * @des: 参数类型

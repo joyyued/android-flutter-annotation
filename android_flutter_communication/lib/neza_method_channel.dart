@@ -31,6 +31,10 @@ class NezaMethodChannel {
     _channel?.invokeMethod("sayHelloToNative");
   }
 
+  changeMethodName() {
+    _channel?.invokeMethod("change_method_name");
+  }
+
   sayHelloToNativeWithParam() async {
     var map = HashMap();
     map['name'] = '江澎涌';
@@ -54,6 +58,9 @@ class NezaMethodChannel {
       case "sayHelloToFlutter":
         print("=========== [Native to Flutter] sayHelloToFlutter ===========");
         print(arguments);
+        break;
+      case "method/change_name":
+        print("=========== [Native to Flutter] method/change_name ===========");
         break;
       case "sayHelloToFlutterWithCallback":
         print(

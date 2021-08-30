@@ -10,6 +10,12 @@ import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.MirroredTypeException
 import javax.lang.model.type.TypeMirror
 
+/**
+ * @author: Jiang Pengyong
+ * @date: 2021/8/30 10:24 上午
+ * @email: 56002982@qq.com
+ * @des: Basic Message Channel 工具
+ */
 object BasicProcessorUtils {
 
     fun getCodecTypeMirror(channelAnnotation: FlutterBasicChannel): TypeMirror? {

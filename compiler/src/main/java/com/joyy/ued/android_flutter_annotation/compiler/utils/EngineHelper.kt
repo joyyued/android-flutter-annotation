@@ -9,6 +9,12 @@ import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
 import javax.lang.model.element.TypeElement
 
+/**
+ * @author: Jiang Pengyong
+ * @date: 2021/8/30 10:29 上午
+ * @email: 56002982@qq.com
+ * @des: 引擎辅助
+ */
 object EngineHelper {
 
     fun getFlutterEngineElements(roundEnv: RoundEnvironment): ArrayList<Element> {

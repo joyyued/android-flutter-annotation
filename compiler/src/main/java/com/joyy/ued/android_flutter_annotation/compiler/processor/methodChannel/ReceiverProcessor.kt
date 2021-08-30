@@ -3,7 +3,7 @@ package com.joyy.ued.android_flutter_annotation.compiler.processor.methodChannel
 import com.joyy.ued.android_flutter_annotation.annotation.FlutterEngine
 import com.joyy.ued.android_flutter_annotation.annotation.common.Callback
 import com.joyy.ued.android_flutter_annotation.annotation.method.FlutterMethodChannel
-import com.joyy.ued.android_flutter_annotation.annotation.method.HandleMessage
+import com.joyy.ued.android_flutter_annotation.annotation.common.Receive
 import com.joyy.ued.android_flutter_annotation.annotation.method.ParseData
 import com.joyy.ued.android_flutter_annotation.compiler.Printer
 import com.joyy.ued.android_flutter_annotation.compiler.base.BaseProcessor
@@ -26,12 +26,11 @@ import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.Element
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
-import javax.lang.model.element.PackageElement
 import javax.lang.model.element.TypeElement
 import javax.lang.model.element.VariableElement
 
 /**
- * @author: Jiang Pengyong
+ * @author: Jiang PengYong
  * @date: 2021/8/12 11:39 上午
  * @email: 56002982@qq.com
  * @des: 接收者处理器
@@ -335,7 +334,7 @@ class ReceiverProcessor(
                 )
             }
 
-            method.getAnnotation(HandleMessage::class.java) ?: continue
+            val receiveAnnotation = method.getAnnotation(Receive::class.java) ?: continue
 
             val onlyParamSize = getParamSize(parameters)
             val allParamSize = parameters.size
@@ -389,8 +388,14 @@ class ReceiverProcessor(
                 }
             }
 
+            val receiveName = if (receiveAnnotation.name.isEmpty()) {
+                methodName
+            } else {
+                receiveAnnotation.name
+            }
+
             // "sayHelloToNative" -> {
-            val block = initBlock.addStatement("$spacing%S -> {", methodName)
+            val block = initBlock.addStatement("$spacing%S -> {", receiveName)
             if (allParamSize == 0) {
                 block.addStatement("$spacing  $methodChannelName?.$methodName()")
             } else {

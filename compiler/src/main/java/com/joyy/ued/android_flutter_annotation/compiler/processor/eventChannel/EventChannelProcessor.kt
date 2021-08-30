@@ -35,7 +35,7 @@ import javax.lang.model.util.Elements
 import javax.lang.model.util.Types
 
 /**
- * @author: Jiang Pengyong
+ * @author: Jiang PengYong
  * @date: 2021/8/11 1:58 下午
  * @email: 56002982@qq.com
  * @des: Event Channel 处理器

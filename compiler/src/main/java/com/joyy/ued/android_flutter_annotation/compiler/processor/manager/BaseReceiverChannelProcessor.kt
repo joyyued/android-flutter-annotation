@@ -10,7 +10,7 @@ import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 
 /**
- * @author: Jiang Pengyong
+ * @author: Jiang PengYong
  * @date: 2021/8/26 10:30 上午
  * @email: 56002982@qq.com
  * @des: BaseChannel 生成

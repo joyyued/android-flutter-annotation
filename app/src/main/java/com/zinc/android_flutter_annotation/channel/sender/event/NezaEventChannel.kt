@@ -6,7 +6,7 @@ import com.joyy.ued.android_flutter_annotation.annotation.event.FlutterEventChan
 import com.zinc.android_flutter_annotation.config.Config
 
 /**
- * @author: Jiang Pengyong
+ * @author: Jiang PengYong
  * @date: 2021/8/10 2:28 下午
  * @email: 56002982@qq.com
  * @des: Event Channel

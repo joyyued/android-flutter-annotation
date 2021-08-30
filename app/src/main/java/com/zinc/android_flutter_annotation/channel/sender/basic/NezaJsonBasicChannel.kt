@@ -6,7 +6,7 @@ import com.zinc.android_flutter_annotation.config.Config
 import io.flutter.plugin.common.JSONMessageCodec
 
 /**
- * @author: Jiang Pengyong
+ * @author: Jiang PengYong
  * @date: 2021/8/10 4:02 下午
  * @email: 56002982@qq.com
  * @des: json channel sender

@@ -3,7 +3,7 @@ package com.joyy.ued.android_flutter_annotation.compiler.processor.basicChannel
 import com.joyy.ued.android_flutter_annotation.annotation.FlutterEngine
 import com.joyy.ued.android_flutter_annotation.annotation.basic.FlutterBasicChannel
 import com.joyy.ued.android_flutter_annotation.annotation.common.Callback
-import com.joyy.ued.android_flutter_annotation.annotation.method.HandleMessage
+import com.joyy.ued.android_flutter_annotation.annotation.common.Receive
 import com.joyy.ued.android_flutter_annotation.annotation.method.ParseData
 import com.joyy.ued.android_flutter_annotation.compiler.Printer
 import com.joyy.ued.android_flutter_annotation.compiler.base.BaseProcessor
@@ -32,7 +32,7 @@ import javax.lang.model.type.TypeMirror
  * @author: Jiang Pengyong
  * @date: 2021/8/12 11:39 上午
  * @email: 56002982@qq.com
- * @des: 接收者处理器
+ * @des: Basic Message Channel 接收者
  */
 class ReceiverProcessor(
     printer: Printer,
@@ -247,7 +247,7 @@ class ReceiverProcessor(
             if (enclosedElement !is ExecutableElement) {
                 continue
             }
-            if (enclosedElement.getAnnotation(HandleMessage::class.java) == null) {
+            if (enclosedElement.getAnnotation(Receive::class.java) == null) {
                 continue
             }
             handleMethod = enclosedElement
