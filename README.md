@@ -75,7 +75,7 @@ Flutter.Engine.getEngine("引擎 id")
 )
 class NezaMethodChannel {
 
-    @HandleMessage
+    @Receive
     fun sayHelloToNative() {
         sayHello()
     }
@@ -87,7 +87,7 @@ class NezaMethodChannel {
 }
 ```
 
-在需要接收信息的方法加上 `@HandleMessage` 注解，则当 Flutter 端调用渠道名称为 `ChannelConfig.METHOD_CHANNEL` 的渠道，并且方法为 `sayHelloToNative` 时，则框架则会调用至该方法。
+在需要接收信息的方法加上 `@Receive` 注解，则当 Flutter 端调用渠道名称为 `ChannelConfig.METHOD_CHANNEL` 的渠道，并且方法为 `sayHelloToNative` 时，则框架则会调用至该方法。
 
 **发送者 [Native -> Flutter]**
 
@@ -146,12 +146,16 @@ class NezaMethodChannel {
 - 使用 `@ParseData` 注解的参数类型都需要为可空，即需要为 `String?` ,不能为 `String`
 - 不使用 `@ParseData` 注解，则参数个数必须为 0 或 1 个，如果 1 个参数，该参数类型必须为 `Any`
 
-#### @MessageHandler
+#### @Receive
 
-用于接收者，被标记的方法会接收 Flutter 传递过来的同渠道同方法名的信息
+用于接收者，被标记的方法默认会接收 Flutter 传递过来的同渠道同方法名的信息，可以通过设置属性 `name` ， 更改回调方法名 
 
 - 可以与 `@ParseData` 同时使用，此时框架会尝试着进行解析参数，但参数类型必须为可空，即需要为 `String?`，不能为 `String`
 - 如果只是单独使用，则参数个数必须为 0 或 1 个，如果 1 个参数，该参数类型必须为 `Any`
+
+#### @Send
+
+用于发送者，默认发送者会使用接口定义的方法名作为调用 Flutter 端的方法名称，通过设置该注解的 `name` 属性，可以更改这一默认行为，使用 `name` 的值进行调用
 
 #### @Callback
 
@@ -168,7 +172,7 @@ class NezaMethodChannel {
 )
 class NezaMethodChannel {
 
-    @HandleMessage
+    @Receive
     fun sayHelloToNativeWithRaw(
         map: Any,
         @Callback result: MethodChannel.Result
@@ -236,14 +240,14 @@ Flutter.channels?.nezaEventChannel?.sendImageInfo(byteArray)
     type = ChannelType.RECEIVER
 )
 object NezaBasicChannel {
-    @MessageHandler
+    @Receive
     fun receiverJsonFromFlutter(json: String) {
         Log.e("NezaBasicChannel", "[Flutter -> Native]$json")
     }
 }
 ```
 
-当 Flutter 端调用渠道名称为 `ChannelConfig.STANDER_BASIC_CHANNEL` 的渠道时，框架则会调用标记了 `@MessageHandler` 注解的方法。
+当 Flutter 端调用渠道名称为 `ChannelConfig.STANDER_BASIC_CHANNEL` 的渠道时，框架则会调用标记了 `@Receive` 注解的方法。
 
 **发送者 [Native -> Flutter]**
 
@@ -275,12 +279,12 @@ CoroutineScope(Dispatchers.Main).launch {
 }
 ```
 
-#### @MessageHandler
+#### @Receive
 
 用于在接收者中，标记需要处理接收到信息的方法，切记标记的方法参数类型要和 codec 的泛型一致
 
-- 如果存在多个 `@MessageHandler` ，则只有最后一个方法会被调用
-- 如果没有 `@MessageHandler`，则没有回调触发
+- 如果存在多个 `@Receive` ，则只有最后一个方法会被调用
+- 如果没有 `@Receive`，则没有回调触发
 
 #### @Callback
 
@@ -298,7 +302,7 @@ CoroutineScope(Dispatchers.Main).launch {
 )
 class NezaStringBasicChannel {
 
-    @HandleMessage
+    @Receive
     fun receiverJsonFromFlutter(
         json: String?,
         @Callback reply: BasicMessageChannel.Reply<String>
